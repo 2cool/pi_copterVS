@@ -303,7 +303,7 @@ void TelemetryClass::update_buf() {
 	uint32_t mod = Autopilot.get_control_bits();
 	loadBUF32(i, mod);
 	//printf("message=", message.c_str());
-	last_update_time = t;
+
 	loadBUF(i, 1000 + (Balance.get_throttle() * 1000));
 	loadBUF32(i, GPS.loc.lat_);
 	loadBUF32(i, GPS.loc.lon_);
@@ -315,6 +315,7 @@ void TelemetryClass::update_buf() {
 	loadBUF8(i, Mpu.get_roll());
 	loadBUF8(i, Balance.c_pitch);
 	loadBUF8(i, Balance.c_roll);
+	int16_t t;
 	t = (int16_t)b[0];
 	buf[i++] = ((byte*)&t)[0];
 	t = (int16_t)b[1];
