@@ -57,7 +57,7 @@ void server(){
 		return;
 	  printf("connected \n");
 	  while(run){
-		 bzero(buffer,256);
+		// bzero(buffer,256);
 		 n = read(newsockfd,buffer, TELEMETRY_BUF_SIZE);
 		 connected++;
 		// printf("recived: %i byte\n",n); 

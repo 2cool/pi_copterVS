@@ -744,11 +744,11 @@ bool AutopilotClass::start_stop_program(const bool stopHere){
 }
 
 bool AutopilotClass::set_control_bits(uint32_t bits) {
-	if (control_bits == bits)
+	if (bits==0)
 		return true;
 	//	uint8_t mask = control_bits_^bits;
 	printf("comm=%i\n", bits);
-	if ((control_bits^bits) & MOTORS_ON) {
+	if (MOTORS_ON&bits)  {
 		Hmc.compas_motors_calibr = false;
 		bool on = motors_is_on() == false;
 		on = motors_do_on(on, m_START_STOP);
@@ -757,23 +757,23 @@ bool AutopilotClass::set_control_bits(uint32_t bits) {
 		}
 	}
 
-	if ((control_bits^bits) & GO2HOME)
+	if (bits & GO2HOME)
 		going2HomeStartStop(false);
 
-	if ((control_bits^bits) & PROGRAM)
+	if (bits & PROGRAM)
 		start_stop_program(true);
 
-	if ((control_bits^bits) & Z_STAB)
+	if (bits & Z_STAB)
 		holdAltitudeStartStop();
 
-	if ((control_bits^bits) & XY_STAB)
+	if (bits & XY_STAB)
 		holdLocationStartStop();
 
 
-	if ((control_bits^bits) & COMPASS_ON)
+	if (bits & COMPASS_ON)
 		compass_tr();
 
-	if ((control_bits^bits) & HORIZONT_ON)
+	if (bits & HORIZONT_ON)
 		horizont_tr();
 	//-----------------------------------------------
 	if (bits & (MPU_ACC_CALIBR | MPU_GYRO_CALIBR)) {
@@ -781,17 +781,17 @@ bool AutopilotClass::set_control_bits(uint32_t bits) {
 		Mpu.new_calibration(!(bits&MPU_ACC_CALIBR));
 		control_bits &= (0xffffffff ^ (MPU_ACC_CALIBR | MPU_GYRO_CALIBR));
 	}
-	if ((control_bits^bits) & COMPASS_MOTOR_CALIBR) {
+	if (bits & COMPASS_MOTOR_CALIBR) {
 		Hmc.start_motor_compas_calibr();
 		if (Hmc.compas_motors_calibr)
 			control_bits |= COMPASS_MOTOR_CALIBR;
 	}
-	if ((control_bits^bits) & COMPASS_CALIBR) {
+	if (bits & COMPASS_CALIBR) {
 		control_bits |= COMPASS_CALIBR;
 		Hmc.calibration(true);
 		control_bits &= ~COMPASS_CALIBR;
 	}
-	if ((control_bits^bits) & RESETING) 
+	if (bits & RESETING) 
 	{}
 	if (bits & GIMBAL_PLUS)
 		gimBalPitchADD(5);
