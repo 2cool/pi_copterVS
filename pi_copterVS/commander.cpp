@@ -234,7 +234,7 @@ void CommanderClass::new_data(byte *buffer, int n) {
 			usleep(10000);
 
 		memccpy(buf, buffer, 1, n);
-
+		//printf("in-> %i\n", buffer[0]);
 		Autopilot.last_time_data_recived = millis();
 		data_size = n;
 	}

@@ -299,8 +299,11 @@ int TelemetryClass::read_buf(byte *buffer) {
 }
 uint32_t last_update_time=0;
 void TelemetryClass::update_buf() {
+
+	//delay(5000);
 	int i = 0;
 	uint32_t mod = Autopilot.get_control_bits();
+//	printf("out <- %i\n", mod);
 	loadBUF32(i, mod);
 	//printf("message=", message.c_str());
 

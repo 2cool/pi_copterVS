@@ -23,7 +23,8 @@ void error(const char *msg)
 int wifi_connections=0;
 	int sockfd, newsockfd, portno;
      socklen_t clilen;
-     uint8_t buffer[TELEMETRY_BUF_SIZE];
+     uint8_t inbuffer[TELEMETRY_BUF_SIZE];
+	 uint8_t outbuffer[TELEMETRY_BUF_SIZE];
      struct sockaddr_in serv_addr, cli_addr;
      int n;
      int connected=0;
@@ -58,7 +59,8 @@ void server(){
 	  printf("connected \n");
 	  while(run){
 		// bzero(buffer,256);
-		 n = read(newsockfd,buffer, TELEMETRY_BUF_SIZE);
+		 n = read(newsockfd,inbuffer, TELEMETRY_BUF_SIZE);
+		// printf("-> %i\n", inbuffer[0]);
 		 connected++;
 		// printf("recived: %i byte\n",n); 
 		// if (buffer[0]!='M')
@@ -70,12 +72,12 @@ void server(){
 		//}
 		if (n>0){
 		//	printf("<- ");
-			com->new_data(buffer,n);
+			com->new_data(inbuffer,n);
 			
-			int buf_len=tel->read_buf(buffer);
+			int buf_len=tel->read_buf(outbuffer);
 		//	printf("-> ");
 			
-			n = write(newsockfd,buffer,buf_len);
+			n = write(newsockfd,outbuffer,buf_len);
 		}else{
 			printf("ERROR reading from socket\n");
 			if (wite_connection())

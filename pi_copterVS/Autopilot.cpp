@@ -747,7 +747,7 @@ bool AutopilotClass::set_control_bits(uint32_t bits) {
 	if (bits==0)
 		return true;
 	//	uint8_t mask = control_bits_^bits;
-	printf("comm=%i\n", bits);
+	//printf("comm=%i\n", bits);
 	if (MOTORS_ON&bits)  {
 		Hmc.compas_motors_calibr = false;
 		bool on = motors_is_on() == false;

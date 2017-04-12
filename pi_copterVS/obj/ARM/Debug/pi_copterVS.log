@@ -6,6 +6,6 @@
   Wi_Fi.cpp
 C:\Users\tcool\Desktop\pi_c\pi_copterVS\pi_copterVS\AP_PID.h(28,6): warning : conversion to ‘float’ from ‘double’ may alter its value [-Wfloat-conversion]
 C:\Users\tcool\Desktop\pi_c\pi_copterVS\pi_copterVS\RC_Filter.h(15,6): warning : conversion to ‘float’ from ‘double’ may alter its value [-Wfloat-conversion]
-C:\Users\tcool\Desktop\pi_c\pi_copterVS\pi_copterVS\Wi_Fi.cpp(135,39): warning : conversion to ‘uint16_t {aka short unsigned int}’ from ‘int’ may alter its value [-Wconversion]
+C:\Users\tcool\Desktop\pi_c\pi_copterVS\pi_copterVS\Wi_Fi.cpp(137,39): warning : conversion to ‘uint16_t {aka short unsigned int}’ from ‘int’ may alter its value [-Wconversion]
   Linking objects
   pi_copterVS.vcxproj -> C:\Users\tcool\Desktop\pi_c\pi_copterVS\pi_copterVS\bin\ARM\Debug\pi_copterVS.out
