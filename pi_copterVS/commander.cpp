@@ -229,6 +229,7 @@ float CommanderClass::getRoll(){ return Autopilot.horizont_onState() ? roll : 0;
 
 
 void CommanderClass::new_data(byte *buffer, int n) {
+
 	if (n > 4) {
 		while (data_size)
 			usleep(10000);
