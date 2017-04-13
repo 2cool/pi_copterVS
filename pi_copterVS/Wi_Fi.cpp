@@ -71,11 +71,11 @@ void server(){
 		//	return;
 		//}
 		if (n>0){
-		//	printf("<- ");
+		
 			com->new_data(inbuffer,n);
-			
+		//	printf("K");	
 			int buf_len=tel->read_buf(outbuffer);
-		//	printf("-> ");
+		//	printf("T\n");
 			
 			n = write(newsockfd,outbuffer,buf_len);
 		}else{

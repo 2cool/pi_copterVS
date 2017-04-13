@@ -280,27 +280,29 @@ void TelemetryClass::loadBUF(int &i, const float fval)
 
 bool gps_or_acuracy = false;
 
-
+enum {MOTORS_ON=1,CONTROL_FALLING=2,Z_STAB=4,XY_STAB=8,GO2HOME=0x10,PROGRAM=0x20,COMPASS_ON=0x40,HORIZONT_ON=0x80,
+		MPU_ACC_CALIBR=0x100, MPU_GYRO_CALIBR = 0x200, COMPASS_CALIBR=0x400, COMPASS_MOTOR_CALIBR=0x800, RESETING=0x1000, GIMBAL_PLUS=0x2000,GIMBAL_MINUS=0x4000
+	};
 
 int TelemetryClass::read_buf(byte *buffer) {
-	while (buffer_size == 0) {
-		if (Autopilot.get_control_bits()&(Autopilot.MPU_ACC_CALIBR | Autopilot.MPU_GYRO_CALIBR | Autopilot.COMPASS_CALIBR)) {
-			return 4;
+	if (Autopilot.busy())
+		return 4;
+	else {
+		while (buffer_size == 0) {
+			usleep(10000);
 		}
-		usleep(10000);
+		int size = buffer_size;
+		memcpy(buffer, buf, size);
+		buffer_size = 0;
+		return size;
 	}
-	int size = buffer_size;
-	memccpy(buffer, buf, 1, size);
-	buffer_size = 0;
-	return size;
-
 
 
 }
 uint32_t last_update_time=0;
 void TelemetryClass::update_buf() {
-
-	//delay(5000);
+	bzero(buf, 32);
+	//delay(1000);
 	int i = 0;
 	uint32_t mod = Autopilot.get_control_bits();
 //	printf("out <- %i\n", mod);

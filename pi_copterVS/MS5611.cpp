@@ -215,7 +215,7 @@ uint8_t MS5611Class::loop(){
 	const float dt = (millis() - timet)*0.001;
 	timet = millis();
 
-	float new_altitude = Mpu.altitude_Z + +FALSE_ALTITUDE;
+	float new_altitude = Mpu.altitude_Z + FALSE_ALTITUDE;
 	if (flying == false && Mpu.altitude_Z > 1)
 		flying = true;
 	speed = Mpu.speed_Z;

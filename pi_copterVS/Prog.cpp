@@ -89,7 +89,7 @@ void ProgClass::loop(){
 
 #define MAX_TIME_LONG_FLIGHT  1200
 bool ProgClass::program_is_OK(){
-	if (prog_data_size >= 14 && prog_steps_count_must_be == steps_count){
+	if (prog_data_size >= 14){// && prog_steps_count_must_be == steps_count){
 		prog_data_index = 0;
 		time4step2done = 0;
 		old_dt = 0;

@@ -49,7 +49,7 @@ class AutopilotClass
 
 	 float throttle;
 	 
-	 uint32_t control_bits;
+	 volatile uint32_t control_bits;
 	 float gimBalPitch, tflyAtAltitude;
 
 
@@ -60,11 +60,13 @@ class AutopilotClass
 	// float get_dist();
 	 float lowest_height;
 	
-	
+	enum {MOTORS_ON=1,CONTROL_FALLING=2,Z_STAB=4,XY_STAB=8,GO2HOME=0x10,PROGRAM=0x20,COMPASS_ON=0x40,HORIZONT_ON=0x80,
+		MPU_ACC_CALIBR=0x100, MPU_GYRO_CALIBR = 0x200, COMPASS_CALIBR=0x400, COMPASS_MOTOR_CALIBR=0x800, RESETING=0x1000, GIMBAL_PLUS=0x2000,GIMBAL_MINUS=0x4000
+	};
 
 	 
  public:
-
+	 bool busy() { return (control_bits & (MPU_ACC_CALIBR | MPU_GYRO_CALIBR | COMPASS_CALIBR)); }
 	 uint32_t last_time_data_recived;
 	 void setYaw(const float yaw){aYaw_ = yaw;}
 	 float getGimbalPitch(){ return gimBalPitch; }
@@ -72,9 +74,7 @@ class AutopilotClass
 	 void gimBalPitchADD(const float add);
 
 	float corectedAltitude(){ return MS5611.altitude(); }
-	enum {MOTORS_ON=1,CONTROL_FALLING=2,Z_STAB=4,XY_STAB=8,GO2HOME=0x10,PROGRAM=0x20,COMPASS_ON=0x40,HORIZONT_ON=0x80,
-		MPU_ACC_CALIBR=0x100, MPU_GYRO_CALIBR = 0x200, COMPASS_CALIBR=0x400, COMPASS_MOTOR_CALIBR=0x800, RESETING=0x1000, GIMBAL_PLUS=0x2000,GIMBAL_MINUS=0x4000
-	};
+	
 	
 	void reset_compas_motors_calibr_bit() {control_bits &= (~COMPASS_MOTOR_CALIBR);}
 

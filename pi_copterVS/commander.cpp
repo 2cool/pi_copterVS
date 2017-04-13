@@ -229,12 +229,12 @@ float CommanderClass::getRoll(){ return Autopilot.horizont_onState() ? roll : 0;
 
 
 void CommanderClass::new_data(byte *buffer, int n) {
-
-	if (n > 4) {
+	//control_bits |= (MPU_ACC_CALIBR | MPU_GYRO_CALIBR)
+	if (n > 4 && !Autopilot.busy()) {
 		while (data_size)
 			usleep(10000);
 
-		memccpy(buf, buffer, 1, n);
+		memcpy(buf, buffer, n);
 		//printf("in-> %i\n", buffer[0]);
 		Autopilot.last_time_data_recived = millis();
 		data_size = n;
@@ -269,14 +269,13 @@ bool CommanderClass::input(){
 			t = *(int16_t*)(buf + i);
 			i += 2;
 			roll = ANGK*(float)t;
-
-			if ((i + 3) == data_size) {
+			if ((i + 3) < data_size) {
 				string msg = "";
 				msg += *(buf + i++);
 				msg += *(buf + i++);
 				msg += *(buf + i++);
-				if (msg.find(m_PROGRAM) == 0) {
-					Prog.add(buf + i + 1);
+				if (msg.find(m_PROGRAM) == 0 && Autopilot.progState()==false) {
+					Prog.add(buf + i);
 				}
 				else
 					if (msg.find(m_SETTINGS) == 0) {

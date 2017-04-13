@@ -243,6 +243,8 @@ float MpuClass::getZA(){
 	//graphic(0, altitude_Z*0.01, throttle);
 	speed_Z += a*dt;
 	//Out.println(a);
+	//Debug.load(0, altitude_Z, speed_Z);
+	//Debug.dump();
 	return a;
 
 
