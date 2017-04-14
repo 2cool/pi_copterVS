@@ -51,7 +51,7 @@ void TelemetryClass::getSettings(int n){
 		return;
 
 	ostringstream convert;
-	convert << "UPS," << n << ",";
+	convert << "UPS" << n <<",";
 	message += convert.str();
 
 	switch (n){
@@ -331,13 +331,13 @@ void TelemetryClass::update_buf() {
 	loadBUF8(i, Mpu.yaw * 0.70555555555555555555555555555556);
 
 	if (message.length() && i + message.length() < TELEMETRY_BUF_SIZE) {
-		memccpy(&buf[i], message.c_str(), 1, message.length());
+		memcpy(&buf[i], message.c_str(), message.length());
 		i += message.length();
 		message = "";
 	}
 	buffer_size = i;
 }
-
+//nado echo peredat koordinaty starta i visoti ili luche ih androis socharanaet
 
 TelemetryClass Telemetry;
 

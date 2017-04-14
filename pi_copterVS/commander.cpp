@@ -277,12 +277,12 @@ bool CommanderClass::input(){
 				if (msg.find(m_PROGRAM) == 0 && Autopilot.progState()==false) {
 					Prog.add(buf + i);
 				}
-				else
-					if (msg.find(m_SETTINGS) == 0) {
-						Settings(string((char*)buf));
-					}
-					else
-						ButtonMessage(msg);
+				else if (msg.find(m_SETTINGS) == 0) {
+						Settings(string((char*)(buf+i)));
+				}
+				else if (msg.find("UPS") == 0) {
+					Telemetry.getSettings(buf[i++]);
+				}
 			}
 			data_size = 0;
 			return true;
