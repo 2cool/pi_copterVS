@@ -70,7 +70,6 @@ void AutopilotClass::init(){////////////////////////////////////////////////////
 	//holdLocationStartStop(false);
 	//holdAltitudeStartStop(false);
 
-	lost_conection_time = millis();
 	height_to_lift_to_fly_to_home = HIGHT_TO_LIFT_ON_TO_FLY_TO_HOME;
 	aPitch = aRoll = aYaw_=0;
 
@@ -162,6 +161,10 @@ void AutopilotClass::loop(){////////////////////////////////////////////////////
 				go2HomeProc(dt);
 			}
 			else{
+				if (motors_is_on() && millis() - last_time_data_recived > 3000) {
+					connectionLost_();
+					return;
+				}
 
 				const bool timeLag = (millis() - last_time_data_recived > 100);
 
@@ -385,7 +388,7 @@ boolean AutopilotClass::go2HomeProc(const float dt){
 	return true;
 }
 boolean AutopilotClass::going2HomeON(const bool hower){
-
+	
 	Stabilization.setDefaultMaxSpeeds();
 
 	howeAt2HOME = hower;//зависнуть на месте или нет
@@ -395,7 +398,8 @@ boolean AutopilotClass::going2HomeON(const bool hower){
 	if (res){
 		control_bits |= GO2HOME;
 		f_go2homeTimer = 0;
-		Out.println("Hanging on the site!");
+		//Out.println("Hanging on the site!");
+		printf("go2home\n");
 		go2homeIndex=JUMP;
 	}
 	return res;
@@ -425,11 +429,9 @@ boolean AutopilotClass::holdLocation(const long lat, const long lon){
 	aPitch = aRoll = 0;
 	//if (holdAltitude()){
 
+		
 		GPS.loc.setNeedLoc(lat,lon);
-		Out.print("Hower at:");
-		Out.print(GPS.loc.lat_);
-		Out.print(",");
-		Out.println(GPS.loc.lon_);
+		printf("Hower at: %i,%i\n",GPS.loc.lat_, GPS.loc.lon_);
 		oldtime = millis();
 		
 		//float cosBearing = cos(GPS.bearing);
@@ -584,30 +586,29 @@ boolean AutopilotClass::off_throttle(const boolean force, const string msg){////
 
 void AutopilotClass::connectionLost_(){ ///////////////// LOST
 
-
+	printf("connection lost\n");
 	//Out.println("CONNECTION LOST");
 	
-if (lost_conection_time == 0) {
-	lost_conection_time = millis();
-	Telemetry.addMessage(e_LOST_CONNECTION);
-	Out.println("con lost!");
+
+	//Telemetry.addMessage(e_LOST_CONNECTION);
+	//Out.println("con lost!");
 	//Out.println(millis());
 
 	Commander.init();
-}
+
 #ifdef OFF_MOTOR_IF_LOST_CONNECTION
 if (motors_is_on())
 off_throttle(true, "lost connection");
 return;
 #endif
-if (motors_is_on())
-if (go2homeState() == false && progState() == false) {
-	aPitch = aRoll = 0;
+	if (motors_is_on())
+		if (go2homeState() == false && progState() == false) {
+			aPitch = aRoll = 0;
 
-	if (going2HomeON(true) == false && (millis() - lost_conection_time) > NO_GPS_TIME_TO_FALL) {
-		off_throttle(false, e_NO_GPS_2_LONG);
-	}
-}
+			if (going2HomeON(true) == false && (millis() - last_time_data_recived) > NO_GPS_TIME_TO_FALL) {
+				off_throttle(false, e_NO_GPS_2_LONG);
+			}
+		}
 
 }
 void AutopilotClass::calibration() {/////////////////////////////////////////////////////////////////////////////////////////////////

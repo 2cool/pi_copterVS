@@ -31,20 +31,19 @@ int wifi_connections=0;
      bool run=true;
 
 void mclose(){
+    wifi_connections--;
 	close(newsockfd);
     close(sockfd);
-    wifi_connections--;
-	
+	printf("FIFI closed\n");
 }
 CommanderClass *com;
 TelemetryClass *tel;
 
 bool wite_connection(){
-	connected = 0;
 	 newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
      if (newsockfd < 0) {
           printf("ERROR on accept\n");
-          wifi_connections--;     
+          wifi_connections--;  
           return true;
 	  }
 
@@ -56,22 +55,14 @@ void server(){
 	delay(5000);
      if (wite_connection())
 		return;
-	  printf("connected \n");
 	  while(run){
 		// bzero(buffer,256);
 		 n = read(newsockfd,inbuffer, TELEMETRY_BUF_SIZE);
-		// printf("-> %i\n", inbuffer[0]);
-		 connected++;
-		// printf("recived: %i byte\n",n); 
-		// if (buffer[0]!='M')
-		//	printf("%s\n",buffer);
-		// if (n < 0) {
-		//	printf("ERROR reading from socket\n");
-		// printf("Here is the message: %s\n",buffer);
-		//	return;
-		//}
+
 		if (n>0){
-		
+			if (connected == 0)
+				printf("connected \n");
+			connected++;
 			com->new_data(inbuffer,n);
 		//	printf("K");	
 			int buf_len=tel->read_buf(outbuffer);
@@ -79,10 +70,13 @@ void server(){
 			
 			n = write(newsockfd,outbuffer,buf_len);
 		}else{
-			printf("ERROR reading from socket\n");
+			if (connected) {
+				
+				printf("ERROR reading from socket\n");
+				connected = 0;
+			}
 			if (wite_connection())
 				return;
-			printf("connected \n");
 		}
 	}	
 	
@@ -126,7 +120,7 @@ int WiFiClass::init()
 	connected=0;
      sockfd = socket(AF_INET, SOCK_STREAM, 0);
      if (sockfd < 0) {
-        error("ERROR opening socket/n");
+        printf("ERROR opening socket/n");
         wifi_connections--;
         return -1;
 	}

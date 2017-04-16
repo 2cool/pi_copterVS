@@ -77,10 +77,10 @@ void ProgClass::loop(){
 	if (go_next){
 		go_next = distFlag = altFlag = false;
 		if (load_next() == false){
-			if (Autopilot.lost_conection_time == 0){
+			//if (Autopilot.lost_conection_time == 0){
 				Out.println("PROG END");
 				Autopilot.start_stop_program(false);
-			}
+			//}
 		}
 	}
 	intersactionFlag = Prog.getIntersection(stabX, stabY);

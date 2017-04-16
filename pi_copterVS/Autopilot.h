@@ -97,7 +97,7 @@ class AutopilotClass
 
 	 float get_throttle(){ return throttle; }
 	 float get_yaw(){ return aYaw_; }
-	 uint32_t lost_conection_time;
+
 	 
 	 void add_2_need_altitude(float speed, const float dt);
 	 void add_2_need_yaw(float speed, const float dt);
