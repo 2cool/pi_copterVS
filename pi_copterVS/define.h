@@ -62,16 +62,16 @@
 #define ULTRASOUND_MAX_DETECT_HEIGHT 4
 
 
-#define FALSE_WIRE
+//#define FALSE_WIRE
 
 
 
 
 
 
-//#define FALSE_GPS
-//#define FASLE_GPS_STILL
-#define MOTORS_OFF
+#define FALSE_GPS
+#define FASLE_GPS_STILL
+//#define MOTORS_OFF
 #define NO_BATTERY
 
 #ifdef FALSE_WIRE
@@ -81,9 +81,9 @@
 #define FALSE_BAROMETR
 #define FALSE_MPU
 #define COMPAS_MOTORS_OFF  
-#define NO_BATTERY
+//#define NO_BATTERY
 #define FALSE_ULTRASOUND_RADAR
-#define MOTORS_OFF
+//#define MOTORS_OFF
 #define FALSE_ALTITUDE 30
 
 #else

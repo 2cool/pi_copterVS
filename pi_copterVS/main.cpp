@@ -84,12 +84,12 @@ void buzz_until_not_finded() {
 	
 #else	
 
-	const bool power_on = analogRead(A4) > 500;
+	const bool power_on = true;// analogRead(A4) > 500;
 	Pwm.on(PWM_COUNTER, power_on ? pwm_OFF_THROTTLE : pwm_MAX_THROTTLE);
 	Out.println(power_on ? "	- COPTER IS LOST -" : "wait 4 power");
 
 
-
+	/*
 	uint32_t temp_time = 0;
 	do {
 		GPS.loop();
@@ -122,7 +122,7 @@ void buzz_until_not_finded() {
 				else {
 					if (millis() - temp_time > (uint32_t)1000U) {
 
-						OCR5A = OCR3A = OCR4A = OCR4C = pwm_OFF_THROTTLE;
+						//OCR5A = OCR3A = OCR4A = OCR4C = pwm_OFF_THROTTLE;
 						WiFi.copterFound = true;
 						break;
 						//Serial.println("off THR");
@@ -138,10 +138,11 @@ void buzz_until_not_finded() {
 
 
 	} while (true);
+	*/
 #endif
 }
 
-int setup() {
+int setup() {////--------------------------------------------- SETUP ------------------------------
 	EEPROM.read_set();
 	//wdt_disable();
 	//wdt_enable(WDTO_4S);
@@ -164,9 +165,7 @@ int setup() {
 	printf("gps init...\n");
 	GPS.init();
 	//	Bluetooth.init();
-	printf("telemetry init...\n");
-	Telemetry.init_();
-	Telemetry.testBatteryVoltage();
+
 	printf("wifi init...\n");
 	if (WiFi.init())
 		return -1;
@@ -177,6 +176,10 @@ int setup() {
 	printf("buzz_until not finded...\n");
 
 	buzz_until_not_finded();
+
+	printf("telemetry init...\n");
+	Telemetry.init_();
+	Telemetry.testBatteryVoltage();
 
 	//wdt_enable(WATCHDOG);
 	//wdt_disable();

@@ -15,6 +15,12 @@
 2       3
 
 */
+#include <linux/i2c-dev.h>
+#include <sys/ioctl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <linux/types.h>
+
 
 #include "define.h"
 #include "Pwm.h"
@@ -69,8 +75,46 @@ PL3 ( OC5A )					Digital pin 46 (PWM)
 
 */
 
-void PwmClass::on(const uint16_t COUNTER, const uint16_t throthle)
+#define  ARDUINO_ADDR 9
+int fd;
+
+int PwmClass::on(const uint16_t COUNTER, const uint16_t throthle)
 {
+
+	printf("arduino connection test\n");
+	if ((fd = open("/dev/i2c-1", O_RDWR)) < 0) {
+		printf("Failed to open the bus.\n");
+		return -1;
+	}
+	if (ioctl(fd, I2C_SLAVE, ARDUINO_ADDR) < 0) {
+		printf("Failed to acquire bus access and/or talk to slave.\n");
+		return -1;
+	}
+/*
+	if (write(fd, pwm_out_buffer, 12) != 12) {
+		printf("write reg 8 bit Failed to write to the i2c bus.\n");
+		return -1;
+	}
+
+
+	usleep(10000);
+	if (read(fd, pwm_in_buffer, 3) != 3) {
+		printf("read reg 8 bit Failed to read to the i2c bus.\n");
+		return -1;
+	}else
+		printf("%i,%i,%i\n", (int)pwm_in_buffer[0], (int)pwm_in_buffer[1], (int)pwm_in_buffer[2]);
+
+		*/
+
+	return 0;
+
+
+
+
+
+
+
+
 	//old_g_pitch = 1000;
 
 
@@ -132,16 +176,22 @@ bool PwmClass::gimbal_roll( float angle){
 }
 bool PwmClass::gimagl_pitch( float angle){
 
-	if (old_g_pitch != angle && angle>=-90 && angle <= 10 ){
+
+	if (old_g_pitch != angle && angle >= -90 && angle <= 10) {
 		angle = -angle;
 		old_g_pitch = angle;
 		//Serial.print("camAng="); Serial.println(angle);
-		angle = angle*(1.0 / 180)*(pwm_OFF_THROTTLE / 2) + ((pwm_OFF_THROTTLE / 2)) + pwm_OFF_THROTTLE;
-		//OCR5C = angle;
-		
+		angle = angle*(1.0 / 180)*(1000 / 2) + ((1000 / 2)) + 1000;
+
+		char buf[4];
+		((int16_t*)buf)[0] = angle;
+		((int16_t*)buf)[1] = 1000;
+		write(fd, buf,4);
 		return true;
 	}
-	return false;
+	else
+		return false;
+
 }
 
 void PwmClass::Buzzer(const bool on){
@@ -168,11 +218,23 @@ uint16_t PwmClass::correct(const float n){    //0-это
 
 
 void PwmClass::throttle(const float n0, const float n1, const float n2, const float n3){
-	//OCR5A = pwm_OFF_THROTTLE + (uint16_t)(n0*pwm_OFF_THROTTLE);
-	//OCR4C = pwm_OFF_THROTTLE + (uint16_t)(n1*pwm_OFF_THROTTLE);
-	//OCR3A = pwm_OFF_THROTTLE + (uint16_t)(n2*pwm_OFF_THROTTLE);
-	//OCR4A = pwm_OFF_THROTTLE + (uint16_t)(n3*pwm_OFF_THROTTLE);
+	char pwm_out_buffer[8];
+	((uint16_t*)&pwm_out_buffer)[0] = 1000 + (uint16_t)(n0 * 1000);
+	((uint16_t*)&pwm_out_buffer)[1] = 1000 + (uint16_t)(n1 * 1000);
+	((uint16_t*)&pwm_out_buffer)[2] = 1000 + (uint16_t)(n2 * 1000);
+	((uint16_t*)&pwm_out_buffer)[3] = 1000 + (uint16_t)(n3 * 1000);
+
+	write(fd, pwm_out_buffer, 8);
+
+
 }
+
+
+void PwmClass::get_analog(uint16_t buffer[]) {
+	read(fd, (uint8_t*)buffer, 6);
+}
+
+
 
 void PwmClass::throttle_0(const float n){ 
 	//OCR5A = pwm_OFF_THROTTLE + (uint16_t)(n*pwm_OFF_THROTTLE);//0

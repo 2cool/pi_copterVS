@@ -262,6 +262,7 @@ void BalanceClass::loop()
 	Hmc.loop();
 	GPS.loop();
 
+
 		// Do the magic
 	if (Autopilot.motors_is_on()){  // Throttle raised, turn on stablisation.
 	
@@ -418,9 +419,13 @@ void BalanceClass::loop()
 	
 
 	LED.loop();
+//	int tt = micros();
+	Pwm.throttle(f_[0], f_[1], f_[2], f_[3]);  //670 micros
+	//Pwm.gimagl_pitch(-40);
 
-	Pwm.throttle(f_[0], f_[1], f_[2], f_[3]);
 
+//	int ttt = micros() - tt;
+//	ttt = tt;
 	/*
 	int tttttttttttttt = millis();
 

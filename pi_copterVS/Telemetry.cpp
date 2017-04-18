@@ -189,14 +189,18 @@ void TelemetryClass::update(){
 	//Debug.load(0,(a2-(360*3))/138,0);
 	//Debug.dump();
 #else
-	a2 = BAT_K2*(float)analogRead(A2);
-	if (bat_cnt == 0){
-		float a0 = BAT_K0*(float)analogRead(A0);
-		float a1 = BAT_K1*(float)analogRead(A1);
+	uint16_t buf[3];
+	//int t = micros();
+	Pwm.get_analog(buf);  //300 microsec
+	//int t2 = micros() - t;
+	a2 = BAT_K2*(float)buf[2];// analogRead(A2);
+	if (bat_cnt == 0) {
+		float a0 = BAT_K0*(float)buf[0];// analogRead(A0);
+		float a1 = BAT_K1*(float)buf[1];// analogRead(A1);
 
-		b[0] += (a0-b[0])*0.1;
-		b[2] += (a2 - a1-b[2])*0.1;
-		b[1] += (a1 - a0-b[1])*0.1;
+		b[0] += (a0 - b[0])*0.1;
+		b[2] += (a2 - a1 - b[2])*0.1;
+		b[1] += (a1 - a0 - b[1])*0.1;
 		//Serial.println("bat");
 		//Serial.println(a2);
 		//Debug.dump(b[0], b[1], b[2], 0);	
