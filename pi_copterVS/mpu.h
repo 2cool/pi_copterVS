@@ -18,7 +18,7 @@
 #include "define.h"
 //===================================================
 
-
+//#define SESOR_UPSIDE_DOWN
 class MpuClass 
 {
 	friend class HmcClass;

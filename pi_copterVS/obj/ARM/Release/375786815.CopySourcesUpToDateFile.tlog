@@ -9,12 +9,12 @@ C:\Users\tcool\Desktop\pi_c\pi_copterVS\pi_copterVS\FilterTwoPole.cpp|6362811623
 C:\Users\tcool\Desktop\pi_c\pi_copterVS\pi_copterVS\FIND.cpp|636281162395521617|~/projects/pi_copterVS|
 C:\Users\tcool\Desktop\pi_c\pi_copterVS\pi_copterVS\GeoDot.cpp|636281162396302926|~/projects/pi_copterVS|
 C:\Users\tcool\Desktop\pi_c\pi_copterVS\pi_copterVS\GPS.cpp|636281162396146668|~/projects/pi_copterVS|
-C:\Users\tcool\Desktop\pi_c\pi_copterVS\pi_copterVS\Hmc.cpp|636281894431225178|~/projects/pi_copterVS|
+C:\Users\tcool\Desktop\pi_c\pi_copterVS\pi_copterVS\Hmc.cpp|636281162396459162|~/projects/pi_copterVS|
 C:\Users\tcool\Desktop\pi_c\pi_copterVS\pi_copterVS\I2Cdev.cpp|636281162396615448|~/projects/pi_copterVS|
 C:\Users\tcool\Desktop\pi_c\pi_copterVS\pi_copterVS\LED.cpp|636281162396771706|~/projects/pi_copterVS|
 C:\Users\tcool\Desktop\pi_c\pi_copterVS\pi_copterVS\Location.cpp|636281162396927970|~/projects/pi_copterVS|
-C:\Users\tcool\Desktop\pi_c\pi_copterVS\pi_copterVS\main.cpp|636281942196645309|~/projects/pi_copterVS|
-C:\Users\tcool\Desktop\pi_c\pi_copterVS\pi_copterVS\mpu.cpp|636281978759613221|~/projects/pi_copterVS|
+C:\Users\tcool\Desktop\pi_c\pi_copterVS\pi_copterVS\main.cpp|636281557635708709|~/projects/pi_copterVS|
+C:\Users\tcool\Desktop\pi_c\pi_copterVS\pi_copterVS\mpu.cpp|636281468866705663|~/projects/pi_copterVS|
 C:\Users\tcool\Desktop\pi_c\pi_copterVS\pi_copterVS\MPU6050.cpp|636281162397240486|~/projects/pi_copterVS|
 C:\Users\tcool\Desktop\pi_c\pi_copterVS\pi_copterVS\MS5611.cpp|636281162397709258|~/projects/pi_copterVS|
 C:\Users\tcool\Desktop\pi_c\pi_copterVS\pi_copterVS\Prog.cpp|636281162397865530|~/projects/pi_copterVS|
@@ -31,7 +31,7 @@ C:\Users\tcool\Desktop\pi_c\pi_copterVS\pi_copterVS\Autopilot.h|6362811623950528
 C:\Users\tcool\Desktop\pi_c\pi_copterVS\pi_copterVS\Balance.h|636281162395209102|~/projects/pi_copterVS|
 C:\Users\tcool\Desktop\pi_c\pi_copterVS\pi_copterVS\commander.h|636281162400990745|~/projects/pi_copterVS|
 C:\Users\tcool\Desktop\pi_c\pi_copterVS\pi_copterVS\debug.h|636281288972041894|~/projects/pi_copterVS|
-C:\Users\tcool\Desktop\pi_c\pi_copterVS\pi_copterVS\define.h|636281966914877955|~/projects/pi_copterVS|
+C:\Users\tcool\Desktop\pi_c\pi_copterVS\pi_copterVS\define.h|636281426891775382|~/projects/pi_copterVS|
 C:\Users\tcool\Desktop\pi_c\pi_copterVS\pi_copterVS\Direction.h|636281162395365366|~/projects/pi_copterVS|
 C:\Users\tcool\Desktop\pi_c\pi_copterVS\pi_copterVS\Filter.h|636281162395834146|~/projects/pi_copterVS|
 C:\Users\tcool\Desktop\pi_c\pi_copterVS\pi_copterVS\FilterTwoPole.h|636281162395990404|~/projects/pi_copterVS|
@@ -42,7 +42,7 @@ C:\Users\tcool\Desktop\pi_c\pi_copterVS\pi_copterVS\Hmc.h|636281162396459162|~/p
 C:\Users\tcool\Desktop\pi_c\pi_copterVS\pi_copterVS\I2Cdev.h|636281162396771706|~/projects/pi_copterVS|
 C:\Users\tcool\Desktop\pi_c\pi_copterVS\pi_copterVS\LED.h|636281162396927970|~/projects/pi_copterVS|
 C:\Users\tcool\Desktop\pi_c\pi_copterVS\pi_copterVS\Location.h|636281162397084221|~/projects/pi_copterVS|
-C:\Users\tcool\Desktop\pi_c\pi_copterVS\pi_copterVS\mpu.h|636281903882020738|~/projects/pi_copterVS|
+C:\Users\tcool\Desktop\pi_c\pi_copterVS\pi_copterVS\mpu.h|636281162401772068|~/projects/pi_copterVS|
 C:\Users\tcool\Desktop\pi_c\pi_copterVS\pi_copterVS\MPU6050.h|636281162397553036|~/projects/pi_copterVS|
 C:\Users\tcool\Desktop\pi_c\pi_copterVS\pi_copterVS\MS5611.h|636281162397709258|~/projects/pi_copterVS|
 C:\Users\tcool\Desktop\pi_c\pi_copterVS\pi_copterVS\Prog.h|636281162398021788|~/projects/pi_copterVS|

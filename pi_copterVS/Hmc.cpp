@@ -198,10 +198,18 @@ void HmcClass::loop(){
 	readBytes(devAddr, HMC5883L_RA_DATAX_H, 6, buffer);
 	if (mode == HMC5883L_MODE_SINGLE) writeByte(devAddr, HMC5883L_RA_MODE, HMC5883L_MODE_SINGLE << (HMC5883L_MODEREG_BIT - HMC5883L_MODEREG_LENGTH + 1));
 	mx = (((int16_t)buffer[0]) << 8) | buffer[1];
-	fmx=(float)(mx - baseX)*dx;
 	my = (((int16_t)buffer[4]) << 8) | buffer[5];
-	fmy=(float)(my - baseY)*dy;
 	mz = (((int16_t)buffer[2]) << 8) | buffer[3];
+
+#ifndef SESOR_UPSIDE_DOWN
+	my = -my;
+	mz = -mz;
+#endif
+
+
+
+	fmx=(float)(mx - baseX)*dx;	
+	fmy=(float)(my - baseY)*dy;
 	fmz=(float)(mz - baseZ)*dz;
 
 	if (compas_motors_calibr)

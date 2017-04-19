@@ -30,8 +30,12 @@
 
 
 
-
-
+#define T200HZ
+#ifdef T200HZ
+#define TIME_CICLE 500
+#else
+#define TIME_CICLE 1000
+#endif
 
 
 
@@ -71,7 +75,7 @@
 
 #define FALSE_GPS
 #define FASLE_GPS_STILL
-//#define MOTORS_OFF
+#define MOTORS_OFF
 #define NO_BATTERY
 
 #ifdef FALSE_WIRE

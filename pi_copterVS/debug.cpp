@@ -86,11 +86,15 @@ void DebugClass::graphic(const uint8_t n, const float x, const float y) {
 	 }
 	// int cnt = 0;
 	 uint32_t old_time = 0;
-	 void DebugClass::dump() {
+	 void DebugClass::dump() {//--------------------------------------------------------------
+		 if (n_debug > 9)
+			 return;
 		 uint32_t t = millis();
-		 if (t - old_time < 300)
+		 if (t - old_time < 20)
 			 return;
 		 old_time = t;
+
+		 /*
 		 int n = 0;//Out.available();
 		 if (n > 3) {
 			 float f = readSeralFloat();
@@ -106,6 +110,9 @@ void DebugClass::graphic(const uint8_t n, const float x, const float y) {
 				 i = b - '0';
 		 }
 		 //if (((++cnt) & 7) == 0){
+		 */
+		 i = n_debug;
+
 		 graphic(i, ar[i][0], ar[i][1]);
 		 // }
 		 // Out.println(Mpu.temp_deb);

@@ -11,6 +11,11 @@
 #include "LED.h"
 //#include "Mem.h"
 
+
+
+
+
+
 #define RESTRICT_PITCH // Comment out to restrict roll to ±90deg instead - please read: http://www.freescale.com/files/sensors/doc/app_note/AN3461.pdf
 
 //2g
@@ -80,8 +85,11 @@ void MpuClass::init()
 
 
 	//accelgyro.setDLPFMode(MPU6050_DLPF_BW_256);
-	//accelgyro.setDLPFMode(MPU6050_DLPF_BW_188);///
+#ifdef T200HZ
+	accelgyro.setDLPFMode(MPU6050_DLPF_BW_188);///
+#else
 	accelgyro.setDLPFMode(MPU6050_DLPF_BW_98);
+#endif
 	//accelgyro.setDLPFMode(MPU6050_DLPF_BW_42);
 	//accelgyro.setDLPFMode(gLPF = MPU6050_DLPF_BW_20);
 	//accelgyro.setDLPFMode(MPU6050_DLPF_BW_10);
@@ -356,12 +364,8 @@ void MpuClass::loop(){
 
 
 
-//float ttttt = 0;
-int tttttt = 0;
 
-
-
-void MpuClass::loop(){
+void MpuClass::loop(){//-------------------------------------------------L O O P-------------------------------------------------------------
 //	if (calibrated == false){
 
 		//	new_calibration();
@@ -377,13 +381,22 @@ void MpuClass::loop(){
 	{
 		int16_t ax, ay, az, gx, gy, gz;
 		accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-		upsidedown = az>0;
 
+#ifndef SESOR_UPSIDE_DOWN
+		ay = -ay;
+		az = -az;
+		gy = -gy;
+		gz = -gz;
+#endif
+		upsidedown = az>0;
 
 		if ((abs(ax) > MAX_G || abs(ay) > MAX_G || abs(az) > MAX_G) && ++max_g_cnt>2){
 			Autopilot.off_throttle(true, e_MAX_ACCELERATION);
 			max_g_cnt = 0;
 		}
+		//iz na minus
+
+
 		x = n604*(float)ax;
 		y = n604*(float)ay;
 		z = -n604*(float)az;
@@ -415,7 +428,10 @@ void MpuClass::loop(){
 	sinYaw = sin(yaw*GRAD2RAD);
 
 	roll += gyroRoll*dt;
+
+
 	pitch += gyroPitch*dt;
+
 
 /*
 	если квадр летит вперед(опуская нос) то sinpitch ортицательный, x - отрицательный.а при ускорении квадра x - уходит в положительную сторону.квадр какбы задирается
@@ -507,13 +523,25 @@ void MpuClass::loop(){
 	accX = 9.8*(x*cosPitch - z*sinPitch);
 	accY = 9.8*(y*cosRoll  + z*sinRoll);
 	
-	if ((tttttt & 0) == 0){
-		//Debug.load(0, accX/9.8, accZ/9.8);
+
+
+
+
+	
+	
+	//Debug.load(0, aRoll/40, -roll/40);
+
+	Debug.load(1, aPitch/40, pitch/40);
+	//Debug.load(2, yaw/40, Hmc.headingGrad / 40);
+	Debug.load(3, accX/10, accY/10);
+	Debug.load(4, accZ/10, 0);
+
+
+
 		//Debug.load(1, speedY/20, yaw/180);
 
-	//Debug.dump();
-	}
-	tttttt++;
+	Debug.dump();
+	
 	
 }
 
@@ -545,7 +573,8 @@ boolean MpuClass::selfTest(){
 			za = zt;
 			accelgyro.getRotation(&xt, &yt, &zt);
 
-			Out.print(xt); Out.print(" "); Out.print(yt); Out.print(" "); Out.println(zt);
+			printf("%i %i %i\n", xt, yt, zt);
+	
 			errors += (xt == xr || yt == yr || zt == zr || abs(xt) > 10 || abs(yt) > 10 || abs(zt) > 10);
 			xr = xt;
 			yr = yt;
@@ -579,8 +608,11 @@ void MpuClass::meansensors(){
 		// read raw accel/gyro measurements from device
 		accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
 
-		az += 32768;
-
+#ifdef SESOR_UPSIDE_DOWN
+		az += 32768;///
+#else
+		//az -= 32768;
+#endif
 		//wdt_reset();
 
 
@@ -667,43 +699,24 @@ void MpuClass::calibrationF(int16_t ar[]){
 
 void MpuClass::calibrationPrint(int16_t ar[], const bool onlyGyro){
 	meansensors();
-	Out.println("\nFINISHED!");
-	Out.print("\nSensor readings with offsets:\t");
+	printf("\nFINISHED!\n\nSensor readings with offsets:\t");
 	if (onlyGyro == false){
-		Out.print(mean_ax);
-		Out.print("\t");
-		Out.print(mean_ay);
-		Out.print("\t");
-		Out.print(mean_az);
-		Out.print("\t");
+		printf("%i\t%i\t%i\t", mean_ax, mean_ay, mean_az);
 	}
-	Out.print(mean_gx);
-	Out.print("\t");
-	Out.print(mean_gy);
-	Out.print("\t");
-	Out.println(mean_gz);
-	Out.print("Your offsets:\t");
+	printf("%i\t%i\t%i\n", mean_gx, mean_gy, mean_gz);
+	printf("Your offsets:\t");
 	if (onlyGyro == false){
-		Out.print(ar[ax_offset]);
-		Out.print("\t");
-		Out.print(ar[ay_offset]);
-		Out.print("\t");
-		Out.print(ar[az_offset]);
-		Out.print("\t");
+		printf("%i\t%i\t%i\t", ar[ax_offset], ar[ay_offset], ar[az_offset]);
 	}
-	Out.print(ar[gx_offset]);
-	Out.print("\t");
-	Out.print(ar[gy_offset]);
-	Out.print("\t");
-	Out.println(ar[gz_offset]);
-	Out.print("\nData is printed as: ");
+	printf("%i\t%i\t%i\n\nData is printed as: ", ar[gx_offset], ar[gy_offset], ar[gz_offset]);
+
 	if (onlyGyro == false)
-		Out.print("acelX acelY acelZ ");
-	Out.println("giroX giroY giroZ");
-	Out.print("Check that your sensor readings are close to ");
+		printf("acelX acelY acelZ ");
+	printf("giroX giroY giroZ\n");
+	printf("Check that your sensor readings are close to ");
 	if (onlyGyro == false)
-		Out.print("0 0 16384 ");
-	Out.println("0 0 0");
+		printf("0 0 16384 ");
+	printf("0 0 0\n");
 	//Out.println("If calibration was succesful write down your offsets so you can set them in your projects using something similar to mpu.setXAccelOffset(youroffset)");
 }
 void MpuClass::re_calibration_(){

@@ -165,10 +165,11 @@ int setup() {////--------------------------------------------- SETUP -----------
 	printf("gps init...\n");
 	GPS.init();
 	//	Bluetooth.init();
-
+#ifdef WORK_WITH_WIFI
 	printf("wifi init...\n");
 	if (WiFi.init())
 		return -1;
+#endif
 	printf("commander init...\n");
 	Commander.init();
 	printf("Autopilot init...\n");
@@ -211,26 +212,26 @@ uint32_t ttiimer = 0;
 
 int cccccc_ss = 0;
 
+
+bool temp4test = true;
 void loop()
 {
 
-	uint32_t time_ms = ten_micros();
-
-	if (Telemetry.voltage50P) {
-#ifdef BUZZER_R
-		//OCR4B = 100;
-#endif
-		if (Telemetry.low_voltage) {
-			;//pinMode(7, OUTPUT);
-#ifdef BUZZER_R
-			//OCR4B = 35000;
-#endif
-		}
+#ifndef WORK_WITH_WIFI
+	if (temp4test && Autopilot.motors_is_on() == false &&  millis() > 2000) {
+		//Autopilot.motors_do_on(true, "FALSE WIFI");
+		//Mpu.new_calibration(false);
+		temp4test = false;
 	}
 
+
+#endif
+	uint32_t time_ms = ten_micros();
+
 	uint32_t t;
-	//	tt = micros();
-	Balance.loop();			//4800
+
+	Balance.loop();			//pi 3049
+
 #ifdef WORK_WITH_WIFI
 	Telemetry.loop();
 #endif
@@ -239,8 +240,10 @@ void loop()
 
 
 	uint32_t tnow = ten_micros();
-	if ((tnow - time_ms)<1000) {
-		usleep(10*(1000-(tnow - time_ms)));
+	if ((tnow - time_ms)<TIME_CICLE) {
+		int dt = 10 * (TIME_CICLE - (tnow - time_ms));
+		//Debug.load(5, dt, 0);
+		usleep(dt);
 	}
 	
 //	if (Autopilot.motors_is_on() || Autopilot.lost_conection_time == 0 || millis() - Autopilot.lost_conection_time<NO_CONNECTION_DELAY_TO_RESET_IF_MOTORS_OFF)
@@ -269,7 +272,13 @@ void handler(int sig) { // can be called asynchronously
 
 
 
-int main() {
+int main(int argc, char *argv[]) {
+	Debug.n_debug = 0;
+	if (argc == 2) {
+		Debug.n_debug = atoi(argv[1]);
+		
+	}
+	printf("Debug n=%i\n", Debug.n_debug);
 
 	if (signal(SIGINT, handler) == SIG_ERR) {
 		return EXIT_FAILURE;

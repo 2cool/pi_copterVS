@@ -22,6 +22,7 @@ class DebugClass
 	 void graphic(const uint8_t n, const float x, const float y);
 
  public:
+	 int n_debug;
 	 void init();
 	 void dump(const long f1, long f2, long f3, long f4);
 	 void dump(const float f1, float f2, float f3, float f4);
