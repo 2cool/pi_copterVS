@@ -128,43 +128,7 @@ void MS5611Class::copterStarted(){
 
 
 double MS5611Class::getAltitude(const float pres){return altitude_ ;}
-	
-	
-	
-	
-	
-void MS5611Class::readTemperature_and_Pressure(bool compensation){
-	ms5611_delay = millis() + ct;
-	ms5611_count=1;
-	if (millis() < ms5611_delay)
-			return;
-			
-	update();	
-	
-	if (pressure == PRESSURE_AT_0){
-		   pressure = fltd_Pressure;
-	   }
-	   pressure += (fltd_Pressure - pressure)*0.3;
-	 //  pressure = pr;
-	 //  Debug.load(0, 0.1*(pressure - 101427), 0.1*(pr - 101427));
-	  // Debug.dump();
-	   
-	   powerK = PRESSURE_AT_0 / pressure;
-	   if (powerK>1.4)
-		   powerK = 1.4;
 
-	   const float dt = (millis() - lastTime)*0.001;
-	   lastTime = millis();
-	   const float new_altitude = getAltitude(pressure);
-
-	   speed = (new_altitude - altitude_ - altitude_error) / dt;
-
-	   //РїСЂРѕРІРµСЂРєРё СЃ СѓС‡РµС‚РѕРј С‚РѕРіРѕ С‡С‚Рѕ СѓР»С‚СЂР°Р·РІСѓРєРѕРІРѕР№ РґР°С‚С‡РёРє РјРѕР¶РµС‚ РІРґСЂСѓРі РІС‹РґР°С‚СЊ РїРѕРєР°Р·Р°РЅРёСЏ Р»РѕР¶РЅС‹Рµ
-	   ultrasound_radar_corection(new_altitude);
-	
-	ms5611_count = 0;
-	
-}
 //--------------------------------------------------
 void MS5611Class::ultrasound_radar_corection(const float new_altitude){
 	//if (Ultrasound_Radar.dist2ground_ < ((Autopilot.motors_is_on()) ? 0.8 : ULTRASOUND_MAX_DETECT_HEIGHT)){
@@ -246,8 +210,12 @@ uint8_t MS5611Class::loop(){
 long ms_time = 0;
 #define ms_delay 500
 uint8_t MS5611Class::loop(){
-	Ultrasound_Radar.loop();
-	readTemperature_and_Pressure(true);
+	//Ultrasound_Radar.loop();
+	update();
+
+
+
+	//readTemperature_and_Pressure(true);
 	//if (ms5611_count == 0){
 
 		
@@ -256,7 +224,7 @@ uint8_t MS5611Class::loop(){
 	
 	//}
 
-	return ms5611_count;
+	return 0;
 	}
 
 #endif
@@ -317,7 +285,54 @@ void MS5611Class::update(){
 
 		P = ((((int64_t)D1*SENS) / pow(2, 21) - OFF) / pow(2, 15));
 
+
+
+		i_readTemperature = ((int8_t)(TEMP * 0.01));
+
 		double Temparature = (double)TEMP / (double)100;
+
+
+		if (pressure == PRESSURE_AT_0) {
+			pressure = P;
+		}
+		pressure += (P - pressure)*0.3;
+		//  pressure = pr;
+		//  Debug.load(0, 0.1*(pressure - 101427), 0.1*(pr - 101427));
+		// Debug.dump();
+
+		powerK = PRESSURE_AT_0 / pressure;
+		if (powerK>1.4)
+			powerK = 1.4;
+
+		const float dt = Sampling_time;// (millis() - lastTime)*0.001;
+		lastTime = millis();
+		const float new_altitude = getAltitude(pressure);
+
+		speed = (new_altitude - altitude_ - altitude_error) / dt;
+
+		//проверки с учетом того что ултразвуковой датчик может вдруг выдать показания ложные
+	//	ultrasound_radar_corection(new_altitude);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 		double _pressure = (double)P / (double)100;
 
 		if (prevSampled_time == 0)
