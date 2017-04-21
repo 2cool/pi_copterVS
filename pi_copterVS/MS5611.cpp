@@ -126,9 +126,25 @@ void MS5611Class::copterStarted(){
 
 
 
+#define MAX_D_PRESSURE 300.0
 
-double MS5611Class::getAltitude(const float pres){return altitude_ ;}
 
+double MS5611Class::getAltitude_(const float pressure) {
+	return (44330.0f * (1.0f - pow((double)pressure / PRESSURE_AT_0, 0.1902949f)));
+}
+double MS5611Class::getAltitude(const float pressure) {
+	if (abs(pressure - old_pressure_) > MAX_D_PRESSURE) {
+		//Out.println("UPD_BAR");
+		old_pressure_ = pressure;
+		float alt = (getAltitude_(pressure));
+		old_altitude_ = (getAltitude_(pressure + MAX_D_PRESSURE));
+		p2altK = (alt - old_altitude_) * (1.0 / MAX_D_PRESSURE);
+		return alt;
+	}
+	else
+		return old_altitude_ - (pressure - old_pressure_)*p2altK;
+	//return (44330.0f * (1.0f - pow((double)pressure / PRESSURE_AT_0, 0.1902949f)));
+}
 //--------------------------------------------------
 void MS5611Class::ultrasound_radar_corection(const float new_altitude){
 	//if (Ultrasound_Radar.dist2ground_ < ((Autopilot.motors_is_on()) ? 0.8 : ULTRASOUND_MAX_DETECT_HEIGHT)){
@@ -206,12 +222,32 @@ uint8_t MS5611Class::loop(){
 #else
 
 
-
 long ms_time = 0;
 #define ms_delay 500
 uint8_t MS5611Class::loop(){
 	//Ultrasound_Radar.loop();
-	update();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+		update();
+	
 
 
 
@@ -236,10 +272,27 @@ uint8_t MS5611Class::loop(){
 
 
 
+float tttalt = 0;
 
 
 
+int bar_task = 0;
+uint32_t b_timeDelay;
+
+
+
+
+uint8_t bar_D[] = { 0, 0, 0 };
+int  bar_h;
+char bar_zero = 0x0;
 void MS5611Class::update(){
+
+
+	switch (bar_task)
+	{
+	case 0: {
+		bar_D[0] = bar_D[1] = bar_D[2] = 0;
+		bar_zero = 0;
 		clock_gettime(CLOCK_MONOTONIC, &spec);
 		curSampled_time = round(spec.tv_nsec / 1.0e6);
 
@@ -248,9 +301,71 @@ void MS5611Class::update(){
 
 		if (Sampling_time < 0) // to prevent negative sampling time
 			Sampling_time = prevSampling_time;
+		char CONV_CMD = CONV_D1_4096;
+		if (write(fd, &CONV_CMD, 1) != 1) {
+			printf("write reg 8 bit Failed to write to the i2c bus.\n");
+		}
+		b_timeDelay = millis() + 10;
+		bar_task++;
+		return;
+	}
+	case 1: {
+		if (millis() > b_timeDelay) {
+			if (write(fd, &bar_zero, 1) != 1) {
+				printf("write reset 8 bit Failed to write to the i2c bus.\n");
+			}
 
-		D1 = CONV_read(fd, CONV_D1_4096);
-		D2 = CONV_read(fd, CONV_D2_4096);
+			bar_h = read(fd, &bar_D, 3);
+
+			if (bar_h != 3) {
+				printf("Failed to read from the i2c bus %d.\n", bar_h);
+
+			}
+
+			D1 = bar_D[0] * (unsigned long)65536 + bar_D[1] * (unsigned long)256 + bar_D[2];
+			bar_task++;
+		}
+		return;
+	}
+	case 2:
+	{
+		bar_D[0] = bar_D[1] = bar_D[2] = 0;
+		bar_zero = 0;
+		char CONV_CMD = CONV_D2_4096;
+		if (write(fd, &CONV_CMD, 1) != 1) {
+			printf("write reg 8 bit Failed to write to the i2c bus.\n");
+		}
+		b_timeDelay = millis() + 10;
+		bar_task++;
+		return;
+	}
+	case 3:
+	{
+		if (millis() > b_timeDelay) {
+			if (write(fd, &bar_zero, 1) != 1) {
+				printf("write reset 8 bit Failed to write to the i2c bus.\n");
+			}
+
+			bar_h = read(fd, &bar_D, 3);
+
+			if (bar_h != 3) {
+				printf("Failed to read from the i2c bus %d.\n", bar_h);
+
+			}
+
+			D2 = bar_D[0] * (unsigned long)65536 + bar_D[1] * (unsigned long)256 + bar_D[2];
+			bar_task = 0;
+		}
+		else
+			return;
+
+	}
+	}
+
+
+		//D1 = CONV_read(fd, CONV_D1_4096);
+
+		//D2 = CONV_read(fd, CONV_D2_4096);
 
 		dT = D2 - (uint32_t)C[5] * pow(2, 8);
 		TEMP = (2000 + (dT * (int64_t)C[5] / pow(2, 23)));
@@ -284,13 +399,7 @@ void MS5611Class::update(){
 
 
 		P = ((((int64_t)D1*SENS) / pow(2, 21) - OFF) / pow(2, 15));
-
-
-
 		i_readTemperature = ((int8_t)(TEMP * 0.01));
-
-		double Temparature = (double)TEMP / (double)100;
-
 
 		if (pressure == PRESSURE_AT_0) {
 			pressure = P;
@@ -304,7 +413,7 @@ void MS5611Class::update(){
 		if (powerK>1.4)
 			powerK = 1.4;
 
-		const float dt = Sampling_time;// (millis() - lastTime)*0.001;
+		const float dt = Sampling_time*0.001;// (millis() - lastTime)*0.001;
 		lastTime = millis();
 		const float new_altitude = getAltitude(pressure);
 
@@ -313,61 +422,11 @@ void MS5611Class::update(){
 		//проверки с учетом того что ултразвуковой датчик может вдруг выдать показания ложные
 	//	ultrasound_radar_corection(new_altitude);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-		double _pressure = (double)P / (double)100;
-
-		if (prevSampled_time == 0)
-		{
-			//fltd_Temparature = Temparature;
-			fltd_Pressure = _pressure;
-		}
-
-		fltd_Temparature = alpha * fltd_Temparature + (1 - alpha) * Temparature;
-		fltd_Pressure = beta * fltd_Pressure + (1 - beta) * _pressure;
-
-		//printf("Temparature : %.2f C", fltd_Temparature);
-		//printf("  Pressure : %.2f mbar", fltd_Pressure);
-
-		altitude_ = 44330.0f * (1.0f - pow((double)fltd_Pressure / (double)SEA_LEVEL_PRESSURE, 0.1902949f));
-
-		if (prevSampled_time == 0)
-		{
-			pre_Altitude = altitude_;
-		}
-
-		roc = (int)(100000 * (altitude_ - pre_Altitude) / Sampling_time);
-
-		if (prevSampled_time == 0)
-		{
-			fltd_roc = roc;
-		}
-
-		fltd_roc = gamma * fltd_roc + (1 - gamma) * roc;
-
-		pre_Altitude = altitude_;
-
-		//printf("Altitude : %.2f   Rate of Climb : %d cm/s\n", altitude, roc);
-
-		prevSampled_time = curSampled_time;
+		if (tttalt == 0)
+			tttalt = new_altitude;
+		tttalt += (new_altitude - tttalt)*0.01;
+		Debug.load(0, 0, tttalt-new_altitude);
+		Debug.dump();
 }
 float MS5611Class::get_pressure(float h) {
 	return PRESSURE_AT_0 * pow(1 - h*2.25577e-5, 5.25588);
