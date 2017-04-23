@@ -18,10 +18,6 @@
 
 #define MAX_UPD_COUNTER 100
 
-#define BAT_K0 0.476
-#define BAT_K1 0.956
-#define BAT_K2 1.394
-
 
 //#define TEST_4_FULL_VOLTAGE
 
@@ -154,12 +150,6 @@ int16_t TelemetryClass::check_time_left_if_go_to_home(){
 }
 
 
-
-uint8_t bat_cnt = 0;
-
-
-
-
 #ifdef NO_BATTERY
 float false_time = 0;
 float false_voltage = BAT_100P;
@@ -189,25 +179,41 @@ void TelemetryClass::update(){
 	//Debug.load(0,(a2-(360*3))/138,0);
 	//Debug.dump();
 #else
+
+	/*
+	3.83  2.92
+	7.72  2.86
+	11.67 2.85
+*/
 	uint16_t buf[3];
 	//int t = micros();
 	Pwm.get_analog(buf);  //300 microsec
+
+	float a0 = (float)buf[0] / 2.36;
+	float a1 = (float)buf[1] / 1.16;
+	float a2 = (float)buf[2] / 0.76;
+
+
+
+
 	//int t2 = micros() - t;
-	a2 = BAT_K2*(float)buf[2];// analogRead(A2);
-	if (bat_cnt == 0) {
-		float a0 = BAT_K0*(float)buf[0];// analogRead(A0);
-		float a1 = BAT_K1*(float)buf[1];// analogRead(A1);
+	//a2 = BAT_K2*(float)buf[2];// analogRead(A2);
+	
+	//float a0 = BAT_K0*(float)buf[0];// analogRead(A0);
+	//float a1 = BAT_K1*(float)buf[1];// analogRead(A1);
 
-		b[0] += (a0 - b[0])*0.1;
+	b[0] += (a0 - b[0])*0.1;
+	b[1] += (a1 - a0 - b[1])*0.1;
+	if (buf[2] > 100)
 		b[2] += (a2 - a1 - b[2])*0.1;
-		b[1] += (a1 - a0 - b[1])*0.1;
-		//Serial.println("bat");
-		//Serial.println(a2);
-		//Debug.dump(b[0], b[1], b[2], 0);	
-	}
-	bat_cnt++;
-	bat_cnt &= 7;
-
+	else
+		b[2] = 0;
+	
+	//Serial.println("bat");
+	//Serial.println(a2);
+	//Debug.dump(b[0], b[1], b[2], 0);	
+	
+	
 
 #endif
 }

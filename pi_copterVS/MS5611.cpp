@@ -342,8 +342,8 @@ void MS5611Class::phase4() {
 	if (tttalt == 0)
 		tttalt = new_altitude;
 	tttalt += (new_altitude - tttalt)*0.01;
-	Debug.load(0, 0, tttalt - new_altitude);
-	Debug.dump();
+	//Debug.load(0, 0, tttalt - new_altitude);
+	//Debug.dump();
 
 }
 void MS5611Class::update(){
