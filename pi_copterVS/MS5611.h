@@ -56,27 +56,24 @@ protected:
 	 int ct;
 	 float presure_altitude_at_start;
 	 float altitude_error;
-	 float old_pressure_;
-	 float old_altitude_;
-	 float p2altK;
-	 double getAltitude_(const float pressure);
-	 unsigned long	ms5611_delay;
-	 void ultrasound_radar_corection(const float new_altitude);
+
+	 inline void phase0();
+	 inline void phase1();
+	 inline void phase2();
+	 inline bool phase3();
+	 inline void phase4();
 
 	float altitude_;
 public:
-#ifdef FALSE_BAROMETR
 	 float altitude(){ return altitude_; }
-#else
-	 float altitude(){ return altitude_; }
-#endif
+
 	uint8_t ms5611_count;
 	int init();
 	uint8_t loop();
 	uint32_t lastTime;
 	float pressure , powerK;
 
-	void readTemperature_and_Pressure(bool compensation = false);
+
 	void copterStarted();
 
 	int8_t i_readTemperature;
@@ -84,14 +81,9 @@ public:
 	float speed;
 	
 
-	
-	uint32_t readRawTemperature(void);
-	uint32_t readRawPressure(void);
-	double readTemperature(bool compensation = false);
-	uint32_t readPressure(bool compensation = false);
 
 	double getAltitude(const float pres);
-	double getSeaLevel(double pressure, double altitude);
+
 	float get_pressure(float h);
 	//---------------------------------------------------------------
 
@@ -112,22 +104,21 @@ private:
 	int64_t SENS;
 	int32_t P;
 
-	
-	int roc, fltd_roc;
+	int bar_task;
+	uint32_t b_timeDelay;
+	uint8_t bar_D[3];
+	int  bar_h;
+	char bar_zero;
 
 	long curSampled_time;
 	long prevSampled_time;
 	float Sampling_time, prevSampling_time;
-	struct timespec spec;
-	double fltd_Temparature,fltd_Pressure;
-	float pre_Altitude;
+	
+
 	
 public:
 	double temparature;
 
-	
-	
-	//int init();
 	void update();
 	
 };

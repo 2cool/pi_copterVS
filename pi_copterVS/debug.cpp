@@ -11,7 +11,7 @@
 
 
 
-float DebugClass::readSeralFloat() {
+float DebugClass::readSeralFloat() {  
 	uint8_t buf[20];
 	float n = 0;
 	float d = 0.1;
