@@ -33,7 +33,7 @@
 class BalanceClass
 {
  protected:
-
+	 uint32_t power_on_time;
 	float throttle;
 	//float pitch_roll_stabKP, pitch_roll_rateKP, yaw_rateKP,yaw_stabKP,pitch_roll_rateKI,pitch_roll_rateIMAX,yaw_rateKI,yaw_rateIMAX;
 	//float getThrottle();
@@ -42,6 +42,13 @@ class BalanceClass
 	float f_[4];
 float maxAngle;
  public:
+	 bool power_is_on() { 
+#ifdef NO_BATTERY
+	    return true; 
+#else 
+		return (power_on_time > 0 && millis() - power_on_time > 2000);
+#endif 
+	 }
 
 	 float powerK();
 	 float c_pitch, c_roll;

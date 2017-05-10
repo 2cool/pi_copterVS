@@ -96,7 +96,7 @@ float const predTime = 0.009;
 long oldtttttttttttt = 0;
 int cntttttttttt = 0;
 
-//boolean tempp1 = false;
+//bool tempp1 = false;
 //uint32_t taim0;
 static const float f_constrain(const float v, const float min, const float max){
 	return constrain(v, min, max);
@@ -146,6 +146,14 @@ void BalanceClass::init()
 	Out.print("Heading :"); Out.println(Hmc.headingGrad);
 #endif
 
+	delay(2000);
+	Telemetry.update_voltage();
+	if (Telemetry.b[2] > 200) {
+		power_on_time = millis() - 2000;
+	}
+	else {
+		power_on_time = 0;
+	}
 }
 
 
@@ -298,6 +306,7 @@ void BalanceClass::loop()
 			throttle = Autopilot.get_throttle();
 			throttle /= Mpu.tiltPower;
 			throttle = constrain(throttle, 0.3, MAX_THROTTLE_);
+		//	Debug.load(0, throttle, f_[0]);
 			if (throttle < min_throttle){
 				// reset yaw target so we maintain this on takeoff
 				// reset PID integrals whilst on the ground
@@ -395,12 +404,11 @@ void BalanceClass::loop()
 			f_[3] = 0;
 			LED.light(Hmc.motor_index);
 			LED.prog_index = LED.MOT_OFF_P;
+
 			f_[Hmc.motor_index] = 0.5;
 
 		}
-#ifdef MOTORS_OFF
-		f_[0] = f_[1] = f_[2] = f_[3] = 0;// Autopilot.get_throttle();
-#endif
+
 
 		//1-1
 		//2-4
@@ -412,7 +420,29 @@ void BalanceClass::loop()
 	{
 		LED.prog_index = LED.MOT_OFF_P;
 		c_pitch=c_roll=0;
-		set_off_th_();
+
+	//	Pwm.throttle(0, 0, 0, 0);
+		//throttle = 0;
+
+
+	
+
+		if (power_on_time==0 && Telemetry.b[2] > 0)
+			power_on_time = millis();
+
+		if (Telemetry.b[2] == 0 || ( millis() - power_on_time) < 1000) {
+			f_[0] = f_[1] = f_[2] = f_[3] = 1;
+			if (power_on_time>0 && millis() - power_on_time > 1000)
+				power_on_time = 0;
+			
+		}
+		else {
+			if (f_[0] == 1)
+				printf("!!! power on !!!\n");
+			f_[0] = f_[1] = f_[2] = f_[3] = 0;
+
+			throttle = 0;
+		}
 	}
 	
 
@@ -420,7 +450,30 @@ void BalanceClass::loop()
 
 	LED.loop();
 //	int tt = micros();
+
+
+
+#ifdef MOTORS_OFF
+	Pwm.throttle(0, 0, 0, 0);  //670 micros
+#else
+
+	if (f_[0] > 0.3)
+		f_[0] = 0.3;
+
+	if (f_[1] > 0.3)
+		f_[1] = 0.3;
+	if (f_[2] > 0.3)
+		f_[2] = 0.3;
+	if (f_[3] > 0.3)
+		f_[3] = 0.3;
+
+
+
 	Pwm.throttle(f_[0], f_[1], f_[2], f_[3]);  //670 micros
+#endif
+	//Debug.load(0, f_[0], f_[3]);
+	//Debug.load(1, f_[1], f_[2]);
+//	Debug.dump();
 	//Pwm.gimagl_pitch(-40);
 
 

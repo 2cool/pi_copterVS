@@ -104,9 +104,9 @@ class HmcClass
 	 float headingGrad;
 	void init();
 	void loop();
-	boolean ok;
-	boolean calibration(const boolean newc=false);
-	boolean selfTest();
+	bool ok;
+	bool calibration(const bool newc=false);
+	bool selfTest();
 
 	float get_headingGrad(){ return headingGrad; }
 

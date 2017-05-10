@@ -40,7 +40,7 @@ public:
 	float accuracy_ver_pos;
 	unsigned long mseconds;
 	void setSpeedZero(){ lat_needV_ = lat_needR_; lon_needV_ = lon_needR_; }
-	void init();
+	int init();
 	void setNeedLoc2HomeLoc();
 	
 	void setNeedLoc(const long lat, const long lon);

@@ -3,7 +3,7 @@
 #include "Telemetry.h"
 #include "Autopilot.h"
 #include "debug.h"
-#include "Ultrasound_Radar.h"
+
 
 unsigned int PROM_read(int DA, char PROM_CMD)
 {
@@ -154,9 +154,9 @@ uint32_t timet = millis();
 float mthr = 0;
 
 
-boolean flying = false;
+bool flying = false;
 uint8_t MS5611Class::loop(){
-	Ultrasound_Radar.loop();
+	
 	
 
 	if (millis() - timet < 200)
@@ -176,7 +176,7 @@ uint8_t MS5611Class::loop(){
 	//Serial.println(altitude_)
 
 
-	ultrasound_radar_corection(new_altitude);
+
 
 
 

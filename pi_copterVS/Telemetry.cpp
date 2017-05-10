@@ -100,8 +100,7 @@ void TelemetryClass::init_()
 	voltage = BAT_100P * 3;
 #else
 	b[0] = b[1] = b[2] = BAT_100P;
-	update();
-	voltage = a2;
+	update_voltage();
 #endif
 	newGPSData = false;
 	//Out.println("TELEMETRY INIT");
@@ -154,7 +153,7 @@ int16_t TelemetryClass::check_time_left_if_go_to_home(){
 float false_time = 0;
 float false_voltage = BAT_100P;
 #endif
-void TelemetryClass::update(){
+void TelemetryClass::update_voltage(){
 #ifdef NO_BATTERY
 	float voltage_sag = 0;
 	if (false_time == 0 && Autopilot.motors_is_on()){
@@ -162,11 +161,11 @@ void TelemetryClass::update(){
 		false_voltage = MAX_VOLTAGE_AT_START;
 	}
 	if (false_time>0){
-		float powerK = (Balance.get_throttle() * 2);
+		float powerKl = (Balance.get_throttle() * 2);
 
-		powerK *= powerK;
+		powerKl *= powerKl;
 		voltage_sag = 16;
-		const float drawSpeed = 46.0 * powerK / FALSE_TIME_TO_BATERY_OFF;
+		const float drawSpeed = 46.0 * powerKl / FALSE_TIME_TO_BATERY_OFF;
 		float dt = 0.001*(float)(millis() - false_time);
 		false_time = millis();
 		false_voltage -= drawSpeed*dt;
@@ -175,7 +174,7 @@ void TelemetryClass::update(){
 	b[0] = a + 1-(2*(float)rand() / (float)RAND_MAX);
 	b[1] = a + 1-(2*(float)rand() / (float)RAND_MAX);
 	b[2] = a + 1-(2*(float)rand() / (float)RAND_MAX);
-	a2 = b[0] + b[1] + b[2];
+	voltage = b[0] + b[1] + b[2];
 	//Debug.load(0,(a2-(360*3))/138,0);
 	//Debug.dump();
 #else
@@ -185,13 +184,13 @@ void TelemetryClass::update(){
 	7.72  2.86
 	11.67 2.85
 */
-	uint16_t buf[3];
+	int16_t buf[3];
 	//int t = micros();
 	Pwm.get_analog(buf);  //300 microsec
 
 	float a0 = (float)buf[0] / 2.36;
 	float a1 = (float)buf[1] / 1.16;
-	float a2 = (float)buf[2] / 0.76;
+	voltage = (float)buf[2] / 0.76;
 
 
 
@@ -202,10 +201,10 @@ void TelemetryClass::update(){
 	//float a0 = BAT_K0*(float)buf[0];// analogRead(A0);
 	//float a1 = BAT_K1*(float)buf[1];// analogRead(A1);
 
-	b[0] += (a0 - b[0])*0.1;
-	b[1] += (a1 - a0 - b[1])*0.1;
+	b[0] = a0;
+	b[1] = a1 - a0;
 	if (buf[2] > 100)
-		b[2] += (a2 - a1 - b[2])*0.1;
+		b[2] = voltage - a1;
 	else
 		b[2] = 0;
 	
@@ -221,13 +220,11 @@ void TelemetryClass::update(){
 
 void TelemetryClass::testBatteryVoltage(){
 
-	update();
+	update_voltage();
 
-	voltage += (a2 - voltage)*0.1;
 
 	if (timeAtStart == 0){
 		if (Autopilot.motors_is_on()){
-			voltage = a2;
 			timeAtStart = millis();
 		}
 		else
@@ -258,7 +255,7 @@ void TelemetryClass::testBatteryVoltage(){
 	powerK = constrain(powerK, 1, 1.35);
 }
 
-boolean newGPSData = false;
+bool newGPSData = false;
 
 
 

@@ -189,10 +189,14 @@ void HmcClass::loop(){
 
 #else
 
+bool hmc_cnt = false;
 
 void HmcClass::loop(){
 	//бельіе ноги
-
+#ifdef T200HZ
+	if (hmc_cnt ^= true)
+		return;
+#endif
 	int16_t mx,my,mz;
 	float fmz, fmx, fmy;
 	readBytes(devAddr, HMC5883L_RA_DATAX_H, 6, buffer);
@@ -201,16 +205,21 @@ void HmcClass::loop(){
 	my = (((int16_t)buffer[4]) << 8) | buffer[5];
 	mz = (((int16_t)buffer[2]) << 8) | buffer[3];
 
-#ifndef SESOR_UPSIDE_DOWN
-	my = -my;
-	mz = -mz;
-#endif
+
 
 
 
 	fmx=(float)(mx - baseX)*dx;	
 	fmy=(float)(my - baseY)*dy;
 	fmz=(float)(mz - baseZ)*dz;
+
+
+
+
+#ifndef SESOR_UPSIDE_DOWN
+	my = -my;
+	mz = -mz;
+#endif
 
 	if (compas_motors_calibr)
 		motTest(fmx, fmy, fmz);
@@ -270,11 +279,11 @@ void HmcClass::loop(){
 
 
 	// Tilt compensation
-	float Xh = fmx * Mpu.cosPitch + fmz * Mpu.sinPitch;
+	float Xh = fmx * Mpu.cosPitch - fmz * Mpu.sinPitch;
 	float Yh = fmx * Mpu.sinRoll * Mpu.sinPitch + fmy * Mpu.cosRoll - fmz * Mpu.sinRoll * Mpu.cosPitch;
 	
 
-	headingGrad = -RAD2GRAD*atan2(Yh, Xh);
+	headingGrad = RAD2GRAD*atan2(Yh, Xh);
 	//Out.println(fmx);
 	//Out.print(roll); Out.print(" "); Out.print(pitch); Out.print(" ");  Out.println(Hmc.heading / PI * 180);
 	
@@ -314,7 +323,7 @@ void HmcClass::newCalibration(int16_t sh[]){
 	LED.off();
 	while (true){
 		
-		boolean new_val = false;
+		bool new_val = false;
 		readBytes(devAddr, HMC5883L_RA_DATAX_H, 6, buffer);
 		if (mode == HMC5883L_MODE_SINGLE) writeByte(devAddr, HMC5883L_RA_MODE, HMC5883L_MODE_SINGLE << (HMC5883L_MODEREG_BIT - HMC5883L_MODEREG_LENGTH + 1));
 		mx = (((int16_t)buffer[0]) << 8) | buffer[1];
@@ -368,7 +377,7 @@ void HmcClass::newCalibration(int16_t sh[]){
 	
 }
 
-boolean HmcClass::calibration(const boolean newc){
+bool HmcClass::calibration(const bool newc){
 
 	if (newc && Autopilot.motors_is_on())
 		return false;
@@ -414,7 +423,7 @@ boolean HmcClass::calibration(const boolean newc){
 
 
 
-boolean HmcClass::selfTest(){
+bool HmcClass::selfTest(){
 	Out.println("COMPAS TEST");
 	if (ok){
 		int16_t mx, my, mz;

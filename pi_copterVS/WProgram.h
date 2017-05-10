@@ -45,7 +45,7 @@ using namespace std;
 #define sq(x) ((x)*(x))
 
 //#define string std::string
-#define boolean bool
+#define bool bool
 
 #define byte uint8_t
 #define WDTO_2S 2

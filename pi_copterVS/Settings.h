@@ -73,13 +73,13 @@ class SettingsClass
 		 readBuf(MOTOR_COMPAS, base, 12);
 		 return true;
 	 }
-	 boolean saveCompssSettings2(float base[]){
+	 bool saveCompssSettings2(float base[]){
 
 		 writeBuf(MOTOR_COMPAS, base, 12);
 		 return true;
 	 }
 	
-	 boolean saveCompssSettings(int16_t sh[]){
+	 bool saveCompssSettings(int16_t sh[]){
 		 EEPROM.write(HMC_SAVED, COMPAS_S);
 		 writeBuf(HMC_CALIBR, sh, 6);
 		 EEPROM.write_set();
@@ -87,30 +87,30 @@ class SettingsClass
 	 }
 
 
-	 boolean readCompassSettings(int16_t sh[]){
-		 boolean ret = EEPROM.read(HMC_SAVED) == COMPAS_S;
+	 bool readCompassSettings(int16_t sh[]){
+		 bool ret = EEPROM.read(HMC_SAVED) == COMPAS_S;
 		 if (ret){
 			 readBuf(HMC_CALIBR, sh, 6);
 		 }
 		 return ret;
 	 }
 
-	 boolean saveMpuSettings(int16_t sh[]){
+	 bool saveMpuSettings(int16_t sh[]){
 		 EEPROM.write(MPU_SAVED, MPU_S);
 		 writeBuf(MPU_CALIBR, sh, 6);
 		 EEPROM.write_set();
 		 return true;
 	 }
 
-	 boolean saveMpuOnlyGyroSettings(int16_t sh[]){
+	 bool saveMpuOnlyGyroSettings(int16_t sh[]){
 		 EEPROM.write(MPU_SAVED, MPU_S);
 		 writeBuf(MPU_CALIBR+6, sh+3, 3);
 		 EEPROM.write_set();
 		 return true;
 	 }
 
-	 boolean readMpuSettings(int16_t sh[]){
-		 boolean ret = EEPROM.read(MPU_SAVED) == MPU_S;
+	 bool readMpuSettings(int16_t sh[]){
+		 bool ret = EEPROM.read(MPU_SAVED) == MPU_S;
 		 if (ret){
 			 readBuf(MPU_CALIBR, sh, 6);
 		 }

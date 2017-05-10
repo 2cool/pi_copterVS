@@ -181,12 +181,12 @@ bool PwmClass::gimagl_pitch( float angle){
 		angle = -angle;
 		old_g_pitch = angle;
 		//Serial.print("camAng="); Serial.println(angle);
-		angle = angle*(1.0 / 180)*(1000 / 2) + ((1000 / 2)) + 1000;
+		angle = angle*(1.0 / 180)*(63) + (63) + 127;
 
-		char buf[4];
-		((int16_t*)buf)[0] = angle;
-		((int16_t*)buf)[1] = 1000;
-		write(fd, buf,4);
+		char buf[2];
+		((int8_t*)buf)[0] = angle;
+		((int8_t*)buf)[1] = 127;
+		write(fd, buf,2);
 		return true;
 	}
 	else
@@ -217,20 +217,44 @@ uint16_t PwmClass::correct(const float n){    //0-это
 //m3=0.2   327-473 =  145    0.75		cor 123
 
 
-void PwmClass::throttle(const float n0, const float n1, const float n2, const float n3){
-	char pwm_out_buffer[8];
-	((uint16_t*)&pwm_out_buffer)[0] = 1000 + (uint16_t)(n0 * 1000);
-	((uint16_t*)&pwm_out_buffer)[1] = 1000 + (uint16_t)(n1 * 1000);
-	((uint16_t*)&pwm_out_buffer)[2] = 1000 + (uint16_t)(n2 * 1000);
-	((uint16_t*)&pwm_out_buffer)[3] = 1000 + (uint16_t)(n3 * 1000);
+#ifdef T200HZDDD
+float pwm_temp[4] = { 0,0,0,0 };
+int pwm_write = 0;
+void PwmClass::throttle(const float n0, const float n1, const float n2, const float n3) {
+	pwm_temp[0] += (n0 - pwm_temp[0])*0.33;
+	pwm_temp[1] += (n1 - pwm_temp[1])*0.33;
+	pwm_temp[2] += (n2 - pwm_temp[2])*0.33;
+	pwm_temp[3] += (n3 - pwm_temp[3])*0.33;
+	if (pwm_write==3) {
+		pwm_write = 0;
+		char pwm_out_buffer[8];
+		((uint16_t*)&pwm_out_buffer)[0] = 1000 + (uint16_t)(pwm_temp[0] * 1000);
+		((uint16_t*)&pwm_out_buffer)[1] = 1000 + (uint16_t)(pwm_temp[1] * 1000);
+		((uint16_t*)&pwm_out_buffer)[2] = 1000 + (uint16_t)(pwm_temp[2] * 1000);
+		((uint16_t*)&pwm_out_buffer)[3] = 1000 + (uint16_t)(pwm_temp[3] * 1000);
 
-	write(fd, pwm_out_buffer, 8);
+		write(fd, pwm_out_buffer, 8);
 
+	}
+	pwm_write++;
+	
+
+}
+#else
+
+void PwmClass::throttle(const float n0, const float n1, const float n2, const float n3) {
+	char pwm_out_buffer[4];
+	((uint8_t*)&pwm_out_buffer)[0] = 127 + (uint16_t)(n0 * 127);
+	((uint8_t*)&pwm_out_buffer)[3] = 127 + (uint16_t)(n1 * 127);
+	((uint8_t*)&pwm_out_buffer)[1] = 127 + (uint16_t)(n2 * 127);
+	((uint8_t*)&pwm_out_buffer)[2] = 127 + (uint16_t)(n3 * 127);
+	write(fd, pwm_out_buffer, 4);
 
 }
 
+#endif
 
-void PwmClass::get_analog(uint16_t buffer[]) {
+void PwmClass::get_analog(int16_t buffer[]) {
 	read(fd, (uint8_t*)buffer, 6);
 }
 

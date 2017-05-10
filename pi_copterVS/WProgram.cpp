@@ -1,4 +1,4 @@
-
+#include <sys/types.h>
 #include "WProgram.h"
 
 
@@ -96,7 +96,7 @@ void delay(unsigned long t){
 	bool setings_file_exist = false;
 	int EEPROM_Class::read_set() {
 		ifstream f;
-		f.open("./eeprom.set");
+		f.open("/home/igor/eeprom.set");
 		if (f.is_open()){
 			f.read(EEPROM_MEM, EEPROM_SIZE);
 			f.close();
@@ -106,8 +106,11 @@ void delay(unsigned long t){
 	}
 
 	int EEPROM_Class::write_set() {
+
+
+		
 		ofstream f;
-		f.open("./eeprom.set");
+		f.open("/home/igor/eeprom.set", fstream::in | fstream::out | fstream::trunc);
 		if (f.is_open()) {
 			f.write(EEPROM_MEM, EEPROM_SIZE);
 		//	f << EEPROM_MEM;

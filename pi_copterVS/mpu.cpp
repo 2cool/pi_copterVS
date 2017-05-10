@@ -424,6 +424,8 @@ void MpuClass::loop(){//-------------------------------------------------L O O P
 	//yaw = (1 - ACC_F_FREC)*yaw + ACC_F_FREC * Hmc.headingGrad;
 	yaw += (Hmc.headingGrad - yaw)*CF;
 
+	//yaw = Hmc.headingGrad;
+
 	cosYaw = cos(yaw*GRAD2RAD);
 	sinYaw = sin(yaw*GRAD2RAD);
 
@@ -525,23 +527,23 @@ void MpuClass::loop(){//-------------------------------------------------L O O P
 	
 
 
-	/*
+	
 
 	
 	
 	//Debug.load(0, aRoll/40, -roll/40);
 
-	Debug.load(1, aPitch/40, pitch/40);
-	//Debug.load(2, yaw/40, Hmc.headingGrad / 40);
-	Debug.load(3, accX/10, accY/10);
-	Debug.load(4, accZ/10, 0);
+//	Debug.load(1, aPitch/40, pitch/40);
+//	Debug.load(0, yaw/180, Hmc.headingGrad / 180);
+//	Debug.load(3, accX/10, accY/10);
+//	Debug.load(4, accZ/10, 0);
 
 
 
 		//Debug.load(1, speedY/20, yaw/180);
 
-	Debug.dump();
-	*/
+//	Debug.dump();
+	
 	
 }
 
@@ -553,13 +555,13 @@ void MpuClass::setDLPFMode_(uint8_t bandwidth){
 	accelgyro.setDLPFMode(bandwidth);
 }
 
-boolean MpuClass::selfTest(){
+bool MpuClass::selfTest(){
 
 
 	int16_t xa = 0, ya = 0, za = 0;
 	int16_t xr = 0, yr = 0, zr = 0;
 	uint8_t trys = 0;
-	boolean ok;
+	bool ok;
 	do {
 		uint8_t count = 0;
 		uint8_t errors = 0;

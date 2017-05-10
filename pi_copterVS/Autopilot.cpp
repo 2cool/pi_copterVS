@@ -38,7 +38,7 @@ THG out of Perimetr high
 #include "MS5611.h"
 #include "Autopilot.h"
 #include "Balance.h"
-#include "Ultrasound_Radar.h"
+
 #include "commander.h"
 
 #include "GPS.h"
@@ -258,7 +258,7 @@ void AutopilotClass::set_new_altitude(float alt){
 	tflyAtAltitude = flyAtAltitude = alt;
 }
 
-boolean AutopilotClass::holdAltitude(float alt){
+bool AutopilotClass::holdAltitude(float alt){
 
 	tflyAtAltitude = flyAtAltitude = alt;
 	if ((control_bits & Z_STAB) == 0){
@@ -271,7 +271,7 @@ boolean AutopilotClass::holdAltitude(float alt){
 	return true;
 }
 
-boolean AutopilotClass::holdAltitudeStartStop(){
+bool AutopilotClass::holdAltitudeStartStop(){
 
 	if (!motors_onState() || go2homeState() || progState())
 		return false;
@@ -291,7 +291,7 @@ boolean AutopilotClass::holdAltitudeStartStop(){
 
 //----------------------------------------------------------------------------------------------
 enum{ JUMP = 0, HOWER = 1, GO_UP_OR_NOT = 2, TEST_ALT1 = 3, GO2HOME_LOC = 4, TEST4HOME_LOC = 5, START_FAST_DESENDING = 6, TEST_ALT2 = 7,SLOW_DESENDING=8 };
-boolean AutopilotClass::go2HomeProc(const float dt){
+bool AutopilotClass::go2HomeProc(const float dt){
 	
 		
  switch (go2homeIndex){
@@ -387,7 +387,7 @@ boolean AutopilotClass::go2HomeProc(const float dt){
 #endif
 	return true;
 }
-boolean AutopilotClass::going2HomeON(const bool hower){
+bool AutopilotClass::going2HomeON(const bool hower){
 	
 	Stabilization.setDefaultMaxSpeeds();
 
@@ -405,7 +405,7 @@ boolean AutopilotClass::going2HomeON(const bool hower){
 	return res;
 }
 
-boolean AutopilotClass::going2HomeStartStop(const bool hower){
+bool AutopilotClass::going2HomeStartStop(const bool hower){
 	
 	if (!motors_onState())
 		return false;
@@ -424,7 +424,7 @@ boolean AutopilotClass::going2HomeStartStop(const bool hower){
 }
 
 
-boolean AutopilotClass::holdLocation(const long lat, const long lon){
+bool AutopilotClass::holdLocation(const long lat, const long lon){
 	control_bits &= (0xffffffff ^ (COMPASS_ON | HORIZONT_ON));
 	aPitch = aRoll = 0;
 	//if (holdAltitude()){
@@ -449,7 +449,7 @@ boolean AutopilotClass::holdLocation(const long lat, const long lon){
 	//	return false;
 }
 
-boolean AutopilotClass::holdLocationStartStop(){/////////////////////////////////////////////////////////////////////////////////////////////////
+bool AutopilotClass::holdLocationStartStop(){/////////////////////////////////////////////////////////////////////////////////////////////////
 	if (!motors_onState() || go2homeState() || progState())
 		return false;
 	bool h = (control_bits &XY_STAB)==0;
@@ -465,32 +465,38 @@ boolean AutopilotClass::holdLocationStartStop(){////////////////////////////////
 	return false;
 }
 
-boolean AutopilotClass::motors_do_on(const boolean start, const string msg){////////////////////////  M O T O R S  D O  ON  /////////////////////////////////////////////////////////////////////////
-	//Out.print(msg);
+bool AutopilotClass::motors_do_on(const bool start, const string msg){////////////////////////  M O T O R S  D O  ON  /////////////////////////////////////////////////////////////////////////
+	printf("%s - ",msg.c_str());
+	
 	if (start){
+		printf("on ");
+		if (Balance.power_is_on() == false) {
+			printf("!!! power is off !!!\n");
+			return false;
+		}
 		LED.error_code = 0;
 		LED.error_code = 255;
 		if (Mpu.gyro_calibratioan && Hmc.calibrated){
 
 			if (Telemetry.low_voltage){
 				Telemetry.addMessage(e_LOW_VOLTAGE);
-				Out.println(" LOW VOLTAGE");
+				printf(" LOW VOLTAGE\n");
 				return false;
 			}
 
 			if (GPS.loc.accuracy_hor_pos > MIN_ACUR_HOR_POS_2_START ){
-				Out.println(" GPS error");
+				printf(" GPS error\n");
 				Telemetry.addMessage(e_GPS_ERROR);
 				LED.error_time = millis();
 				LED.error_code &= 255^1;
 				return false;
 			}
 				
-			Telemetry.update();
+			Telemetry.update_voltage();
 			
 			control_bits = MOTORS_ON;
 
-			//Out.println(" - OK");
+			printf("OK\n");
 
 			GPS.loc.setHomeLoc();
 
@@ -532,14 +538,15 @@ boolean AutopilotClass::motors_do_on(const boolean start, const string msg){////
 				LED.error_time = millis();
 				LED.error_code &= 255 ^ 4;
 			}
-			Out.println(" calibr FALSE");
+			printf(" calibr FALSE\n");
 		}
 	}//------------------------------OFF----------------
 	else {
+		printf("off ");
 		Telemetry.addMessage(i_OFF_MOTORS);
 		off_throttle(true, msg);
 
-		Out.println(" - OK");
+		printf("OK\n");
 	}
 	return true;
 }
@@ -557,7 +564,7 @@ void AutopilotClass::control_falling(const string msg){
 	}
 }
 
-boolean AutopilotClass::off_throttle(const boolean force, const string msg){/////////////////////////////////////////////////////////////////////////////////////////////////
+bool AutopilotClass::off_throttle(const bool force, const string msg){/////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	if ( force)
 	{
@@ -679,7 +686,7 @@ void AutopilotClass::horizont_tr() {
 
 
 
-boolean AutopilotClass::selfTest(){/////////////////////////////////////////////////////////////////////////////////////////////////
+bool AutopilotClass::selfTest(){/////////////////////////////////////////////////////////////////////////////////////////////////
 	//wdt_enable(WDTO_2S);
 	Out.println("Self Test running");
 	uint8_t ok = 0;
@@ -688,12 +695,12 @@ boolean AutopilotClass::selfTest(){/////////////////////////////////////////////
 	if (Hmc.selfTest())
 		ok += 2;
 #ifdef BUZZER_R
-	OCR4B = 35000;
+	//OCR4B = 35000;
 #endif
 	if (ok == 3){
 		delay(100);
 #ifdef BUZZER_R
-		OCR4B = 0;
+		//OCR4B = 0;
 #endif
 	}
 	else{

@@ -86,7 +86,6 @@
     <ClCompile Include="Settings.cpp" />
     <ClCompile Include="Stabilization.cpp" />
     <ClCompile Include="Telemetry.cpp" />
-    <ClCompile Include="Ultrasound_Radar.cpp" />
     <ClCompile Include="Wi_Fi.cpp" />
     <ClCompile Include="WProgram.cpp" />
   </ItemGroup>
@@ -116,7 +115,6 @@
     <ClInclude Include="Settings.h" />
     <ClInclude Include="Stabilization.h" />
     <ClInclude Include="Telemetry.h" />
-    <ClInclude Include="Ultrasound_Radar.h" />
     <ClInclude Include="Wi_Fi.h" />
     <ClInclude Include="WProgram.h" />
   </ItemGroup>

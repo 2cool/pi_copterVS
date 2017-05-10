@@ -118,7 +118,7 @@ class PwmClass
 
 	 static bool gimbal_roll(float angle);
 	 static bool gimagl_pitch(float angle);
-	 static void get_analog(uint16_t[]);
+	 static void get_analog(int16_t[]);
 
 
 	 static void sound(const float);

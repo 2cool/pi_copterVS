@@ -18,17 +18,16 @@ class TelemetryClass
  protected:
 	 uint8_t buf[TELEMETRY_BUF_SIZE];
 	 volatile int buffer_size;
-	 float a2;
 	 void loadBUF32(int &i, int32_t val);
 	 void loadBUF(int &i,  const float fval);
 	 void loadBUF8(int &i, const float val);
 
-	 boolean newGPSData;
+	 bool newGPSData;
 	
 	 
 	 
 	// uint8_t inner_clock_old_sec;
-	 float b[3];
+	
 	 unsigned long next_battery_test_time;
 	  uint32_t pressure;
 	 float voltage,voltage_at_start;
@@ -38,18 +37,18 @@ class TelemetryClass
 	 string message;
 	 void update_buf();
  public:
-
+	float b[3];
 
 	 uint8_t no_time_cnt = 0;
-	 void update();
+	 void update_voltage();
 	 float powerK;
 
 	 void clearMessage(){ message = ""; }
 	 void addMessage(const string msg);
 	 string getMessage(){ return message; }
 	 void getSettings(int n);
-	 boolean minimumTelemetry;
-	 boolean low_voltage,voltage50P;
+	 bool minimumTelemetry;
+	 bool low_voltage,voltage50P;
 	 
 	 uint8_t lov_voltage_cnt;
 
@@ -63,7 +62,7 @@ class TelemetryClass
 	 void loop();
 
 	 float get_voltage(){ return voltage; }
-	 string get__();
+
 	
 	 int read_buf(byte *buf);
 	// string getSport();

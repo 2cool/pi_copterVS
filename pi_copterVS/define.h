@@ -75,7 +75,7 @@
 
 #define FALSE_GPS
 #define FASLE_GPS_STILL
-#define MOTORS_OFF
+//#define MOTORS_OFF
 //#define NO_BATTERY
 
 #ifdef FALSE_WIRE
@@ -91,7 +91,7 @@
 #define FALSE_ALTITUDE 30
 
 #else
-//#define BUZZER_R
+#define BUZZER_R
 //#define GYRO_CALIBR
 #endif
 

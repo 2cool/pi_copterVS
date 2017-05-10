@@ -24,7 +24,7 @@ class ProgClass
 {
 #define PROG_MEMORY_SIZE 2000
  protected:
-	 boolean go_next, distFlag, altFlag;
+	 bool go_next, distFlag, altFlag;
 	 //float preX, preY;
 	// float advance_dist;
 	 int32_t old_lon, old_lat, lon, lat;
@@ -39,7 +39,7 @@ class ProgClass
 	 float r_time,time4step2done,speed_corected_delta, begin_time, old_dt;
 	 float max_speed_xy,timer;
  public:
-	 boolean intersactionFlag;
+	 bool intersactionFlag;
 	 float stabX, stabY;
 	bool getIntersection(float &distX, float &distY);
 	float altitude, direction, cam_pitch;

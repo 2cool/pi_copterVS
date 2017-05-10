@@ -49,7 +49,7 @@ class AutopilotClass
 
 	 float throttle;
 	 
-	 volatile uint32_t control_bits;
+	 uint32_t control_bits;
 	 float gimBalPitch, tflyAtAltitude;
 
 
@@ -114,26 +114,26 @@ class AutopilotClass
 	
 	 float height_to_lift_to_fly_to_home;
 
-	 boolean going2HomeON(const bool hower);
-	 boolean going2HomeStartStop(const bool hower);
-	 boolean go2HomeProc(const float dt);
+	 bool going2HomeON(const bool hower);
+	 bool going2HomeStartStop(const bool hower);
+	 bool go2HomeProc(const float dt);
 
-	 boolean selfTest();
+	 bool selfTest();
 	 float get_Roll(){ return aRoll; }
 	 float get_Pitch(){ return aPitch; }
 
 
 	 
-	 boolean holdLocationStartStop();
-	 boolean holdLocation(const long lat, const long lon);
+	 bool holdLocationStartStop();
+	 bool holdLocation(const long lat, const long lon);
 	 
-	 boolean holdAltitudeStartStop();
-	 boolean holdAltitude(float alt);
+	 bool holdAltitudeStartStop();
+	 bool holdAltitude(float alt);
 	 void	 set_new_altitude(float alt);
 	 void init();
 	 void loop();
 	// uint8_t ctrl_flag;
-	 boolean motors_is_on(){ return control_bits & MOTORS_ON; }
+	 bool motors_is_on(){ return control_bits & MOTORS_ON; }
 
 	 bool start_stop_program(const bool stopHere);
 
@@ -143,8 +143,8 @@ class AutopilotClass
 	void calibration(); 
 
 	//void set_height(const short h);
-	boolean off_throttle(const boolean force,const string msg);
-	boolean motors_do_on(const boolean start,const string msg);
+	bool off_throttle(const bool force,const string msg);
+	bool motors_do_on(const bool start,const string msg);
 
 
 

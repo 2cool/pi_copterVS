@@ -18,13 +18,16 @@ void GPSClass::init()
 {	
 
 #ifndef	FALSE_GPS
-	gps.begin(9600);
+	//gps.begin(9600);
 	//gps.begin(115200);
 	loc.last_gps_data_time = millis();
 
 #endif
 	
-	loc.init();
+	if (loc.init() == -1) {
+		printf("GPS ERROR\n");
+		return;
+	}
 	errors = 0;
 	Out.println("GPS INIT");
 }

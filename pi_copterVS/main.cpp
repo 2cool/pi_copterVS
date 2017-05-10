@@ -15,13 +15,11 @@
 #include "Prog.h"
 #include "Location.h"
 
-#include "Ultrasound_Radar.h"
-//#include "Bluetooth.h"
 #include "GPS.h"
 #include "Telemetry.h"
 #include "commander.h"
 #include "Wi_Fi.h"
-//#include "Interupts.h"
+
 #include "Autopilot.h"
 
 #include "Pwm.h"
@@ -68,6 +66,10 @@ void loop();
 
 
 uint16_t oldCounter = 1000;
+
+
+
+
 
 
 void buzz_until_not_finded() {
@@ -143,28 +145,17 @@ void buzz_until_not_finded() {
 }
 
 int setup() {////--------------------------------------------- SETUP ------------------------------
+	
+	Pwm.on(PWM_COUNTER,  pwm_MAX_THROTTLE);
+
 	EEPROM.read_set();
-	//wdt_disable();
-	//wdt_enable(WDTO_4S);
-	// pinMode(13, OUTPUT);
-	//Out.begin(115200);
 	LED.init();
-	Ultrasound_Radar.init();
-	//Prog.init(",2,,4,5,6,7,8,9,0,");
-	//delay(20000);
-
-	{
-		for (int i = 0; i < 80; i++)
-			Serial.print("-");
-		Serial.println();
-	}
 	Out.println("___setup___");
-	//Out.println("Wire.begin");
-	delay(100);
 
+	delay(100);
 	printf("gps init...\n");
 	GPS.init();
-	//	Bluetooth.init();
+
 #ifdef WORK_WITH_WIFI
 	printf("wifi init...\n");
 	if (WiFi.init())
@@ -174,17 +165,9 @@ int setup() {////--------------------------------------------- SETUP -----------
 	Commander.init();
 	printf("Autopilot init...\n");
 	Autopilot.init();
-	printf("buzz_until not finded...\n");
-
-	buzz_until_not_finded();
-
-	printf("telemetry init...\n");
 	Telemetry.init_();
 	Telemetry.testBatteryVoltage();
-
-	//wdt_enable(WATCHDOG);
-	//wdt_disable();
-
+	printf("telemetry init...\n");
 	return 0;
 
 }
