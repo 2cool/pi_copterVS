@@ -568,7 +568,7 @@ bool AutopilotClass::off_throttle(const bool force, const string msg){//////////
 	
 	if ( force)
 	{
-
+		printf("force motors_off %s\n", msg.c_str());
 		Balance.set_off_th_();
 		Telemetry.addMessage(msg);
 		control_bits = 0;

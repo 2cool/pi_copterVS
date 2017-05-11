@@ -18,10 +18,6 @@
 //#define GPSPRINT
 //#define MPU_PRINT
 
-//333.3 герца
-#define PWM_COUNTER 48000
-#define TAKTS 3
-#define MAX_TIME_TO_RUN (TAKTS*3000-300)
 #define RAD2GRAD 57.295779513082320876798154814105
 #define GRAD2RAD 0.01745329251994329576923690768489
 
@@ -49,7 +45,7 @@
 //#define DEBUG_MODE
 
 // millis take less time then micros
-//#define OFF_MOTOR_IF_LOST_CONNECTION  
+#define OFF_MOTOR_IF_LOST_CONNECTION  
 
 
 //#define PLUS_CAMERA
@@ -73,8 +69,8 @@
 
 
 
-#define FALSE_GPS
-#define FASLE_GPS_STILL
+//#define FALSE_GPS
+//#define FASLE_GPS_STILL
 //#define MOTORS_OFF
 //#define NO_BATTERY
 
@@ -93,6 +89,7 @@
 #else
 #define BUZZER_R
 //#define GYRO_CALIBR
+//#define ON_MAX_G_MOTORS_OFF
 #endif
 
 

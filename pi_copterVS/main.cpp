@@ -87,7 +87,7 @@ void buzz_until_not_finded() {
 #else	
 
 	const bool power_on = true;// analogRead(A4) > 500;
-	Pwm.on(PWM_COUNTER, power_on ? pwm_OFF_THROTTLE : pwm_MAX_THROTTLE);
+	Pwm.on(0, power_on ? pwm_OFF_THROTTLE : pwm_MAX_THROTTLE);
 	Out.println(power_on ? "	- COPTER IS LOST -" : "wait 4 power");
 
 
@@ -146,7 +146,7 @@ void buzz_until_not_finded() {
 
 int setup() {////--------------------------------------------- SETUP ------------------------------
 	
-	Pwm.on(PWM_COUNTER,  pwm_MAX_THROTTLE);
+	Pwm.on(0,  pwm_MAX_THROTTLE);
 
 	EEPROM.read_set();
 	LED.init();
@@ -167,7 +167,7 @@ int setup() {////--------------------------------------------- SETUP -----------
 	Autopilot.init();
 	Telemetry.init_();
 	Telemetry.testBatteryVoltage();
-	printf("telemetry init...\n");
+	printf("telemetry init OK \n");
 	return 0;
 
 }

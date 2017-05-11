@@ -430,18 +430,18 @@ void BalanceClass::loop()
 		if (power_on_time==0 && Telemetry.b[2] > 0)
 			power_on_time = millis();
 
-		if (Telemetry.b[2] == 0 || ( millis() - power_on_time) < 1000) {
-			f_[0] = f_[1] = f_[2] = f_[3] = 1;
-			if (power_on_time>0 && millis() - power_on_time > 1000)
+		if (Telemetry.b[2] == 0 || ( millis() - power_on_time) < 1500) {
+			if (f_[0] == 0)
+				printf("power off\n");
+			throttle = f_[0] = f_[1] = f_[2] = f_[3] = 1;
+			if (power_on_time>0 && millis() - power_on_time > 1500)
 				power_on_time = 0;
 			
 		}
 		else {
 			if (f_[0] == 1)
 				printf("!!! power on !!!\n");
-			f_[0] = f_[1] = f_[2] = f_[3] = 0;
-
-			throttle = 0;
+			throttle = f_[0] = f_[1] = f_[2] = f_[3] = 0;
 		}
 	}
 	
@@ -457,22 +457,14 @@ void BalanceClass::loop()
 	Pwm.throttle(0, 0, 0, 0);  //670 micros
 #else
 
-	if (f_[0] > 0.3)
-		f_[0] = 0.3;
-
-	if (f_[1] > 0.3)
-		f_[1] = 0.3;
-	if (f_[2] > 0.3)
-		f_[2] = 0.3;
-	if (f_[3] > 0.3)
-		f_[3] = 0.3;
-
-
 
 	Pwm.throttle(f_[0], f_[1], f_[2], f_[3]);  //670 micros
+
+	//Pwm.throttle(throttle, throttle, throttle, throttle);  //670 micros
+
 #endif
-	//Debug.load(0, f_[0], f_[3]);
-	//Debug.load(1, f_[1], f_[2]);
+//	Debug.load(1, f_[0], f_[3]);
+//	Debug.load(0, f_[1], f_[2]);
 //	Debug.dump();
 	//Pwm.gimagl_pitch(-40);
 

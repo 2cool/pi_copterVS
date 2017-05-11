@@ -241,48 +241,83 @@ void CommanderClass::new_data(byte *buffer, int n) {
 	}
 }
 
+
+int get32to8bMask(int v) {
+	int mask = v & 255;
+	mask ^= ((v >> 8) & 255);
+	mask ^= ((v >> 16) & 255);
+	mask ^= ((v >> 24) & 255);
+	return mask;
+}
+
+int get16to8bMask(int v) {
+	int mask = v & 255;
+	mask ^= ((v >> 8) & 255);
+
+	return mask;
+}
+
 bool CommanderClass::input(){
 	if (data_size) {
 
 		//Autopilot.last_time_data_recived = millis();
 		if (data_size >= 12) {
 			uint32_t mode = *(uint32_t*)buf;
+			int sec_mask = mode >> 24;
+			
+			mode &= 0x00ffffff;
+			int mask = get32to8bMask(mode);
 
-
-			Autopilot.set_control_bits(mode);
 			int i = 4;
 			int16_t i_throttle = *(int16_t*)(buf + i);
+			mask ^= get16to8bMask(i_throttle);
 			i += 2;
-			throttle = 0.00003125f*(float)i_throttle;
+			
 
-			int16_t t = *(int16_t*)(buf + i);
+			int16_t i_yaw = *(int16_t*)(buf + i);
 			i += 2;
-			yaw = -ANGK*(float)t;
+			mask ^= get16to8bMask(i_yaw);
+			
 
-			t = *(int16_t*)(buf + i);
+			int i_yaw_offset = *(int16_t*)(buf + i);
 			i += 2;
-			yaw_offset = ANGK*(float)t;
+			mask ^= get16to8bMask(i_yaw_offset);
+			
 
-			t = *(int16_t*)(buf + i);
+			int i_pitch = *(int16_t*)(buf + i);
 			i += 2;
-			pitch = ANGK*(float)t;
-			t = *(int16_t*)(buf + i);
+			mask ^= get16to8bMask(i_pitch);
+			
+			int i_roll = *(int16_t*)(buf + i);
 			i += 2;
-			roll = ANGK*(float)t;
-			if ((i + 3) < data_size) {
-				string msg = "";
-				msg += *(buf + i++);
-				msg += *(buf + i++);
-				msg += *(buf + i++);
-				if (msg.find(m_PROGRAM) == 0 && Autopilot.progState()==false) {
-					Prog.add(buf + i);
+			mask ^= get16to8bMask(i_roll);
+
+
+			if (mask == sec_mask) {
+				Autopilot.set_control_bits(mode);
+				throttle = 0.00003125f*(float)i_throttle;
+				yaw = -ANGK*(float)i_yaw;
+				yaw_offset = ANGK*(float)i_yaw_offset;
+				pitch = ANGK*(float)i_pitch;
+				roll = ANGK*(float)i_roll;
+				if ((i + 3) < data_size) {
+					string msg = "";
+					msg += *(buf + i++);
+					msg += *(buf + i++);
+					msg += *(buf + i++);
+					if (msg.find(m_PROGRAM) == 0 && Autopilot.progState()==false) {
+						Prog.add(buf + i);
+					}
+					else if (msg.find(m_SETTINGS) == 0) {
+							Settings(string((char*)(buf+i)));
+					}
+					else if (msg.find("UPS") == 0) {
+						Telemetry.getSettings(buf[i++]);
+					}
 				}
-				else if (msg.find(m_SETTINGS) == 0) {
-						Settings(string((char*)(buf+i)));
-				}
-				else if (msg.find("UPS") == 0) {
-					Telemetry.getSettings(buf[i++]);
-				}
+			}
+			else {
+				printf("COMMANDER ERROR\n");
 			}
 			data_size = 0;
 			return true;

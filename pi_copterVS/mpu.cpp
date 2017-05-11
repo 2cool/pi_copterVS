@@ -390,10 +390,13 @@ void MpuClass::loop(){//-------------------------------------------------L O O P
 #endif
 		upsidedown = az>0;
 
+
+#ifdef ON_MAX_G_MOTORS_OFF
 		if ((abs(ax) > MAX_G || abs(ay) > MAX_G || abs(az) > MAX_G) && ++max_g_cnt>2){
 			Autopilot.off_throttle(true, e_MAX_ACCELERATION);
 			max_g_cnt = 0;
 		}
+#endif
 		//iz na minus
 
 
@@ -464,8 +467,8 @@ void MpuClass::loop(){//-------------------------------------------------L O O P
 		speedY += (cosYaw*rspeedY - sinYaw*rspeedX);
 
 #ifndef MOTORS_OFF
-		cx += total_ax;
-		cy -= total_ay;
+		//cx += total_ax;
+		//cy -= total_ay;
 #endif
 
 	}
@@ -531,7 +534,7 @@ void MpuClass::loop(){//-------------------------------------------------L O O P
 
 	
 	
-	//Debug.load(0, aRoll/40, -roll/40);
+//	Debug.load(0, dt*100, 0);
 
 //	Debug.load(1, aPitch/40, pitch/40);
 //	Debug.load(0, yaw/180, Hmc.headingGrad / 180);

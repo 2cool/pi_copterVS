@@ -32,7 +32,7 @@
 #define FALSE_TIME_TO_BATERY_OFF 120000.0
 
 void TelemetryClass::addMessage(const string msg){
-
+	printf("%s\n", msg.c_str());
 	if (message.length() + msg.length() >= TELEMETRY_BUF_SIZE)
 		return;
 
@@ -205,8 +205,10 @@ void TelemetryClass::update_voltage(){
 	b[1] = a1 - a0;
 	if (buf[2] > 100)
 		b[2] = voltage - a1;
-	else
+	else {
 		b[2] = 0;
+		voltage = 0;
+	}
 	
 	//Serial.println("bat");
 	//Serial.println(a2);
@@ -247,7 +249,7 @@ void TelemetryClass::testBatteryVoltage(){
 
 
 
-	if (voltage < 900){
+	if (voltage>0 && voltage < 900){
 		voltage = 1110;
 		addMessage(e_VOLT_MON_ERROR);
 	}
