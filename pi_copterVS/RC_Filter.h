@@ -12,7 +12,7 @@ class RC_filter{
 public:
 	void reset(){ last_v = 0; }
 	void setF(const float _fCut, float lv=0){
-		RC = 1 / (2 * M_PI*_fCut);
+		RC = 1.0f / (2.0f * (float)M_PI*_fCut);
 		last_v = lv;
 	}
 	float get(float v, const float delta_time){

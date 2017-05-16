@@ -74,7 +74,7 @@ A,COUNTER,LAT,LON,HEIGHT,HEADING, SPEED,TIME,
 
 
 
-#define ANGK 0.1
+#define ANGK 0.1f
 uint8_t data_errors = 0;
 
 
@@ -83,13 +83,13 @@ static float ar_t333[SETTINGS_ARRAY_SIZE+1];
 float * load(const string  buf, const uint8_t  * filds){
 	ar_t333[SETTINGS_ARRAY_SIZE] = SETTINGS_IS_OK;
 	for (int i = 0; i < SETTINGS_ARRAY_SIZE; i++){
-		float val= stod(buf.substr(filds[i], filds[i + 1]- filds[i] - 1));
+		float val= (float)stod(buf.substr(filds[i], filds[i + 1]- filds[i] - 1));
 		if (val != 0 || buf.substr(filds[i], filds[i + 1]- filds[i] - 1).find("0.0")==0)
 			ar_t333[i] = val;
 		else{
 			Out.println(buf.substr(filds[i], filds[i + 1]- filds[i] - 1));
 			ar_t333[10] = SETTINGS_ERROR;
-			Out.println(i);
+			printf("%i\n",i);
 			return ar_t333;
 		}
 	}
@@ -106,11 +106,11 @@ uint8_t CommanderClass::_set(const float  val, float &set, bool secure){
 		set = val;
 	}else
 		if (Autopilot.motors_is_on()){
-			if (set*0.8 > val)
-				set *= 0.8;
+			if (set*0.8f > val)
+				set *= 0.8f;
 			else
-			if (set*1.2 < val)
-				set *= 1.2;
+			if (set*1.2f < val)
+				set *= 1.2f;
 			else
 				set = val;
 		}else
@@ -120,7 +120,7 @@ uint8_t CommanderClass::_set(const float  val, float &set, bool secure){
 
 bool CommanderClass::Settings(string buf){
 
-	Out.println("settings");
+	printf("settings\n");
 	uint8_t filds[11];
 	uint8_t fi = 0;
 	uint8_t i = 0;
@@ -132,9 +132,9 @@ bool CommanderClass::Settings(string buf){
 		filds[fi++] = i++;
 
 	}
-	filds[10] = buf.length();
+	filds[10] = (uint8_t)buf.length();
 
-	uint8_t n = stoi(buf.substr(0, filds[0] - 1));
+	uint8_t n = (uint8_t)stoi(buf.substr(0, filds[0] - 1));
 	switch (n){
 	case 0:
 		Balance.set(load(buf, filds));
@@ -209,7 +209,7 @@ bool CommanderClass::ButtonMessage(string msg){
 	
 
 	if (msg.find("UP") == 0 && msg[2] >= '0' && msg[2] <= '9'){
-		int_fast8_t n = msg[2] - '0';
+		int_fast8_t n = (int_fast8_t)(msg[2] - '0');
 		//Out.println(msg);
 		//Out.println(n);
 		/////!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

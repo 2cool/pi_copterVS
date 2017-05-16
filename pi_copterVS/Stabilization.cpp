@@ -18,8 +18,8 @@
 void StabilizationClass::init(){
 
 	
-	accXY_stabKP = 0.2;
-	accXY_stabKP_Rep = 1.0 / accXY_stabKP;
+	accXY_stabKP = 0.2f;
+	accXY_stabKP_Rep = 1.0f / accXY_stabKP;
 	set_acc_xy_speed_kp(5);
 	set_acc_xy_speed_kI(1);
 	//set_acc_xy_speed_kD(6); зачем вичислять ускорение если мі его итак заем.
@@ -27,8 +27,8 @@ void StabilizationClass::init(){
 	max_speed_xy = MAX_HOR_SPEED;
 
 
-	XY_KF_DIST = 0.1;  
-	XY_KF_SPEED = 0.1;
+	XY_KF_DIST = 0.1f;  
+	XY_KF_SPEED = 0.1f;
 	
 	
 	//--------------------------------------------------------------------------
@@ -38,23 +38,23 @@ void StabilizationClass::init(){
 
 
 
-	Z_CF_DIST = 0.1;//єкспиримент
-	Z_CF_SPEED = 0.016;
+	Z_CF_DIST = 0.1f;//єкспиримент
+	Z_CF_SPEED = 0.016f;
 
 
-	accZ_stabKP = 0.5;
-	accZ_stabKP_Rep = 1.0 / accZ_stabKP;
+	accZ_stabKP = 0.5f;
+	accZ_stabKP_Rep = 1.0f / accZ_stabKP;
 
 
-	pids[ACCZ_SPEED].kP(0.1);//?
-	pids[ACCZ_SPEED].kI(0.05);//?
-	pids[ACCZ_SPEED].imax(0.3);
+	pids[ACCZ_SPEED].kP(0.1f);//?
+	pids[ACCZ_SPEED].kI(0.05f);//?
+	pids[ACCZ_SPEED].imax(0.3f);
 	max_stab_z_P =  MAX_VER_SPEED_PLUS;
 	max_stab_z_M = MAX_VER_SPEED_MINUS;
 
 	sX=sY=sZ = 0;
 	speedZ = speedX = speedY = 0;
-	Out.println("stab init");
+	printf("stab init\n");
 
 }
 //bool flx = false, fly = false;
@@ -64,12 +64,12 @@ void StabilizationClass::init(){
 
 
 //33 max speed on pressureat 110000
-const float air_drag_k = 9.8 / (PRESSURE_AT_0 * 33 * 33);
+const float air_drag_k = 9.8f / (float)(PRESSURE_AT_0 * 33 * 33);
 float air_drag(const float speed){
 	return abs(speed)*speed*MS5611.pressure*air_drag_k;
 }
 float air_drag_wind(const float a){
-	float w=sqrt(abs(a / (MS5611.pressure*air_drag_k)));
+	float w=(float)sqrt(abs(a / (MS5611.pressure*air_drag_k)));
 	return (a < 0) ? -w : w;
 }
 void StabilizationClass::setDefaultMaxSpeeds(){//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -105,9 +105,9 @@ void StabilizationClass::XY(float &pitch, float&roll){
 	const float ay = (-Mpu.cosYaw*Mpu.accY - Mpu.sinYaw*Mpu.accX);
 //#endif
 	//--------------------------------------------------------prediction
-	sX = sX + speedX*Mpu.dt + ax*Mpu.dt*Mpu.dt*0.5;
+	sX = sX + speedX*Mpu.dt + ax*Mpu.dt*Mpu.dt*0.5f;
 	speedX = speedX + ax*Mpu.dt;
-	sY = sY + speedY*Mpu.dt + ay*Mpu.dt*Mpu.dt*0.5;
+	sY = sY + speedY*Mpu.dt + ay*Mpu.dt*Mpu.dt*0.5f;
 	speedY = speedY + ay*Mpu.dt;
 	// -------------------------------------------------------corection
 
@@ -126,14 +126,14 @@ void StabilizationClass::XY(float &pitch, float&roll){
 		stabY = Prog.stabY;
 	}
 	else{
-		const float dist = sqrt(sX*sX + sY*sY);
+		const float dist = (float)sqrt(sX*sX + sY*sY);
 		const float max_speed = min(getSpeed_XY(dist),max_speed_xy);
 		stabX = abs((GPS.loc.cosDirection)*max_speed);
 		if (sX < 0)
-			stabX *= -1.0;
+			stabX *= -1.0f;
 		stabY = abs((GPS.loc.sinDirection)*max_speed);
 		if (sY < 0)
-			stabY *= -1.0;
+			stabY *= -1.0f;
 	}
 	const float glob_pitch = -pids[ACCX_SPEED].get_pid(stabX + speedX, Mpu.dt);
 	
@@ -194,7 +194,7 @@ int tttcnt = 0;
 float StabilizationClass::Z(){/////////////////////////////////////////////////////////////
 
 
-	sZ += speedZ*Mpu.dt + Mpu.accZ*Mpu.dt*Mpu.dt*0.5;
+	sZ += speedZ*Mpu.dt + Mpu.accZ*Mpu.dt*Mpu.dt*0.5f;
 	sZ += (Autopilot.corectedAltitude() - sZ)*Z_CF_DIST;
 
 	speedZ += Mpu.accZ*Mpu.dt;
@@ -248,7 +248,7 @@ string StabilizationClass::get_z_set(){
 void StabilizationClass::setZ(const float  *ar){
 
 
-	uint8_t error = 1;
+	int error = 1;
 	if (ar[SETTINGS_ARRAY_SIZE] == SETTINGS_IS_OK){
 		
 		error = 0;
@@ -256,7 +256,7 @@ void StabilizationClass::setZ(const float  *ar){
 		uint8_t i = 0;
 
 		error += Commander._set(ar[i++], accZ_stabKP);
-		accZ_stabKP_Rep = 1.0 / accZ_stabKP;
+		accZ_stabKP_Rep = 1.0f / accZ_stabKP;
 
 		t = pids[ACCZ_SPEED].kP();
 		if ((error += Commander._set(ar[i++],t))==0)
@@ -277,15 +277,15 @@ void StabilizationClass::setZ(const float  *ar){
 
 
 		resset_z();
-		Out.println("Stabilization Z set:");
+		printf("Stabilization Z set:\n");
 
 		for (uint8_t ii = 0; ii < i; ii++){
-			Out.print(ar[ii]); Out.print(",");
+			printf("%f,",ar[ii]);
 		}
-		Out.println(ar[i]);
+		printf("%f\n",ar[i]);
 	}
 	if (error>0){
-		Out.println("Stab Z set Error");
+		printf("Stab Z set Error\n");
 	}
 }
 
@@ -301,8 +301,8 @@ string StabilizationClass::get_xy_set(){
 }
 
 void StabilizationClass::setXY(const float  *ar){
-	uint8_t i = 0;
-	uint8_t error = 1;
+
+	int error = 1;
 
 	if (ar[SETTINGS_ARRAY_SIZE] == SETTINGS_IS_OK){
 
@@ -311,7 +311,7 @@ void StabilizationClass::setXY(const float  *ar){
 		uint8_t i = 0;
 
 		error += Commander._set(ar[i++], accXY_stabKP);
-		accXY_stabKP_Rep = 1.0 / accXY_stabKP;
+		accXY_stabKP_Rep = 1.0f / accXY_stabKP;
 
 		t = pids[ACCX_SPEED].kP();
 		if ((error += Commander._set(ar[i++], t))==0)
@@ -331,15 +331,15 @@ void StabilizationClass::setXY(const float  *ar){
 
 
 		resset_xy();
-		Out.println("Stabilization XY set:");
+		printf("Stabilization XY set:\n");
 		for (uint8_t ii = 0; ii < i; ii++){
-			Out.print(ar[ii]); Out.print(",");
+			printf("%f,",ar[ii]);
 		}
-		Out.println(ar[i]);
+		printf("%f\n",ar[i]);
 	}
 	if (error>0)
 	{
-		Out.println("Stab XY set Error");
+		printf("Stab XY set Error\n");
 	}
 }
 

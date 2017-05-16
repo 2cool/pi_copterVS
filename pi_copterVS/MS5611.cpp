@@ -114,7 +114,7 @@ int MS5611Class::init(){
 	
 	
 }
-
+float MS5611Class::altitude() { return altitude_ - altitude_error; }
 #ifndef WORK_WITH_WIFI
 int cntssdde = 0;
 #endif
@@ -169,7 +169,7 @@ uint8_t MS5611Class::loop(){
 	const float dt = (millis() - timet)*0.001;
 	timet = millis();
 
-	float new_altitude = Mpu.altitude_Z + FALSE_ALTITUDE;
+	altitude_ = Mpu.altitude_Z + FALSE_ALTITUDE;
 	if (flying == false && Mpu.altitude_Z > 1)
 		flying = true;
 	speed = Mpu.speed_Z;
@@ -196,13 +196,29 @@ uint8_t MS5611Class::loop(){
 #else
 
 
-long ms_time = 0;
-#define ms_delay 500
 uint8_t MS5611Class::loop(){
-
-	update();
-	return 0;
+	int64_t start = micros();
+	switch (bar_task)
+	{
+	case 0:
+		phase0();
+		break;
+	case 1:
+		phase1();
+		break;
+	case 2:
+		phase2();
+		break;
+	default:
+		if (phase3())
+			phase4();
 	}
+
+	int64_t dt = micros() - start-800;
+	if (dt>0)
+		usleep(dt);
+	return 0;
+}
 
 #endif
 
@@ -218,9 +234,7 @@ float tttalt = 0;
 void MS5611Class::phase0() {
 	bar_D[0] = bar_D[1] = bar_D[2] = 0;
 	bar_zero = 0;
-	struct timespec spec;
-	clock_gettime(CLOCK_MONOTONIC, &spec);
-	curSampled_time = round(spec.tv_nsec / 1.0e6);
+	curSampled_time = millis();
 
 	prevSampling_time = Sampling_time;
 	Sampling_time = (float)curSampled_time - (float)prevSampled_time;
@@ -338,33 +352,18 @@ void MS5611Class::phase4() {
 	const float new_altitude = getAltitude(pressure);
 
 	speed = (new_altitude - altitude_ - altitude_error) / dt;
-
-	if (tttalt == 0)
-		tttalt = new_altitude;
-	tttalt += (new_altitude - tttalt)*0.01;
+	altitude_ = new_altitude;
+//	if (tttalt == 0)
+	//	tttalt = new_altitude;
+	//tttalt += (new_altitude - tttalt)*0.01;
 	//Debug.load(0, 0, tttalt - new_altitude);
 	//Debug.dump();
 
 }
-void MS5611Class::update(){
+void MS5611Class::update(){}
 
-	switch (bar_task)
-	{
-	case 0: 
-		phase0();
-		break;
-	case 1: 
-		phase1();
-		break;
-	case 2:
-		phase2();
-		break;
-	default:
-		if (phase3())
-			phase4();
-	}
-	
-}
+
+
 float MS5611Class::get_pressure(float h) {
 	return PRESSURE_AT_0 * pow(1 - h*2.25577e-5, 5.25588);
 }

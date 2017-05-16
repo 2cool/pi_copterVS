@@ -24,7 +24,7 @@
 #include "debug.h"
 #include "Stabilization.h"
 #define gps Serial2
-#define DELTA_ANGLE_C 0.001
+#define DELTA_ANGLE_C 0.001f
 #define DELTA_A_RAD (DELTA_ANGLE_C*GRAD2RAD)
 #define DELTA_A_E7 (DELTA_ANGLE_C*10000000)
 
@@ -118,12 +118,12 @@ void LocationClass::xy(){
 	t = form_lon2Y((float)(lon_home - lon_));
 	speedY = (t - y2home) *rdt;
 	y2home = t;
-	dY = form_lon2Y((float)(lon_needV_ - lon_)) + (speedY*0.5);
+	dY = form_lon2Y((float)(lon_needV_ - (float)lon_)) + (speedY*0.5f);
 
 	t = from_lat2X((float)(lat_home - lat_));
 	speedX = (t - x2home) * rdt;
 	x2home = t;
-	dX = from_lat2X((float)(lat_needV_ - lat_)) + (speedX*0.5);
+	dX = from_lat2X((float)(lat_needV_ - (float)lat_)) + (speedX*0.5f);
 	
 	set_cos_sin_dir();
 }
@@ -143,16 +143,16 @@ void LocationClass::update(){
 	distance = distance_(lat, lon, lat + DELTA_A_RAD, lon + DELTA_A_RAD);
 //	Debug.dump(lat_, lon_, lat + 0.01*GRAD2RAD, lon + 0.01*GRAD2RAD);
 //	Debug.dump(lat, lon, distance, bearing);
-	float y = distance*sin(bearing);
-	float x = distance*cos(bearing);
+	float y = distance*(float)sin(bearing);
+	float x = distance*(float)cos(bearing);
 	
 	//kd_lat = -x *0.00001;
 	//kd_lon = -y *0.00001;
 
 	kd_lat_ = x / (DELTA_A_E7);
-	r_kd_lat = 1.0 / kd_lat_;
+	r_kd_lat = 1.0f / kd_lat_;
 	kd_lon_ = y / (DELTA_A_E7);
-	r_kd_lon = 1.0 / kd_lon_;
+	r_kd_lon = 1.0f / kd_lon_;
 
 
 
@@ -201,11 +201,11 @@ bool LocationClass::processGPS() {
 	static int fpos = 0;
 	static unsigned char checksum[2];
 	const int payloadSize = sizeof(NAV_POSLLH);
-	char buf[1];
-#define c (buf[0])
+	char buf[4096];
+	int buf_ind = 0;
+#define c (buf[buf_ind])
+	available=read(fd4S, &buf[buf_ind], 4096 - buf_ind);
 	while (available) {
-		read(fd4S, buf, sizeof buf);
-		
 		if (fpos < 2) {
 			if (c == UBX_HEADER[fpos])
 				fpos++;
@@ -230,17 +230,23 @@ bool LocationClass::processGPS() {
 				if (c == checksum[1]) {
 
 					
-					accuracy_hor_pos = DELTA_ANGLE_C*posllh.hAcc;
-					accuracy_ver_pos = DELTA_ANGLE_C*posllh.vAcc;
+					accuracy_hor_pos = DELTA_ANGLE_C*(float)posllh.hAcc;
+					accuracy_ver_pos = DELTA_ANGLE_C*(float)posllh.vAcc;
 					mseconds = posllh.iTOW;
-					dt = DELTA_ANGLE_C*(posllh.iTOW - old_iTOW);
-					rdt = 1.0 / dt;
+					dt = DELTA_ANGLE_C*(float)(posllh.iTOW - old_iTOW);
+					rdt = 1.0f / dt;
 					old_iTOW = posllh.iTOW;
 					last_gps_data_time = millis();
 					
 					lat_ = posllh.lat;
 					lon_ = posllh.lon;
 
+					buf_ind++;
+					available--;
+					if (available) {
+						memcpy(buf, &buf[buf_ind], available);
+						buf_ind -= available;
+					}
 					return true;
 				}
 			}
@@ -248,7 +254,9 @@ bool LocationClass::processGPS() {
 				fpos = 0;
 			}
 		}
-		ioctl(fd4S, FIONREAD, &available);
+		available--;
+		buf_ind++;
+		//ioctl(fd4S, FIONREAD, &available);
 	}
 	return false;
 }
@@ -258,7 +266,7 @@ bool LocationClass::processGPS() {
 
 
 void LocationClass::add2NeedLoc(const float speedX, const float speedY, const float dt){
-	long t = (add_lat_need+= from_X2Lat(speedX*dt));
+	float t = (add_lat_need+= from_X2Lat(speedX*dt));
 	add_lat_need -= t;
 	lat_needR_ -= t;
 	lat_needV_ = lat_needR_ - from_X2Lat(Stabilization.getDist_XY(speedX));
@@ -277,6 +285,7 @@ void LocationClass::add2NeedLoc(const float speedX, const float speedY, const fl
 //lon 1340.482573727
 
 int LocationClass::init(){
+#ifndef FALSE_GPS
 	fd4S = open("/dev/ttyS3", O_RDWR | O_NOCTTY | O_SYNC);
 	if (fd4S < 0)
 	{
@@ -286,32 +295,27 @@ int LocationClass::init(){
 
 	set_interface_attribs(fd4S, B9600, 0);  // set speed to 115,200 bps, 8n1 (no parity)
 	set_blocking(fd4S, 0);                // set no blocking
-	return 0;
-
-
-
-
-
+#endif
 	mspeedx =  mspeedy = 0;
 	old_iTOW = 0;
 	oldDist = MAX_DIST2UPDATE + MAX_DIST2UPDATE;
 
-	dt = 0.1;
+	dt = 0.1f;
 	add_lat_need = add_lon_need = 0;
 	//kd_lon = 0;// -0.000812690982;
 	//kd_lat = 0;// -0.001112000712;
 
 	x2home = y2home = speedX = speedY = 0;
 	lon_home = lat_home = 0;
-	accuracy_hor_pos = 99.99;
-	accuracy_ver_pos = 99.99;
+	accuracy_hor_pos = 99.99f;
+	accuracy_ver_pos = 99.99f;
 	altitude = 0;
 	lat_ = 0;  //radians
 	lon_ = 0;
-	dt = 0.1;
+	dt = 0.1f;
 	rdt = 10;
 	speedX = speedY = 0;
-	Out.println("loc init");
+	printf("loc init\n");
 }
 
 void LocationClass::setHomeLoc(){
@@ -322,8 +326,8 @@ void LocationClass::setHomeLoc(){
 	setNeedLoc2HomeLoc();
 }
 void LocationClass::setNeedLoc(long lat, long lon){
-	lat_needR_ = lat_needV_ = lat;
-	lon_needR_ = lon_needV_ = lon;
+	lat_needR_ = lat_needV_ = (float)lat;
+	lon_needR_ = lon_needV_ = (float)lon;
 	xy();
 	//set_cos_sin_dir();
 
@@ -340,10 +344,10 @@ float LocationClass::set_cos_sin_dir(){
 		sinDirection = 1;
 	}
 	else{
-		float angle =  atan(dY / dX);
+		float angle =  (float)atan(dY / dX);
 		//ErrorLog.println(angle*RAD2GRAD);
-		cosDirection = abs(cos(angle));
-		sinDirection = abs(sin(angle));
+		cosDirection = (float)abs(cos(angle));
+		sinDirection = (float)abs(sin(angle));
 	}
 	
 }
@@ -351,7 +355,7 @@ float LocationClass::set_cos_sin_dir(){
 float LocationClass::bearing_(const float lat, const float lon, const float lat2, const float lon2){
 	float x, y;
 	sin_cos(x, y, lat, lon, lat2, lon2);
-	return atan2(y, x);  //minus и как у гугла
+	return (float)atan2(y, x);  //minus и как у гугла
 
 }
 void LocationClass::sin_cos(float &x, float &y, const float lat, const float lon, const float lat2, const float lon2){
@@ -359,8 +363,8 @@ void LocationClass::sin_cos(float &x, float &y, const float lat, const float lon
 	float rlat = (lat);
 	float rlat2 = (lat2);
 
-	y = sin(rll)*cos(rlat2);
-	x = cos(rlat)*sin(rlat2) - sin(rlat)*cos(rlat2)*cos(rll);
+	y = (float)(sin(rll)*cos(rlat2));
+	x = (float)(cos(rlat)*sin(rlat2) - sin(rlat)*cos(rlat2)*cos(rll));
 
 }
 float LocationClass::distance_(const float lat, const float lon, const float lat2, const float lon2){
@@ -370,8 +374,8 @@ float LocationClass::distance_(const float lat, const float lon, const float lat
 	float df = (lat2 - lat);
 	float dq = (lon2 - lon);
 
-	float a = sin(df / 2)*sin(df / 2) + cos(f1)*cos(f2)*sin(dq / 2)*sin(dq / 2);
-	return R * 2 * atan2(sqrt(a), sqrt(1 - a));
+	float a = (float)(sin(df / 2)*sin(df / 2) + cos(f1)*cos(f2)*sin(dq / 2)*sin(dq / 2));
+	return (float)(R * 2 * atan2(sqrt(a), sqrt(1 - a)));
 
 }
 

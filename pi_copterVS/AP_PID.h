@@ -24,10 +24,7 @@ public:
 
 	void	kP(const float v)		{ _kp = v; }
 	void	kI(const float v)		{ _ki = v; }
-	void	kD(const float v, const float fCut=20)		{ 
-		RC = 1 / (2 * M_PI*fCut);
-		_kd = v; 
-	}
+	void	kD(const float v, const float fCut = 20.0);
 	void	imax(const float v)	{ _imax = v; }
 
 	float	kP()			{ return _kp; }

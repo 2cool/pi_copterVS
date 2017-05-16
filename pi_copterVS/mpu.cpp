@@ -38,7 +38,7 @@ void MpuClass::init()
 	//speed = sqrt(2f / cS)
 	//cS = 0.00536;//15 град 
 //	0.00357
-	cS = tan(NEED_ANGLE_4_SPEED_10_MS * GRAD2RAD)*0.02;
+	cS = (float)tan(NEED_ANGLE_4_SPEED_10_MS * GRAD2RAD)*0.02f;
 	speedX = speedY;
 	max_g_cnt = 0;
 
@@ -50,7 +50,7 @@ void MpuClass::init()
 
 	faccX = faccY = faccZ = 0;
 
-	Out.println("Initializing MPU6050");
+	printf("Initializing MPU6050\n");
 #ifndef FALSE_WIRE
 
 
@@ -68,14 +68,14 @@ void MpuClass::init()
 
 
 	// verify connection
-	Out.println("Testing device connections...");
+	printf("Testing device connections...\n");
 	if (accelgyro.testConnection())
 	{
-		Out.println("MPU6050 connection successful");
+		printf("MPU6050 connection successful\n");
 	}
 	else
 	{
-		Out.println("MPU6050 connection failed");
+		printf("MPU6050 connection failed\n");
 		delay(10000);
 	}
 
@@ -84,12 +84,12 @@ void MpuClass::init()
 	//	accelgyro.setDLPFMode(gLPF);
 
 
-	//accelgyro.setDLPFMode(MPU6050_DLPF_BW_256);
-#ifdef T200HZ
-	accelgyro.setDLPFMode(MPU6050_DLPF_BW_188);///
-#else
-	accelgyro.setDLPFMode(MPU6050_DLPF_BW_98);
-#endif
+	accelgyro.setDLPFMode(MPU6050_DLPF_BW_256);
+
+	//accelgyro.setDLPFMode(MPU6050_DLPF_BW_188);///
+
+	//accelgyro.setDLPFMode(MPU6050_DLPF_BW_98);
+
 	//accelgyro.setDLPFMode(MPU6050_DLPF_BW_42);
 	//accelgyro.setDLPFMode(gLPF = MPU6050_DLPF_BW_20);
 	//accelgyro.setDLPFMode(MPU6050_DLPF_BW_10);
@@ -122,7 +122,7 @@ void MpuClass::init()
 #endif
 	}
 	else {
-		Out.println("MPU NOT CALIBRATED !!!");
+		printf("MPU NOT CALIBRATED !!!\n");
 	}
 
 
@@ -144,7 +144,7 @@ void MpuClass::init()
 	sinPitch = sinRoll = 0;
 	tiltPower = cosPitch = cosRoll = 1;
 	//COMP_FILTR = 0;// 0.003;
-	addStep = 0.001;
+	addStep = 0.001f;
 	
 
 
@@ -167,9 +167,9 @@ string MpuClass::get_set(){
 
 void MpuClass::set(const float  *ar){
 
-	uint8_t i = 0;
+	int i = 0;
 	if (ar[SETTINGS_ARRAY_SIZE] == SETTINGS_IS_OK){
-		uint8_t error = 0;
+		int error = 0;
 
 		float t;
 
@@ -178,28 +178,27 @@ void MpuClass::set(const float  *ar){
 		//speed = sqrt(2f / cS)
 		//cS = 0.00536;//15 град
 
-		const float new_cS = tan(ar[i++] * GRAD2RAD)*0.02;
+		const float new_cS = (float)(tan(ar[i++] * GRAD2RAD)*0.02f);
 		//Serial.println(new_cS);
 		t = cS;
 		if ((error += Commander._set(new_cS, t)) == 0)
 			cS = t;
 
-		Out.println("mpu set:");
-		int ii;
+		printf("mpu set:\n");
+		//int ii;
 		if (error == 0){
 			//for (ii = 0; ii < i; ii++){
 			//	Out.print(ar[ii]); Out.print(",");
 			//}
 			//Out.println(ar[ii]);
-			Out.println("OK");
+			printf("OK\n");
 		}
 		else{
-			Out.print("ERROR to big or small. P=");
-			Out.println(error);
+			printf("ERROR to big or small. P=%i\n",error);
 		}
 	}
 	else{
-		Out.println("ERROR");
+		printf("ERROR\n");
 	}
 }
 
@@ -209,8 +208,8 @@ int16_t MpuClass::getGX(){
 	return x;
 }
 
-const float n003 = 0.030517578125;
-const float n604 = 0.00006103515625;
+const float n003 = 0.030517578f;
+const float n604 = 0.00006103515625f;
 
 #ifdef FALSE_MPU
 
@@ -333,7 +332,7 @@ void MpuClass::loop(){
 		roll = 0;
 		yaw = 0;
 	}
-	float ttddfdf = 0.03;
+	float ttddfdf = 0.01;
 	pitch += (Balance.c_pitch - pitch)*ttddfdf;
 	roll += (Balance.c_roll - roll)*ttddfdf;
 	yaw += (Hmc.get_headingGrad() - yaw)*0.05;
@@ -363,9 +362,11 @@ void MpuClass::loop(){
 #define PITCH_COMPENSATION_IN_YAW_ROTTATION 0.025
 
 
-
-
 void MpuClass::loop(){//-------------------------------------------------L O O P-------------------------------------------------------------
+
+
+	int zzz = micros();
+
 //	if (calibrated == false){
 
 		//	new_calibration();
@@ -373,8 +374,8 @@ void MpuClass::loop(){//-------------------------------------------------L O O P
 //		calibrated = true;
 //	}
 	uint32_t mputime = micros();
-	dt = (float)(mputime - oldmpuTime)*0.000001;// *div;
-	rdt = 1.0 / dt;
+	dt = (float)(mputime - oldmpuTime)*0.000001f;// *div;
+	rdt = 1.0f / dt;
 	oldmpuTime = mputime;
 
 	float x, y, z;
@@ -412,7 +413,7 @@ void MpuClass::loop(){//-------------------------------------------------L O O P
 
 	}
 
-	const float CF = 0.01;
+	const float CF = 0.01f;
 
 	yaw += gyroYaw*dt;
 	float t = Hmc.headingGrad - yaw;
@@ -429,8 +430,8 @@ void MpuClass::loop(){//-------------------------------------------------L O O P
 
 	//yaw = Hmc.headingGrad;
 
-	cosYaw = cos(yaw*GRAD2RAD);
-	sinYaw = sin(yaw*GRAD2RAD);
+	cosYaw = (float)cos(yaw*GRAD2RAD);
+	sinYaw = (float)sin(yaw*GRAD2RAD);
 
 	roll += gyroRoll*dt;
 
@@ -451,15 +452,15 @@ void MpuClass::loop(){//-------------------------------------------------L O O P
 		float rspeedY = cosYaw*speedY + sinYaw*speedX;
 
 
-		float break_fx = 0.5*abs(rspeedX)*rspeedX*(cS+cS*abs(sinPitch));
+		float break_fx = 0.5f*abs(rspeedX)*rspeedX*(cS+cS*abs(sinPitch));
 		float total_ax = sinPitch / cosPitch - break_fx;
-		rspeedX = 9.8*total_ax*dt;
+		rspeedX = 9.8f*total_ax*dt;
 		total_ax *= cosPitch;
 
 
-		float break_fy = 0.5*abs(rspeedY)*rspeedY*(cS+cS*abs(sinRoll));
+		float break_fy = 0.5f*abs(rspeedY)*rspeedY*(cS+cS*abs(sinRoll));
 		float total_ay = sinRoll / cosRoll - break_fy;
-		rspeedY = 9.8*total_ay*dt;
+		rspeedY = 9.8f*total_ay*dt;
 		total_ay *= cosRoll;
 
 
@@ -482,8 +483,8 @@ void MpuClass::loop(){//-------------------------------------------------L O O P
 
 
 #ifdef RESTRICT_PITCH // Eq. 25 and 26
-	const float aRoll = atan2(cy, tiltPower) * RAD2GRAD;
-	const float aPitch = atan(cx / sqrt(cy * cy + tiltPower * tiltPower)) * RAD2GRAD;
+	const float aRoll = (float)atan2(cy, tiltPower) * RAD2GRAD;
+	const float aPitch = (float)atan(cx / sqrt(cy * cy + tiltPower * tiltPower)) * RAD2GRAD;
 #else // Eq. 28 and 29
 	double roll = atan(accY / sqrt(accX * accX + accZ * accZ)) * RAD_TO_DEG;
 	double pitch = atan2(-accX, accZ) * RAD_TO_DEG;
@@ -501,10 +502,10 @@ void MpuClass::loop(){//-------------------------------------------------L O O P
 	pitch += (aPitch - pitch)*CF;
 
 
-	cosPitch = cos(pitch*GRAD2RAD);
-	sinPitch = sin(pitch*GRAD2RAD);
-	cosRoll = cos(roll*GRAD2RAD);
-	sinRoll = sin(roll*GRAD2RAD);
+	cosPitch = (float)cos(pitch*GRAD2RAD);
+	sinPitch = (float)sin(pitch*GRAD2RAD);
+	cosRoll = (float)cos(roll*GRAD2RAD);
+	sinRoll = (float)sin(roll*GRAD2RAD);
 
 	
 
@@ -512,7 +513,7 @@ void MpuClass::loop(){//-------------------------------------------------L O O P
 
 
 	tiltPower = cosPitch*cosRoll;
-	tiltPower = constrain(tiltPower, 0.5, 1);
+	tiltPower = constrain(tiltPower, 0.5f, 1);
 
 
 	//float _accZ = 9.8*(z - tiltPower) * tiltPower;
@@ -523,10 +524,10 @@ void MpuClass::loop(){//-------------------------------------------------L O O P
 	//Roll  L+ a-
 
 	accZ = z*cosPitch + sinPitch*x;
-	accZ = 9.8*(accZ*cosRoll - sinRoll*y - 1);
+	accZ = 9.8f*(accZ*cosRoll - sinRoll*y - 1);
 
-	accX = 9.8*(x*cosPitch - z*sinPitch);
-	accY = 9.8*(y*cosRoll  + z*sinRoll);
+	accX = 9.8f*(x*cosPitch - z*sinPitch);
+	accY = 9.8f*(y*cosRoll  + z*sinRoll);
 	
 
 
@@ -546,7 +547,7 @@ void MpuClass::loop(){//-------------------------------------------------L O O P
 		//Debug.load(1, speedY/20, yaw/180);
 
 //	Debug.dump();
-	
+
 	
 }
 
@@ -566,8 +567,8 @@ bool MpuClass::selfTest(){
 	uint8_t trys = 0;
 	bool ok;
 	do {
-		uint8_t count = 0;
-		uint8_t errors = 0;
+		int count = 0;
+		int errors = 0;
 
 		while (++count < 10){
 			int16_t xt, yt, zt;
@@ -589,7 +590,7 @@ bool MpuClass::selfTest(){
 
 		ok = errors <= 7;
 		if (ok == false){
-			Out.println("ERROR");
+			printf("ERROR\n");
 			accelgyro.setXAccelOffset(1354);
 			accelgyro.setYAccelOffset(451);
 			accelgyro.setZAccelOffset(1886);
@@ -633,13 +634,13 @@ void MpuClass::meansensors(){
 			mean_ax = buff_ax / buffersize;
 			mean_ay = buff_ay / buffersize;
 			mean_az = buff_az / buffersize;
-			float rbuf = 1.0 / (float)buffersize;
+			float rbuf = 1.0f / (float)buffersize;
 			float x = (float)buff_ax*rbuf;
 			float y = (float)buff_ay*rbuf;
 			float z = (float)buff_az*rbuf;
 
-			roll = RAD2GRAD*atan(y / sqrt(x*x + z*z));
-			pitch = RAD2GRAD*atan(x / sqrt(y*y + z*z));
+			roll = RAD2GRAD*(float)atan(y / sqrt(x*x + z*z));
+			pitch = RAD2GRAD*(float)atan(x / sqrt(y*y + z*z));
 
 			//float rbufs = n003 / (float)buffersize;
 			//const_gyroRoll0= (float)buff_gx * rbufs;
@@ -668,37 +669,37 @@ void MpuClass::calibrationF0(int16_t ar[]){
 		accelgyro.setZGyroOffset(ar[gz_offset]);
 
 		meansensors();
-		Out.println("...");
+		printf("...\n");
 
 		if (abs(mean_ax) <= acel_deadzone) ready++;
-		else ar[ax_offset] = ar[ax_offset] - mean_ax / acel_deadzone;
+		else ar[ax_offset] = ar[ax_offset] - (int16_t)(mean_ax / acel_deadzone);
 
 		if (abs(mean_ay) <= acel_deadzone) ready++;
-		else ar[ay_offset] = ar[ay_offset] - mean_ay / acel_deadzone;
+		else ar[ay_offset] = ar[ay_offset] - (int16_t)(mean_ay / acel_deadzone);
 
 		if (abs(16384 - mean_az) <= acel_deadzone) ready++;
-		else ar[az_offset] = ar[az_offset] + (16384 - mean_az) / acel_deadzone;
+		else ar[az_offset] = ar[az_offset] + (int16_t)((16384 - mean_az) / acel_deadzone);
 
 		if (abs(mean_gx) <= giro_deadzone) ready++;
-		else ar[gx_offset] = ar[gx_offset] - mean_gx / (giro_deadzone + 1);
+		else ar[gx_offset] = ar[gx_offset] - (int16_t)(mean_gx / (giro_deadzone + 1));
 
 		if (abs(mean_gy) <= giro_deadzone) ready++;
-		else ar[gy_offset] = ar[gy_offset] - mean_gy / (giro_deadzone + 1);
+		else ar[gy_offset] = ar[gy_offset] - (int16_t)(mean_gy / (giro_deadzone + 1));
 
 		if (abs(mean_gz) <= giro_deadzone) ready++;
-		else ar[gz_offset] = ar[gz_offset] - mean_gz / (giro_deadzone + 1);
+		else ar[gz_offset] = ar[gz_offset] - (int16_t)(mean_gz / (giro_deadzone + 1));
 
 		if (ready == 6) break;
 	}
 }
 void MpuClass::calibrationF(int16_t ar[]){
-	ar[ax_offset] = -mean_ax / 8;
-	ar[ay_offset] = -mean_ay / 8;
-	ar[az_offset] = (16384 - mean_az) / 8;
+	ar[ax_offset] = (int16_t)(-mean_ax / 8);
+	ar[ay_offset] = (int16_t)(-mean_ay / 8);
+	ar[az_offset] = (int16_t)((16384 - mean_az) / 8);
 
-	ar[gx_offset] = -mean_gx / 4;
-	ar[gy_offset] = -mean_gy / 4;
-	ar[gz_offset] = -mean_gz / 4;
+	ar[gx_offset] = (int16_t)(-mean_gx / 4);
+	ar[gy_offset] = (int16_t)(-mean_gy / 4);
+	ar[gz_offset] = (int16_t)(-mean_gz / 4);
 	calibrationF0(ar);
 }
 
@@ -734,7 +735,7 @@ void MpuClass::re_calibration_(){
 void MpuClass::new_calibration(const bool onlyGyro){
 	LED.off();
 	//wdt_disable();
-	Serial.println("on begin");
+	printf("on begin\n");
 	int16_t offset_[6];
 	offset_[ax_offset] = accelgyro.getXAccelOffset();
 	offset_[ay_offset] = accelgyro.getYAccelOffset();
@@ -769,7 +770,7 @@ void MpuClass::new_calibration(const bool onlyGyro){
 #endif
 		}
 		else{
-			Out.println("MPU NOT CALIBRATED !!!");
+			printf("MPU NOT CALIBRATED !!!\n");
 		}
 
 
@@ -791,11 +792,11 @@ void MpuClass::new_calibration_(int16_t ar[]){
 	accelgyro.setXGyroOffset(0);
 	accelgyro.setYGyroOffset(0);
 	accelgyro.setZGyroOffset(0);
-	Out.println("\nReading sensors for first time...");
+	printf("\nReading sensors for first time...\n");
 	meansensors();
 	delay(1000);
 
-	Out.println("\nCalculating offsets...");
+	printf("\nCalculating offsets...\n");
 	calibrationF(ar);
 
 

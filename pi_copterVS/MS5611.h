@@ -20,7 +20,6 @@
 #include "WProgram.h"
 #include "define.h"
 
-#include "FilterTwoPole.h"
 #define MS5611_ADDRESS 0x77
 
 #define CONV_D1_256   0x40
@@ -65,7 +64,7 @@ protected:
 
 	float altitude_;
 public:
-	 float altitude(){ return altitude_; }
+	float altitude();
 
 	uint8_t ms5611_count;
 	int init();

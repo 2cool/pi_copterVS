@@ -18,24 +18,16 @@ uint32_t millis(){
 
 
 
-uint32_t ten_micros(void) {
-	timespec t;
-	clock_gettime(CLOCK_REALTIME, &t);
-	uint32_t ret;
-	if (start_seconds == 0)
-		start_seconds = t.tv_sec;
-	ret = ((t.tv_sec - start_seconds) * 1000000) + (t.tv_nsec / 10000);
-	return ret;
-}
 
 
-uint32_t micros(void){
+
+uint64_t micros(void){
 	timespec t;
 	clock_gettime(CLOCK_REALTIME,&t);
-	uint32_t ret;
+	uint64_t ret;
 	if (start_seconds == 0)
 		start_seconds = t.tv_sec;
-	ret=((t.tv_sec-start_seconds)*1000000)+(t.tv_nsec/1000);
+	ret=((uint64_t)(t.tv_sec-start_seconds)*1000000)+(t.tv_nsec/1000);
 	return ret;
 }
 

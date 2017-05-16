@@ -16,25 +16,12 @@
 //#define WIFIPRINT1
 //#define WIFIPRINT2
 //#define GPSPRINT
-//#define MPU_PRINT
+//#define MPU_PRINTTIME_CICLE
 
-#define RAD2GRAD 57.295779513082320876798154814105
-#define GRAD2RAD 0.01745329251994329576923690768489
+#define RAD2GRAD 57.29578f
+#define GRAD2RAD 0.0174533f
 
 //כמדט פכארטעü ןונוה נוסועמל ןמ גאקהמד
-
-
-
-
-#define T200HZ
-#ifdef T200HZ
-#define TIME_CICLE 500
-#else
-#define TIME_CICLE 1000
-#endif
-
-
-
 
 
 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -45,7 +32,7 @@
 //#define DEBUG_MODE
 
 // millis take less time then micros
-#define OFF_MOTOR_IF_LOST_CONNECTION  
+//#define OFF_MOTOR_IF_LOST_CONNECTION  
 
 
 //#define PLUS_CAMERA
@@ -56,7 +43,7 @@
 
 
 
-#define LOWEST_HEIGHT_ 1.6
+#define LOWEST_HEIGHT_ 1.6f
 
 
 #define ULTRASOUND_MAX_DETECT_HEIGHT 4
@@ -81,7 +68,7 @@
 #define FALSE_BAROMETR
 #define FALSE_MPU
 #define COMPAS_MOTORS_OFF  
-//#define NO_BATTERY
+#define NO_BATTERY
 #define FALSE_ULTRASOUND_RADAR
 //#define MOTORS_OFF
 #define FALSE_ALTITUDE 30
@@ -94,22 +81,22 @@
 
 
 
-#define NEED_ANGLE_4_SPEED_10_MS 10.1
+#define NEED_ANGLE_4_SPEED_10_MS 10.1f
 
 #define FALL_IF_STRONG_WIND
 
 
 #ifdef FALL_IF_STRONG_WIND
-#define MAX_DIST_ERROR_TO_FALL 200.0
+#define MAX_DIST_ERROR_TO_FALL 200.0f
 #define e_TOO_STRONG_WIND "TSW"
 #endif
 
 
 #define NO_CONNECTION_DELAY_TO_RESET_IF_MOTORS_OFF 60000
 #define NO_GPS_TIME_TO_FALL 5000
-#define MIN_ACUR_HOR_POS_TO_FLY 5
-#define MIN_ACUR_HOR_POS_2_START 3
-#define MIN_ACUR_VER_POS_2_START 5
+#define MIN_ACUR_HOR_POS_TO_FLY 50
+#define MIN_ACUR_HOR_POS_2_START 30
+#define MIN_ACUR_VER_POS_2_START 50
 
 #define PRESSURE_AT_0 101325
 
@@ -118,11 +105,11 @@
 
 
 #define MAX_ACC_HOR 3
-#define MAX_ACC_VER 1.5
+#define MAX_ACC_VER 1.5f
 
 #define MAX_ANGLE 30
 #define MIN_ANGLE 15
-#define COS_MIN_ANGLE 0.966
+#define COS_MIN_ANGLE 0.966f
 
 #define HIGHT_TO_LIFT_ON_TO_FLY_TO_HOME 30
 #define FAST_DESENDING_TO_HIGH 15
@@ -135,9 +122,9 @@
 #define ACCURACY_Z 3
 #define HOWER_TIME 60
 
-#define MAX_DELTA 0.2
-#define MAX_YAW_DELTA 0.1
-#define FULL_THROTTLE_ 1
+#define MAX_DELTA 0.2f
+#define MAX_YAW_DELTA 0.1f
+#define FULL_THROTTLE_ 1.0f
 #define MAX_THROTTLE_ (FULL_THROTTLE_-MAX_DELTA)
 
 
@@ -146,14 +133,14 @@
 #define MIN_THROTTLE_ 0.5
 #define FALLING_THROTTLE 0.55
 #else
-#define HOVER_THROTHLE 0.5
-#define MIN_THROTTLE_ 0.4
-#define FALLING_THROTTLE 0.45
+#define HOVER_THROTHLE 0.5f
+#define MIN_THROTTLE_ 0.4f
+#define FALLING_THROTTLE 0.45f
 #endif
 
 
 
-#define STOP_THROTTLE_ 0.2  
+#define STOP_THROTTLE_ 0.2f
 
 
 

@@ -6,62 +6,18 @@
 
 
 
-
-
-
-
-
-float DebugClass::readSeralFloat() {  
-	uint8_t buf[20];
-	float n = 0;
-	float d = 0.1;
-	bool dot = false;
-	int len = 0;//Out.readBytes(buf,10);
-	for (int i = 0; i < len; i++) {
-		if (buf[i] == '.')
-			dot = true;
-		else
-			if ((buf[i] >= '0') && (buf[i] <= '9'))
-				if (dot == false) {
-					n *= 10;
-					n += buf[i] - '0';
-				}
-				else {
-					n += (buf[i] - '0')*d;
-					d *= 0.1;
-				}
-	}
-	return n;
-}
-
-void DebugClass::graphic(const uint8_t n, const float x, const float y) {
+void DebugClass::graphic(const int n, const float x, const float y) {
 	printf("%i,%f,%f\n", (unsigned int)n, x, y);
 
 }
  
 	 void DebugClass::init() { i = 0; }
 	 void DebugClass::dump(const long f1, long f2, long f3, long f4) {
-		 Out.println();
-		 Out.print(f1);
-		 Out.print(",");
-		 Out.print(f2);
-		 Out.print(",");
-		 Out.print(f3);
-		 Out.print(",");
-		 Out.print(f4);
-		 Out.println();
-
+		 printf("\n%i,%i,%i,%i\n", f1, f2, f3, f4);
 	 }
 	 void DebugClass::dump(const float f1, float f2, float f3, float f4) {
-		 Out.println();
-		 Out.print(f1);
-		 Out.print(",");
-		 Out.print(f2);
-		 Out.print(",");
-		 Out.print(f3);
-		 Out.print(",");
-		 Out.print(f4);
-		 Out.println();
+		 printf("\n%f,%f,%f,%f\n", f1, f2, f3, f4);
+
 
 	 }
 	 void DebugClass::dump(const uint8_t f1, uint8_t f2, uint8_t f3, uint8_t f4) {

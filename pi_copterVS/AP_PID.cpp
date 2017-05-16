@@ -10,7 +10,13 @@ AP_PID::AP_PID()
 {
 }
 
-float RC = 1 / (2 * M_PI*20);
+//float RC = 1.0f / (2.0f * (float)M_PI*20.0f);
+
+void	AP_PID::kD(const float v, const float fCut) {   
+	RC = 1.0f / (2.0f * (float)M_PI*fCut);
+	_kd = v;
+}
+
 float AP_PID::get_pid(float error, float delta_time)
 {
 	float output = 0;
@@ -38,10 +44,7 @@ float AP_PID::get_pid(float error, float delta_time)
 		
 	}
 	
-
-
 	// Compute integral component if time has elapsed
-	
 	if ((_ki != 0) && (delta_time > 0)) {
 		_integrator += (error * _ki) *  delta_time;
 		if (_integrator < -_imax) {

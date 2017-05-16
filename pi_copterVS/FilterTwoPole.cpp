@@ -77,13 +77,13 @@ void FilterTwoPole::setup(float frequency0, float qualityFactor, float xInit ){
 }
 void FilterTwoPole::setQ( float qualityFactor ) {
   // zero will result in divide by zero, upper value keeps it stable
-  qualityFactor = constrain( qualityFactor, 1e-3, 1e3 );
+  qualityFactor = constrain( qualityFactor, 1e-3f, 1e3f );
 
   Q = qualityFactor;
 }
 
 void FilterTwoPole::setFrequency0( float f ) {
-  W0 = TWO_PI*abs(f);
+  W0 = (float)(TWO_PI*abs(f));
 }
 
 void FilterTwoPole::setAsFilter( OSCILLATOR_TYPE ft, float frequency3db, float initialValue ) {
@@ -98,8 +98,8 @@ void FilterTwoPole::setAsFilter( OSCILLATOR_TYPE ft, float frequency3db, float i
   X = initialValue;
   
   if( ft == LOWPASS_BESSEL ) {
-    setFrequency0( frequency3db * 1.28 );
-    setQ( 0.5774 );
+    setFrequency0( frequency3db * 1.28f );
+    setQ( 0.5774f );
   }
   //else if( ft == HIGHPASS_BESSEL ) {
   //  setFrequency0( frequency3db * 1.28 );
@@ -109,7 +109,7 @@ void FilterTwoPole::setAsFilter( OSCILLATOR_TYPE ft, float frequency3db, float i
   else if( ft == LOWPASS_BUTTERWORTH ) {
     // set as butterworth
     setFrequency0( frequency3db );
-    setQ( 0.7071 );
+    setQ( 0.7071f );
   }
   //else if( ft == HIGHPASS_BUTTERWORTH ) {
     // set as butterworth
@@ -124,7 +124,7 @@ float FilterTwoPole::input( float drive ) {
   Fprev = drive;                      // needed when using filter as a highpass
 
   long now = micros();                      // get current time
-  float dt = 1e-6*float(now - LastTimeUS);  // find dt
+  float dt = 1e-6f*float(now - LastTimeUS);  // find dt
   LastTimeUS = now;                         // save the last time
   
   // constrain the dt 
@@ -133,11 +133,11 @@ float FilterTwoPole::input( float drive ) {
   // ... constraining the dt effectively "pauses" the motion during delays in updating
   // note this will result in an incorrect answer, but if dt is too large
   // the answer will be incorrect, regardless.
-  dt = constrain( dt, 0, 1.0/W0 );
+  dt = constrain( dt, 0, 1.0f/W0 );
 
   float A = sq(W0)*drive - W0/Q*Vprev - sq(W0)*X; // *** compute acceleration
   float V = Vprev + A * dt;                       // step velocity
-  Vavg = .5*(V+Vprev);
+  Vavg = .5f*(V+Vprev);
   X += Vavg * dt;                                 // step position, using average V to reduce error
                                                   // (trapezoidal integration)
 
@@ -170,7 +170,7 @@ float FilterTwoPole::getMaxAmp() {
 #ifdef ARM_FLOAT
   return sqrtf(2.0*E/W0);
 #else
-  return sqrt(2.0*E/W0);
+  return sqrt(2.0f*E/W0);
 #endif
 }
 

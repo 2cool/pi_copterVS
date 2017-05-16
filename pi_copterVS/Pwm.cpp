@@ -168,7 +168,7 @@ bool PwmClass::gimbal_roll( float angle){
 
 	if (old_g_roll != angle && abs(angle) <= 45){
 		old_g_roll = angle;
-		angle = angle*(1.0 / 180)*(pwm_OFF_THROTTLE / 2) + ((pwm_OFF_THROTTLE / 2)) + pwm_OFF_THROTTLE;
+		angle = angle*(1.0f / 180.0f)*(pwm_OFF_THROTTLE / 2) + ((pwm_OFF_THROTTLE / 2)) + pwm_OFF_THROTTLE;
 		//OCR5B = angle;
 		return true;
 	}
@@ -181,10 +181,10 @@ bool PwmClass::gimagl_pitch( float angle){
 		angle = -angle;
 		old_g_pitch = angle;
 		//Serial.print("camAng="); Serial.println(angle);
-		angle = angle*(1.0 / 180)*(63) + (63) + 127;
+		angle = angle*(1.0f / 180.0f)*(63) + (63) + 127;
 
 		char buf[2];
-		((int8_t*)buf)[0] = angle;
+		((int8_t*)buf)[0] = (int8_t)angle;
 		((int8_t*)buf)[1] = 127;
 		write(fd, buf,2);
 		return true;
@@ -204,7 +204,7 @@ void PwmClass::Buzzer(const bool on){
 
 uint16_t PwmClass::correct(const float n){    //0-это
 
-		return pwm_OFF_THROTTLE + (uint16_t)(n*pwm_OFF_THROTTLE);
+		return (uint16_t)(pwm_OFF_THROTTLE + (uint16_t)(n*pwm_OFF_THROTTLE));
 	
 }
 
@@ -244,10 +244,10 @@ void PwmClass::throttle(const float n0, const float n1, const float n2, const fl
 
 void PwmClass::throttle(const float n0, const float n1, const float n2, const float n3) {
 	char pwm_out_buffer[4];
-	((uint8_t*)&pwm_out_buffer)[0] = 127 + (uint16_t)(n0 * 127);
-	((uint8_t*)&pwm_out_buffer)[3] = 127 + (uint16_t)(n1 * 127);
-	((uint8_t*)&pwm_out_buffer)[1] = 127 + (uint16_t)(n2 * 127);
-	((uint8_t*)&pwm_out_buffer)[2] = 127 + (uint16_t)(n3 * 127);
+	((uint8_t*)&pwm_out_buffer)[0] =(uint8_t)( 127 + (uint8_t)(n0 * 127));
+	((uint8_t*)&pwm_out_buffer)[3] = (uint8_t)(127 + (uint8_t)(n1 * 127));
+	((uint8_t*)&pwm_out_buffer)[1] = (uint8_t)(127 + (uint8_t)(n2 * 127));
+	((uint8_t*)&pwm_out_buffer)[2] = (uint8_t)(127 + (uint8_t)(n3 * 127));
 	write(fd, pwm_out_buffer, 4);
 
 }

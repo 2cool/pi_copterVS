@@ -59,9 +59,9 @@ using namespace std;
 #define HIGH 1
 #define Serial2 Serial
 #define Serial1 Serial
-uint32_t ten_micros(void);
+
 uint32_t millis(void);
-uint32_t micros(void);
+uint64_t micros(void);
 void delay(unsigned long);
 
 

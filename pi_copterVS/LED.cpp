@@ -36,7 +36,7 @@ uint8_t LEDClass::prog(const uint8_t shift, const uint16_t mask){
 }
 
 
-void LEDClass::light(const uint8_t n){
+void LEDClass::light(const int n){
 	//digitalWrite(led_indexes[0], HIGH);
 	//digitalWrite(led_indexes[1], HIGH);
 	//digitalWrite(led_indexes[2], HIGH);

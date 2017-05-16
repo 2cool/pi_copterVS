@@ -29,7 +29,7 @@ void GPSClass::init()
 		return;
 	}
 	errors = 0;
-	Out.println("GPS INIT");
+	printf("GPS INIT\n");
 }
 
 
@@ -146,10 +146,11 @@ void GPSClass::loop(){
 
 
 
-
 void GPSClass::loop(){
+
+	//int ttt = micros();
 	if (loc.processGPS()) {
-		
+		//printf("pgs %i\n", micros() - ttt);
 		if (loc.accuracy_hor_pos < (MIN_ACUR_HOR_POS_TO_FLY )){
 			errors = 0;	
 
@@ -164,6 +165,7 @@ void GPSClass::loop(){
 	if ((millis() - loc.last_gps_data_time) > (long)NO_GPS_TIME_TO_FALL){
 		Autopilot.control_falling(e_GPS_NO_UPDATE);
 	}
+
 	
 }
 

@@ -1,8 +1,3 @@
-// 
-// 
-// 
-
-
 /*
 message for LOG
 
@@ -22,11 +17,6 @@ THG out of Perimetr high
 
 
 */
-
-
-
-
-
 
 //добавить проверку на возможность вернутся домой.
 
@@ -51,7 +41,7 @@ THG out of Perimetr high
 #include "Wi_Fi.h"
 //каждий новий режим работі добовляется в месадж
 
-#define MIDDLE_POSITION 0.5
+#define MIDDLE_POSITION 0.5f
 
 
 void AutopilotClass::init(){/////////////////////////////////////////////////////////////////////////////////////////////////
@@ -63,7 +53,7 @@ void AutopilotClass::init(){////////////////////////////////////////////////////
 
 
 	sens_z = 6;
-	sens_xy = 0.2;
+	sens_xy = 0.2f;
 
 	newData = false;
 
@@ -86,7 +76,7 @@ void AutopilotClass::init(){////////////////////////////////////////////////////
 }
 
 
-void AutopilotClass::add_2_need_yaw(float speed, const float dt){
+void AutopilotClass::add_2_need_yaw(float speed, const float dt){ 
 	aYaw_ += speed*dt;
 	aYaw_ = wrap_180(aYaw_);
 }
@@ -118,14 +108,14 @@ void AutopilotClass::smart_commander(const float dt){
 		const float addX = sens_xy*(Commander.getPitch());
 		const float addY = -sens_xy*(Commander.getRoll());
 		const float yaw = Commander.get_contr_yaw()*GRAD2RAD;
-		const float cosL = cos(yaw);
-		const float sinL = sin(yaw);
+		const float cosL = (float)cos(yaw);
+		const float sinL = (float)sin(yaw);
 		float speedX = addX * cosL + addY *sinL;
 		float speedY = -(addX * sinL - addY *cosL);
 		const float speed2 = (speedX*speedX + speedY*speedY);
 		const float maxSpeed2 = Stabilization.max_speed_xy*Stabilization.max_speed_xy;
 		if (speed2>maxSpeed2){
-			float k = sqrt(maxSpeed2 / speed2);
+			float k = (float)sqrt(maxSpeed2 / speed2);
 			speedY *= k;
 			speedX *= k;
 
@@ -140,7 +130,7 @@ void AutopilotClass::smart_commander(const float dt){
 void AutopilotClass::loop(){/////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	const uint32_t t = millis();
-	const float dt = 0.001*(float)(t - controlDeltaTime); 
+	const float dt = 0.001f*(float)(t - controlDeltaTime); 
 	if (dt < 0.05)
 		return;
 	controlDeltaTime = t;
@@ -211,40 +201,42 @@ string AutopilotClass::get_set(){
 	MIN_THROTTLE_<<","<<\
 	sens_xy<<","<<\
 	sens_z<<","<<\
-	lowest_height;
+	lowest_height<<","<< Debug.n_debug;
 	string ret = convert.str();
 	return string(ret);
 }
 
 void AutopilotClass::set(const float ar[]){
-	Out.println("Autopilot set");
-	uint8_t error = 1;
+	printf("Autopilot set\n");
+	int error = 1;
 
 	if (ar[SETTINGS_ARRAY_SIZE] == SETTINGS_IS_OK){
-		uint8_t i = 0;
+		int i = 0;
 		error = 0;
 		
 		
 		error += Commander._set(ar[i++], height_to_lift_to_fly_to_home);
 
 		//Balance.set_min_max_throttle(ar[i++], ar[i++]);
+
 		i += 2;
 		error += Commander._set(ar[i++], sens_xy);
 		error += Commander._set(ar[i++], sens_z);
-		error += Commander._set(ar[i], lowest_height,false);
+		error += Commander._set(ar[i++], lowest_height,false);
+		Debug.n_debug = (int)ar[i];
 
 		if (error == 0){
 			int ii = 0;
-			Out.println("Safe set:");
+			printf("Safe set:\n");
 
 			for (ii = 0; ii < i; ii++){
-				Out.print(ar[ii]); Out.print(",");
+				printf("%f,",ar[ii]);
 			}
-			Out.println(ar[ii]);
+			printf("%f\n",ar[ii]);
 		}
 	}
 	if (error>0){
-		Out.println("ERROR");
+		printf("ERROR\n");
 	}
 }
 
@@ -265,8 +257,7 @@ bool AutopilotClass::holdAltitude(float alt){
 		control_bits |= Z_STAB;
 		Stabilization.init_Z();
 	}
-	Out.print("FlyAt:");
-	Out.println(flyAtAltitude);
+	printf("FlyAt:%f ",flyAtAltitude);
 
 	return true;
 }
@@ -367,9 +358,9 @@ bool AutopilotClass::go2HomeProc(const float dt){
 	{ 
 		//плавній спуск
 				if (corectedAltitude()>lowest_height){
-					float k = corectedAltitude()*0.05;
-					if (k < 0.1)
-						k = 0.1;
+					float k = corectedAltitude()*0.05f;
+					if (k < 0.1f)
+						k = 0.1f;
 					flyAtAltitude -= (dt*k);
 					tflyAtAltitude = flyAtAltitude;
 				}
@@ -529,12 +520,12 @@ bool AutopilotClass::motors_do_on(const bool start, const string msg){//////////
 		}
 		else{
 			if (Hmc.calibrated == false){
-				Out.print("compas, ");
+				printf("compas, ");
 				LED.error_time = millis();
 				LED.error_code &= 255 ^ 2;
 			}
 			if (Mpu.gyro_calibratioan == false){
-				Out.print("gyro");
+				printf("gyro");
 				LED.error_time = millis();
 				LED.error_code &= 255 ^ 4;
 			}
@@ -620,7 +611,7 @@ return;
 }
 void AutopilotClass::calibration() {/////////////////////////////////////////////////////////////////////////////////////////////////
 
-	Out.println("Set Calibr NOT USET.");
+	printf("Set Calibr NOT USET.\n");
 	/*
 	if (abs(cPitch + Commander.pitch) > 0.1 || abs(cRoll + Commander.roll) > 0.1)
 		return;
@@ -688,8 +679,8 @@ void AutopilotClass::horizont_tr() {
 
 bool AutopilotClass::selfTest(){/////////////////////////////////////////////////////////////////////////////////////////////////
 	//wdt_enable(WDTO_2S);
-	Out.println("Self Test running");
-	uint8_t ok = 0;
+	printf("Self Test running\n");
+	int ok = 0;
 	if (Mpu.selfTest())
 		ok += 1;
 	if (Hmc.selfTest())
@@ -741,7 +732,7 @@ bool AutopilotClass::start_stop_program(const bool stopHere){
 			res &= holdLocation(GPS.loc.lat_, GPS.loc.lon_);
 			if (res){
 				control_bits |= PROGRAM;
-				Out.println("prog started");
+				printf("prog started\n");
 				return true;
 			}
 		}
@@ -761,7 +752,7 @@ bool AutopilotClass::set_control_bits(uint32_t bits) {
 		bool on = motors_is_on() == false;
 		on = motors_do_on(on, m_START_STOP);
 		if (on == false) {
-			Out.println("motors on denied!");
+			printf("motors on denied!\n");
 		}
 	}
 
@@ -805,6 +796,8 @@ bool AutopilotClass::set_control_bits(uint32_t bits) {
 		gimBalPitchADD(5);
 	if (bits & GIMBAL_MINUS)
 		gimBalPitchADD(-5);
+
+	return true;
 }
 
 

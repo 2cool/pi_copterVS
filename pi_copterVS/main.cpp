@@ -79,8 +79,8 @@ void buzz_until_not_finded() {
 	//int16_t res = Mpu.getGX();
 	
 	LED.prog_index = LED.PROG0_P;
-	long time_ms = micros();
-	int sb = 0;
+	//long time_ms = micros();
+	//int sb = 0;
 #ifdef MOTORS_OFF
 	Pwm.on(PWM_COUNTER, pwm_OFF_THROTTLE);
 	
@@ -88,7 +88,7 @@ void buzz_until_not_finded() {
 
 	const bool power_on = true;// analogRead(A4) > 500;
 	Pwm.on(0, power_on ? pwm_OFF_THROTTLE : pwm_MAX_THROTTLE);
-	Out.println(power_on ? "	- COPTER IS LOST -" : "wait 4 power");
+	printf(power_on ? "	- COPTER IS LOST -\n" : "wait 4 power\n");
 
 
 	/*
@@ -150,7 +150,7 @@ int setup() {////--------------------------------------------- SETUP -----------
 
 	EEPROM.read_set();
 	LED.init();
-	Out.println("___setup___");
+	printf("___setup___\n");
 
 	delay(100);
 	printf("gps init...\n");
@@ -184,7 +184,7 @@ void print_time() {
 		if (d > maxTT) {
 			\
 				maxTT = d; \
-				Out.println(maxTT); \
+				printf("%i\n",maxTT); \
 		}\
 }
 #ifndef WORK_WITH_WIFI
@@ -195,13 +195,21 @@ uint32_t ttiimer = 0;
 
 int cccccc_ss = 0;
 
-
+uint64_t old_time4loop;
 bool temp4test = true;
+
+
+int ok_cnt = 0;
+int ok_ccc = 0;
+int er_cnt = 0;
+long dt_sum=0;
+int max_dt = 0;
+int old_debug = 0;
 void loop()
 {
 
 #ifndef WORK_WITH_WIFI
-	if (temp4test && Autopilot.motors_is_on() == false &&  millis() > 2000) {
+	if (temp4test && Autopilot.motors_is_on() == false && millis() > 2000) {
 		//Autopilot.motors_do_on(true, "FALSE WIFI");
 		//Mpu.new_calibration(false);
 		temp4test = false;
@@ -209,42 +217,44 @@ void loop()
 
 
 #endif
-	uint32_t time_ms = ten_micros();
 
-	uint32_t t;
 
-	Balance.loop();			//pi 3049
-
+	Balance.loop();
 #ifdef WORK_WITH_WIFI
 	Telemetry.loop();
 #endif
 	Commander.input();
 	Autopilot.loop();
 
+#ifdef FALSE_WIRE
+	usleep(3000);
+#endif
 
-	uint32_t tnow = ten_micros();
-	if ((tnow - time_ms)<TIME_CICLE) {
-		int dt = 10 * (TIME_CICLE - (tnow - time_ms));
-		//Debug.load(5, dt, 0);
-		usleep(dt);
-	}
+
+/*	const uint64_t tnoww = micros();
+	int dtt = (tnoww - old_time4loop);
+	if (dtt > 5500)
+		er_cnt++;
+	//usleep(1000);
 	
-//	if (Autopilot.motors_is_on() || Autopilot.lost_conection_time == 0 || millis() - Autopilot.lost_conection_time<NO_CONNECTION_DELAY_TO_RESET_IF_MOTORS_OFF)
-	//	;//wdt_reset();
-		 /*
-		 cccccc_ss++;
-		 if (cccccc_ss > 500){
-		 cccccc_ss = 0;
-		 if (Autopilot.motors_is_on()){
-		 Serial.print("fm="); Serial.println(Mem.freeRam());
-		 Serial.println(millis());
-		 }
-		 }
-		 */
-		 //else{Out.println("WDT");	Out.println(Autopilot.wdt_mask);	}
-
-
-
+	
+	ok_cnt++;
+	ok_ccc++;
+	if (ok_ccc > 2000) {
+		if (old_debug != Debug.n_debug) {
+			old_debug = Debug.n_debug;
+			ok_ccc = 0;
+			max_dt = 0;
+		}
+		if (max_dt < dtt)
+			max_dt = dtt;
+	}
+	//if (dtt>0)
+	dt_sum += (int)(micros() - old_time4loop);
+	if ((ok_cnt & 1023) == 1023)
+			printf(" %i %f %i\n", dt_sum / ok_cnt, (er_cnt > 0) ? 100.0*(float)er_cnt / (float)ok_cnt : 0, max_dt);
+	old_time4loop = tnoww;*/
+	
 }
 
 //http://www.cprogramming.com/tutorial/lesson10.html
@@ -269,7 +279,7 @@ int main(int argc, char *argv[]) {
 
 	if (setup())
 		return -1;
-
+	old_time4loop =micros();
 	while (flag==0)
 		loop();
 	printf("\n Signal caught! and exit\n");

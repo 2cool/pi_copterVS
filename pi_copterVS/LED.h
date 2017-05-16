@@ -28,7 +28,7 @@ class LEDClass
  public:
 	 void off();
 	 enum{ MOT_OFF_P, MANUAL_P, SEMI_SMART_P, FULL_SMART_P, GO_TO_HOME_P, PROG0_P, LED_OFF,PROG1_P };
-	 void light(const uint8_t n);
+	 void light(const int n);
 	 uint8_t prog_index;
 	 bool light_on;
 	void init();

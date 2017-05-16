@@ -37,11 +37,11 @@ void HmcClass::init()
 #ifndef FALSE_COMPAS
 
 
-	Out.println("Initializing I2C devices...");
+	printf("Initializing I2C devices...\n");
 	initialize();
-	Out.println("Testing device connections...");
+	printf("Testing device connections...\n");
 	ok = testConnection();
-	Out.println(ok ? "HMC5883L connection successful" : "HMC5883L connection failed");
+	printf(ok ? "HMC5883L connection successful\n" : "HMC5883L connection failed\n");
 	if (ok) {
 		calibration(false);
 	}
@@ -58,8 +58,7 @@ string HmcClass::get_set(){
 
 void HmcClass::set(const float buf[]){
 	motors_power_on = (buf[0] > 0);
-	Out.println("compas");
-	Out.println(buf[0]);
+	printf("compas %f\n",buf[0]);
 }
 //---------------------------------------------------------
 
@@ -71,7 +70,7 @@ bool motors_is_on_ = false;
 
 void HmcClass::start_motor_compas_calibr(){
 	if (compas_motors_calibr == false && Autopilot.motors_is_on()==false){
-		Out.println("START MOTOR COMPAS CAL");
+		printf("START MOTOR COMPAS CAL\n");
 		compas_motors_calibr = true;
 		motors_is_on_ = false;
 		baseX = baseY = baseZ = 0;
@@ -83,7 +82,7 @@ void HmcClass::start_motor_compas_calibr(){
 
 
 
-#define MAX_M_WORK_VOLTAGE 1250.0
+#define MAX_M_WORK_VOLTAGE 1250.0f
 
 
 float _base[3];
@@ -107,15 +106,15 @@ void HmcClass::motTest(const float fmx, const float fmy, const float fmz){
 				motors_is_on_ = false;
 				int index = motor_index * 3;
 
-				base[index]   = fv*(_base[0] - base[index])*0.001;
-				base[index+1] = fv*(_base[1] - base[index+1])*0.001;
-				base[index+2] = fv*(_base[2] - base[index+2])*0.001;
+				base[index]   = fv*(_base[0] - base[index])*0.001f;
+				base[index+1] = fv*(_base[1] - base[index+1])*0.001f;
+				base[index+2] = fv*(_base[2] - base[index+2])*0.001f;
 
-				Out.print(base[index] * 1000); Out.print("\t"); Out.print(base[index + 1] * 1000); Out.print("\t"); Out.println(base[index + 2] * 1000);
+				printf("%f\t%f\t%f MOTOR ON\n", base[index] * 1000, base[index + 1] * 1000, base[index + 2] * 1000);
 
-				Out.println(" MOTOR ON");
-				Out.print("compas test: 4 m"); Out.println(motor_index);
-				Out.println(Telemetry.get_voltage());
+
+				printf("compas test: 4 m %i %f\n", motor_index, Telemetry.get_voltage());
+
 				
 
 
@@ -128,7 +127,7 @@ void HmcClass::motTest(const float fmx, const float fmy, const float fmz){
 					compas_motors_calibr = false;
 					Autopilot.reset_compas_motors_calibr_bit();
 					Settings.saveCompssSettings2(base);
-					Out.println("set saved");
+					printf("set saved\n");
 				}
 				
 
@@ -140,10 +139,10 @@ void HmcClass::motTest(const float fmx, const float fmy, const float fmz){
 				base[index+1] = _base[1];
 				base[index+2] = _base[2];
 
-				Out.println(" MOTOR OFF");
-				Out.print("compas test: 4 m"); Out.println(motor_index);
+				printf(" MOTOR OFF\n");
+				printf("compas test: 4 m %i\n",motor_index);
 				
-				Out.print(base[index]); Out.print("\t"); Out.print(base[index+1]); Out.print("\t"); Out.println(base[index+2]);
+				printf("%f\t%f\t%f\n",base[index],base[index + 1],base[index + 2]);
 
 				startTime = millis() + (unsigned long)3000;
 				Autopilot.motors_do_on(true, "CMT");
@@ -189,17 +188,12 @@ void HmcClass::loop(){
 
 #else
 
-bool hmc_cnt = false;
 
 void HmcClass::loop(){
 	//бельіе ноги
-#ifdef T200HZ
-	if (hmc_cnt ^= true)
-		return;
-#endif
 	int16_t mx,my,mz;
 	float fmz, fmx, fmy;
-	readBytes(devAddr, HMC5883L_RA_DATAX_H, 6, buffer);
+	readBytes(devAddr, HMC5883L_RA_DATAX_H, 6, buffer); 
 	if (mode == HMC5883L_MODE_SINGLE) writeByte(devAddr, HMC5883L_RA_MODE, HMC5883L_MODE_SINGLE << (HMC5883L_MODEREG_BIT - HMC5883L_MODEREG_LENGTH + 1));
 	mx = (((int16_t)buffer[0]) << 8) | buffer[1];
 	my = (((int16_t)buffer[4]) << 8) | buffer[5];
@@ -283,7 +277,7 @@ void HmcClass::loop(){
 	float Yh = fmx * Mpu.sinRoll * Mpu.sinPitch + fmy * Mpu.cosRoll - fmz * Mpu.sinRoll * Mpu.cosPitch;
 	
 
-	headingGrad = RAD2GRAD*atan2(Yh, Xh);
+	headingGrad = RAD2GRAD*(float)atan2(Yh, Xh);
 	//Out.println(fmx);
 	//Out.print(roll); Out.print(" "); Out.print(pitch); Out.print(" ");  Out.println(Hmc.heading / PI * 180);
 	
@@ -304,6 +298,8 @@ void HmcClass::loop(){
 	Out.print("heading:\t");
 	Out.println(heading);
 #endif
+
+
 }
 
 #endif
@@ -314,7 +310,7 @@ void HmcClass::loop(){
 void HmcClass::newCalibration(int16_t sh[]){
 	//wdt_enable(WDTO_4S);
 	sh[0] = sh[1] = sh[2] = sh[3] = sh[4] = sh[5] = 0;
-	Out.println("START ROTATION");
+	printf("START ROTATION\n");
 
 
 	delay(2000);
@@ -331,34 +327,34 @@ void HmcClass::newCalibration(int16_t sh[]){
 		mz = (((int16_t)buffer[2]) << 8) | buffer[3];
 
 		if (mx > sh[0]){
-			sh[0] = mx;
-			Out.print("max_X: "); Out.println(mx);
+			sh[0] = (int16_t)mx;
+			printf("max_X: %i\n",mx);
 			new_val = true;
 		}
 		if (mx < sh[1]){
-			sh[1] = mx;
-			Out.print("min_X: "); Out.println(mx);
+			sh[1] = (int16_t)mx;
+			printf("min_X: %i\n", mx);
 			new_val = true;
 		}
 
 		if (my > sh[2]){
-			sh[2] = my;
-			Out.print("max_Y: "); Out.println(my);
+			sh[2] = (int16_t)my;
+			printf("max_Y: %i\n", my);
 			new_val = true;
 		}
 		if (my < sh[3]){
-			sh[3] = my;
-			Out.print("min_Y: "); Out.println(my);
+			sh[3] = (int16_t)my;
+			printf("min_Y: %i\n", my);
 			new_val = true;
 		}
 		if (mz > sh[4]){
-			sh[4] = mz;
-			Out.print("max_Z: "); Out.println(mz);
+			sh[4] = (int16_t)mz;
+			printf("max_Z: %i\n", mz);
 			new_val = true;
 		}
 		if (mz < sh[5]){
-			sh[5] = mz;
-			Out.print("min_Z: "); Out.println(mz);
+			sh[5] = (int16_t)mz;
+			printf("min_Z: %i\n", mz);
 			new_val = true;
 		}
 		delay(10);
@@ -366,15 +362,11 @@ void HmcClass::newCalibration(int16_t sh[]){
 			cnt = 0;
 		else
 			cnt++;
-		if (cnt>6000)
+		if (cnt>1000)
 			break;
 		//wdt_reset();
 	}
-	Out.println("Stop Rottation");
-	Out.print("x "); Out.print(sh[0]); Out.print(","); Out.println(sh[1]);
-	Out.print("y "); Out.print(sh[2]); Out.print(","); Out.println(sh[3]);
-	Out.print("z "); Out.print(sh[4]); Out.print(","); Out.println(sh[5]);
-	
+	printf("Stop Rottation\nx %i,%i\ny %i,%i\nz %i,%i\n", sh[0], sh[1], sh[2], sh[3], sh[4], sh[5]);
 }
 
 bool HmcClass::calibration(const bool newc){
@@ -392,7 +384,7 @@ bool HmcClass::calibration(const bool newc){
 		newCalibration(sh);
 		Settings.saveCompssSettings(sh);
 		//wdt_enable(WDTO_120MS);//reset
-		Serial.println("RESET HMC");
+		printf("RESET HMC\n");
 	}
 
 
@@ -400,42 +392,42 @@ bool HmcClass::calibration(const bool newc){
 	if (calibrated)
 		Settings.loadCompssSettings2(base);
 	if (calibrated==false){
-		Out.println("! ! ! ! Comppas not Calibrated ! ! ! !");
+		printf("! ! ! ! Comppas not Calibrated ! ! ! !\n");
 		return false;
 	}
 	
-	dx = (float)(sh[0] - sh[1])*0.5;
-	baseX = dx + sh[1];
-	Out.print(sh[0]); Out.print("\t"); Out.println(sh[1]);
-	dx = 1.0 / dx;
+	dx = (float)(sh[0] - sh[1])*0.5f;
+	baseX = (int16_t)(dx + sh[1]);
+	printf("%i\t%i\n", sh[0], sh[1]);
+	dx = 1.0f / dx;
 
-	dy = (float)(sh[2] - sh[3])*0.5;
-	baseY = dy + sh[3];
-	Out.print(sh[2]); Out.print("\t"); Out.println(sh[3]);
-	dy = 1.0 / dy;
+	dy = (float)(sh[2] - sh[3])*0.5f;
+	baseY = (int16_t)(dy + sh[3]);
+	printf("%i\t%i\n", sh[2], sh[3]);
+	dy = 1.0f / dy;
 
-	dz = (float)(sh[4] - sh[5])*0.5;
-	baseZ = dz + sh[5];
-	Out.print(sh[4]); Out.print("\t"); Out.println(sh[5]);
-	dz = 1.0 / dz;
+	dz = (float)(sh[4] - sh[5])*0.5f;
+	baseZ = (int16_t)(dz + sh[5]);
+	printf("%i\t%i\n",sh[4],sh[5]);
+	dz = 1.0f / dz;
 	return true;
 }
 
 
 
 bool HmcClass::selfTest(){
-	Out.println("COMPAS TEST");
+	printf("COMPAS TEST\n");
 	if (ok){
-		int16_t mx, my, mz;
-		int16_t tx = 0, ty = 0, tz = 0;
-		int8_t error = 0;
+		int mx, my, mz;
+		int tx = 0, ty = 0, tz = 0;
+		int error = 0;
 		for (int8_t i = 0; i < 10; i++){
 			readBytes(devAddr, HMC5883L_RA_DATAX_H, 6, buffer);
 			if (mode == HMC5883L_MODE_SINGLE) writeByte(devAddr, HMC5883L_RA_MODE, HMC5883L_MODE_SINGLE << (HMC5883L_MODEREG_BIT - HMC5883L_MODEREG_LENGTH + 1));
-			mx = (((int16_t)buffer[0]) << 8) | buffer[1];
-			my = (((int16_t)buffer[4]) << 8) | buffer[5];
-			mz = (((int16_t)buffer[2]) << 8) | buffer[3];
-			Out.print(mx); Out.print(" "); Out.print(my); Out.print(" "); Out.println(mz);
+			mx = (((int)buffer[0]) << 8) | buffer[1];
+			my = (((int)buffer[4]) << 8) | buffer[5];
+			mz = (((int)buffer[2]) << 8) | buffer[3];
+			printf("%i %i %i\n", mx, my, mz); 
 			error += (tx == mx || ty == my || tz == mz);
 			tx = mx;
 			ty = my;
@@ -446,7 +438,7 @@ bool HmcClass::selfTest(){
 
 	}
 	if (!ok)
-		Out.println("ERROR");
+		printf("ERROR\n");
 	return ok;
 }
 
@@ -621,7 +613,7 @@ void HmcClass::setGain(uint8_t gain) {
 	// use this method to guarantee that bits 4-0 are set to zero, which is a
 	// requirement specified in the datasheet; it's actually more efficient than
 	// using the I2Cdev.writeBits method
-	writeByte(devAddr, HMC5883L_RA_CONFIG_B, gain << (HMC5883L_CRB_GAIN_BIT - HMC5883L_CRB_GAIN_LENGTH + 1));
+	writeByte(devAddr, (uint8_t)HMC5883L_RA_CONFIG_B, (uint8_t)(gain << (HMC5883L_CRB_GAIN_BIT - HMC5883L_CRB_GAIN_LENGTH + 1)));
 }
 
 // MODE register
@@ -686,9 +678,9 @@ void HmcClass::setMode(uint8_t newMode) {
 void HmcClass::getHeading(int16_t *x, int16_t *y, int16_t *z) {
 	readBytes(devAddr, HMC5883L_RA_DATAX_H, 6, buffer);
 	if (mode == HMC5883L_MODE_SINGLE) writeByte(devAddr, HMC5883L_RA_MODE, HMC5883L_MODE_SINGLE << (HMC5883L_MODEREG_BIT - HMC5883L_MODEREG_LENGTH + 1));
-	*x = (((int16_t)buffer[0]) << 8) | buffer[1];
-	*y = (((int16_t)buffer[4]) << 8) | buffer[5];
-	*z = (((int16_t)buffer[2]) << 8) | buffer[3];
+	*x = (int16_t)((((int16_t)buffer[0]) << 8) | buffer[1]);
+	*y = (int16_t)((((int16_t)buffer[4]) << 8) | buffer[5]);
+	*z = (int16_t)((((int16_t)buffer[2]) << 8) | buffer[3]);
 }
 /** Get X-axis heading measurement.
 * @return 16-bit signed integer with X-axis heading
@@ -699,7 +691,7 @@ int16_t HmcClass::getHeadingX() {
 	// one is used; this was not done ineffiently in the code by accident
 	readBytes(devAddr, HMC5883L_RA_DATAX_H, 6, buffer);
 	if (mode == HMC5883L_MODE_SINGLE) writeByte(devAddr, HMC5883L_RA_MODE, HMC5883L_MODE_SINGLE << (HMC5883L_MODEREG_BIT - HMC5883L_MODEREG_LENGTH + 1));
-	return (((int16_t)buffer[0]) << 8) | buffer[1];
+	return (int16_t)((((int16_t)buffer[0]) << 8) | buffer[1]);
 }
 /** Get Y-axis heading measurement.
 * @return 16-bit signed integer with Y-axis heading
@@ -710,7 +702,7 @@ int16_t HmcClass::getHeadingY() {
 	// one is used; this was not done ineffiently in the code by accident
 	readBytes(devAddr, HMC5883L_RA_DATAX_H, 6, buffer);
 	if (mode == HMC5883L_MODE_SINGLE) writeByte(devAddr, HMC5883L_RA_MODE, HMC5883L_MODE_SINGLE << (HMC5883L_MODEREG_BIT - HMC5883L_MODEREG_LENGTH + 1));
-	return (((int16_t)buffer[4]) << 8) | buffer[5];
+	return (int16_t)((((int16_t)buffer[4]) << 8) | buffer[5]);
 }
 /** Get Z-axis heading measurement.
 * @return 16-bit signed integer with Z-axis heading
@@ -721,7 +713,7 @@ int16_t HmcClass::getHeadingZ() {
 	// one is used; this was not done ineffiently in the code by accident
 	readBytes(devAddr, HMC5883L_RA_DATAX_H, 6, buffer);
 	if (mode == HMC5883L_MODE_SINGLE) writeByte(devAddr, HMC5883L_RA_MODE, HMC5883L_MODE_SINGLE << (HMC5883L_MODEREG_BIT - HMC5883L_MODEREG_LENGTH + 1));
-	return (((int16_t)buffer[2]) << 8) | buffer[3];
+	return (int16_t)((((int16_t)buffer[2]) << 8) | buffer[3]);
 }
 
 // STATUS register

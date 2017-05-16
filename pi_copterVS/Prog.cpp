@@ -42,7 +42,7 @@ void ProgClass::init(){
 
 void ProgClass::loop(){
 
-	float dt = 0.001*(float)(millis() - begin_time);
+	float dt = 0.001f*(float)(millis() - begin_time);
 
 
 	float rdt = dt - old_dt;
@@ -51,16 +51,16 @@ void ProgClass::loop(){
 
 	old_dt = dt;
 
-	if (go_next==false)
-		if (timer==0){
+	if (go_next == false) {
+		if (timer == 0) {
 			if (altFlag == false)
 				altFlag = (alt == old_alt) || (abs(Autopilot.corectedAltitude() - Autopilot.flyAtAltitude) <= (ACCURACY_Z));
-		
-			if (distFlag == false){
-				if (lat == old_lat && lon == old_lon){
+
+			if (distFlag == false) {
+				if (lat == old_lat && lon == old_lon) {
 					distFlag = true;
 				}
-				else{
+				else {
 					const float advance_dist = Stabilization.getDist_XY(max_speed_xy);//*1.1
 					const float acur = max(max(ACCURACY_XY, GPS.loc.accuracy_hor_pos), advance_dist);
 					distFlag = sqrt(GPS.loc.dX*GPS.loc.dX + GPS.loc.dY*GPS.loc.dY) <= acur;
@@ -68,17 +68,17 @@ void ProgClass::loop(){
 			}
 			go_next = altFlag & distFlag;
 		}
-		else{
+		else {
 			if (timer <= dt)
 				go_next = true;
 
 		}
-
+	}
 	if (go_next){
 		go_next = distFlag = altFlag = false;
 		if (load_next() == false){
 			//if (Autopilot.lost_conection_time == 0){
-				Out.println("PROG END");
+				printf("PROG END\n");
 				Autopilot.start_stop_program(false);
 			//}
 		}
@@ -102,15 +102,15 @@ bool ProgClass::program_is_OK(){
 		while (load_next()){
 			
 			if (lat != old_lat && lon != old_lon){
-				const float dx = GPS.loc.from_lat2X(lat - old_lat);
-				const float dy = GPS.loc.form_lon2Y(lon - old_lon);
-				float time = sqrt(dx*dx + dy*dy) / max_speed_xy;
+				const float dx = GPS.loc.from_lat2X((float)(lat - old_lat));
+				const float dy = GPS.loc.form_lon2Y((float)(lon - old_lon));
+				float time = (float)(sqrt(dx*dx + dy*dy) / max_speed_xy);
 				const float dAlt = alt - old_alt;
 				time += dAlt / ((dAlt >= 0) ? Stabilization.max_stab_z_P : Stabilization.max_stab_z_M);
-				time *= 1.25;
+				time *= 1.25f;
 				if (timer > 0){
 					if (timer < time){
-						Out.print("time error in step:"); Serial.println(step);
+						printf("time error in step: %i\n",step);
 						return false;
 					}
 					else
@@ -118,7 +118,7 @@ bool ProgClass::program_is_OK(){
 				}
 				fullTime += time;
 				if (fullTime>MAX_TIME_LONG_FLIGHT){
-					Out.println("to long fly for prog!");
+					printf("to long fly for prog!\n");
 					return false;
 				}
 			old_lat = lat;
@@ -131,18 +131,18 @@ bool ProgClass::program_is_OK(){
 		}
 
 
-		const float x2 = GPS.loc.from_lat2X(lat - GPS.loc.lat_);
-		const float y2 = GPS.loc.form_lon2Y(lon - GPS.loc.lon_);
+		const float x2 = GPS.loc.from_lat2X((float)(lat - GPS.loc.lat_));
+		const float y2 = GPS.loc.form_lon2Y((float)(lon - GPS.loc.lon_));
 
-		const float dist = sqrt(x2*x2 + y2*y2);
+		const float dist = (float)sqrt(x2*x2 + y2*y2);
 
 
 		if (dist >= 20 || alt  >= 20){
-			Out.println("end poitn to far from star!!! ");
+			printf("end poitn to far from star!!!\n");
 			return false;
 		}
 
-		Out.print("time for flyghy: "); Out.println((int)fullTime);
+		printf("time for flyghy: %i",(int)fullTime);
 		return true;
 	}
 else
@@ -170,7 +170,7 @@ bool ProgClass::start(){
 	}
 	else{
 		clear();
-		Out.println("no program");
+		printf("no program\n");
 	}
 	return false;
 
@@ -205,13 +205,13 @@ float pDistance(float x, float y, float x1, float y1, float x2, float y2) {
 		xx = x1 + param * C;
 		yy = y1 + param * D;
 
-		Serial.print("x="); Serial.println(xx);
-		Serial.print("y="); Serial.println(yy);
+		printf("x=%f\n",xx);
+		printf("y=%f\n",yy);
 	}
 
 	float dx = x - xx;
 	float dy = y - yy;
-	return sqrt(dx * dx + dy * dy);
+	return (float)sqrt(dx * dx + dy * dy);
 }
 
 
@@ -227,7 +227,7 @@ bool ProgClass::getIntersection(float &x, float &y){
 	float ks = 1;
 	const float dist_x = Stabilization.getDistX();
 	const float dist_y = Stabilization.getDistY();
-	const float dist_ = sqrt(dist_x*dist_x + dist_y*dist_y);
+	const float dist_ = (float)sqrt(dist_x*dist_x + dist_y*dist_y);
 
 	//speed Заменить на реальную. а то иначе...
 	float r = Stabilization.getDist_XY(max_speed_xy);
@@ -237,10 +237,10 @@ bool ProgClass::getIntersection(float &x, float &y){
 	}
 	//----------------------------
 
-	const float x2 = GPS.loc.from_lat2X(lat - GPS.loc.lat_);
-	const float x1 = GPS.loc.from_lat2X(old_lat - GPS.loc.lat_);
-	const float y2 = GPS.loc.form_lon2Y(lon - GPS.loc.lon_);
-	const float y1 = GPS.loc.form_lon2Y(old_lon - GPS.loc.lon_);
+	const float x2 = GPS.loc.from_lat2X((float)(lat - GPS.loc.lat_));
+	const float x1 = GPS.loc.from_lat2X((float)(old_lat - GPS.loc.lat_));
+	const float y2 = GPS.loc.form_lon2Y((float)(lon - GPS.loc.lon_));
+	const float y1 = GPS.loc.form_lon2Y((float)(old_lon - GPS.loc.lon_));
 	const float dx = x2 - x1;
 	const float dy = y2 - y1;
 	const float l2 = dx*dx + dy*dy;
@@ -283,9 +283,9 @@ bool ProgClass::getIntersection(float &x, float &y){
 				dx = x1 - xx;
 				dy = y1 - yy;
 				const float dist1 = dx*dx + dy*dy;
-				dist2line = 1 + sqrt(min(dist2, dist1));
+				dist2line = (float)(1.0 + sqrt(min(dist2, dist1)));
 			}else
-				dist2line = 1 + sqrt(xx * xx + yy * yy);
+				dist2line = (float)(1.0 + sqrt(xx * xx + yy * yy));
 
 			if (dist2line > r){
 #ifdef FALL_IF_STRONG_WIND
@@ -303,8 +303,8 @@ bool ProgClass::getIntersection(float &x, float &y){
 	}
 	if (discriminant <= 0)
 		return false;
-	discriminant = sqrt(discriminant);
-	const float rdr2 = 1.0/l2;
+	discriminant = (float)sqrt(discriminant);
+	const float rdr2 = 1.0f/l2;
 	float temp = sgn(dy)*dx*discriminant;
 	const float ix1 = (D*dy + temp)*rdr2;
 	const float ix2 = (D*dy - temp)*rdr2;
@@ -352,7 +352,7 @@ bool ProgClass::load_next(){
 	step_index++;
 	//Out.println("next");
 
-	uint16_t wi = prog_data_index+1;
+	int wi = prog_data_index+1;
 
 	if (prog[prog_data_index] & TIMER){
 		timer = prog[wi++];
@@ -361,7 +361,7 @@ bool ProgClass::load_next(){
 		//Out.println(timer);
 	}
 
-#define K01 0.1
+#define K01 0.1f
 	if (prog[prog_data_index] & SPEED_XY){
 		//Stabilization.max_speed_xy = K01*(float)prog[wi++];
 		max_speed_xy = K01*(float)prog[wi++];
@@ -374,7 +374,7 @@ bool ProgClass::load_next(){
 		const float speedZ = K01* (float)prog[wi++];
 		
 		if (speedZ >= 0){
-			Stabilization.max_stab_z_P = max(speedZ,0.15);
+			Stabilization.max_stab_z_P = max(speedZ,0.15f);
 			Stabilization.max_stab_z_M = MAX_VER_SPEED_MINUS;
 		}
 		else {
@@ -413,7 +413,7 @@ bool ProgClass::load_next(){
 
 
 	if (prog[prog_data_index] & DIRECTION){
-		oldDir = 1.4173228*(float)prog[wi++];
+		oldDir = 1.4173228f*(float)prog[wi++];
 		Autopilot.setYaw(-oldDir);
 	}
 
@@ -428,7 +428,7 @@ bool ProgClass::load_next(){
 
 
 	if (prog[prog_data_index] & CAMERA_ANGLE){
-		old_cam_angle = -1.4173228*(float)prog[wi++];
+		old_cam_angle = -1.4173228f*(float)prog[wi++];
 		Pwm.gimagl_pitch(old_cam_angle);
 	}
 
@@ -474,12 +474,12 @@ bool ProgClass::add(byte*buf)
 	
 	if (steps_count != buf[i++]){
 		clear();
-		Out.println("PROG INDEX ERROR");
+		printf("PROG INDEX ERROR\n");
 		return false;
 	}
 	if (i + 17 > PROG_MEMORY_SIZE){
 		clear();
-		Out.println("PROG_MEMORY_OVERFLOW");
+		printf("PROG_MEMORY_OVERFLOW\n");
 		return false;
 	}
 //	Out.print("mask:"); Out.println(buf[0]);
@@ -530,7 +530,7 @@ bool ProgClass::add(byte*buf)
 
 	if (buf[0] & LED_CONTROL){
 		prog[pi++] = buf[i++];
-		Out.print("led prog="); Out.println(buf[i-1]);
+		printf("led prog=%i\n",buf[i-1]);
 	}
 
 	if (steps_count == 0){
@@ -544,7 +544,7 @@ bool ProgClass::add(byte*buf)
 
 	prog_data_size = pi;
 	steps_count++;
-	Out.print(steps_count); Out.print(" dot added! "); Out.println(prog_data_size);
+	printf("%i dot added! %i\n", steps_count, prog_data_size); 
 	return true;
 }
 

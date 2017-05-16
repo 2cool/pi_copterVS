@@ -1,11 +1,3 @@
-// 
-// 
-// 
-
-
-
-
-
 
 /*
 можность для взлета при низком заряде уже равна не 0.5 а 0.6   - Зделанно
@@ -86,12 +78,12 @@ float balanceForce[2];
 
 float dTime[2];
 float nTime[2];
-#define MIN_SPEED 0.2
-float const predTime = 0.009;
+#define MIN_SPEED 0.2f
+float const predTime = 0.009f;
 
 
 
-//float dt = 0.009;
+//float dt = 0.009f;
 
 long oldtttttttttttt = 0;
 int cntttttttttt = 0;
@@ -104,7 +96,8 @@ static const float f_constrain(const float v, const float min, const float max){
 
 void BalanceClass::init()
 {
-	Out.println("BALANCE INIT");
+	f_[0] = f_[1] = f_[2] = f_[3] = 0;
+	printf("BALANCE INIT\n");
 	
 	c_pitch = c_roll = 0;
 	
@@ -122,19 +115,19 @@ void BalanceClass::init()
 	//pitch_roll_rateIMAX = 0.05;
 	
 
-	pids[PID_PITCH_RATE].kP(0.0017);
-	pids[PID_PITCH_RATE].kI(0.0001);
-	pids[PID_PITCH_RATE].imax(MAX_DELTA*0.1);
+	pids[PID_PITCH_RATE].kP(0.0017f);
+	pids[PID_PITCH_RATE].kI(0.0001f);
+	pids[PID_PITCH_RATE].imax(MAX_DELTA*0.1f);
 
-	pids[PID_ROLL_RATE].kP(0.0017);
-	pids[PID_ROLL_RATE].kI(0.0001);
-	pids[PID_ROLL_RATE].imax(MAX_DELTA*0.1);
+	pids[PID_ROLL_RATE].kP(0.0017f);
+	pids[PID_ROLL_RATE].kI(0.0001f);
+	pids[PID_ROLL_RATE].imax(MAX_DELTA*0.1f);
 
 	yaw_stabKP = 2;
 
-	pids[PID_YAW_RATE].kP(0.0017);
-	pids[PID_YAW_RATE].kI(0.0017);
-	pids[PID_YAW_RATE].imax(MAX_YAW_DELTA*0.1);
+	pids[PID_YAW_RATE].kP(0.0017f);
+	pids[PID_YAW_RATE].kI(0.0017f);
+	pids[PID_YAW_RATE].imax(MAX_YAW_DELTA*0.1f);
 	
 
 
@@ -176,9 +169,9 @@ string BalanceClass::get_set(){
 
 
 void BalanceClass::set(const float *ar){
-	uint8_t i = 0;
+	int i = 0;
 	if (ar[SETTINGS_ARRAY_SIZE] == SETTINGS_IS_OK){
-		uint8_t error=0;
+		int error=0;
 		
 		float t;
 
@@ -222,22 +215,21 @@ void BalanceClass::set(const float *ar){
 
 	//	error += Commander._set(ar[i], stop_throttle);
 
-		Out.println("balance set:");
-		int ii;
+		printf("balance set:\n");
+		
 		if (error == 0){
 			//for (ii = 0; ii < i; ii++){
 			//	Out.print(ar[ii]); Out.print(",");
 			//}
 			//Out.println(ar[ii]);
-			Out.println("OK");
+			printf("OK\n");
 		}
 		else{
-			Out.print("ERROR to big or small. P=");
-			Out.println(error);
+			printf("ERROR to big or small. P=%i",error);
 		}
 	}
 	else{
-		Out.println("ERROR");
+		printf("ERROR\n");
 	}
 }
 
@@ -262,14 +254,26 @@ void BalanceClass::setMaxAngle(const float ang){
 #define MAX_ANGLE_SPEED 300
 #define MAX_YAW_SPEED 20
 //#define MAX_POWER_K_IF_MAX_ANGLE_30 1.12
+
+
+int devices_cnt = 0;
 void BalanceClass::loop()
 {
-	
-	Mpu.loop();
-	MS5611.loop();
-	Hmc.loop();
-	GPS.loop();
+	 Mpu.loop();
 
+	if ((devices_cnt & 3) == 0)
+		 MS5611.loop();
+	if ((devices_cnt & 3) == 1)
+		Hmc.loop();
+	else
+		usleep(1500);
+	if ((devices_cnt & 7) == 3)
+		GPS.loop();
+	else
+		usleep(100);
+
+
+	devices_cnt++;
 
 		// Do the magic
 	if (Autopilot.motors_is_on()){  // Throttle raised, turn on stablisation.
@@ -285,7 +289,7 @@ void BalanceClass::loop()
 			
 			const float thr = throttle / Mpu.tiltPower;
 			if (thr>MAX_THROTTLE_){
-				const float angle = RAD2GRAD * acos(throttle / MAX_THROTTLE_);
+				const float angle = RAD2GRAD * (float)acos(throttle / MAX_THROTTLE_);
 				if (angle < MIN_ANGLE){
 					setMaxAngle(MIN_ANGLE);
 					throttle = COS_MIN_ANGLE*MAX_THROTTLE_;
@@ -305,7 +309,7 @@ void BalanceClass::loop()
 		else{
 			throttle = Autopilot.get_throttle();
 			throttle /= Mpu.tiltPower;
-			throttle = constrain(throttle, 0.3, MAX_THROTTLE_);
+			throttle = constrain(throttle, 0.3f, MAX_THROTTLE_);
 		//	Debug.load(0, throttle, f_[0]);
 			if (throttle < min_throttle){
 				// reset yaw target so we maintain this on takeoff
@@ -340,11 +344,11 @@ void BalanceClass::loop()
 			
 			
 				
-		const float maxAngle07 = maxAngle*0.7;
+		const float maxAngle07 = maxAngle*0.7f;
 		if (abs(c_pitch) > maxAngle07 || abs(c_roll) > maxAngle07){
 			c_pitch = constrain(c_pitch, -maxAngle, maxAngle);
 			c_roll = constrain(c_roll, -maxAngle, maxAngle);
-			float k = RAD2GRAD*acos(cos(c_pitch*GRAD2RAD)*cos(c_roll*GRAD2RAD));
+			float k = (float)(RAD2GRAD*acos(cos(c_pitch*GRAD2RAD)*cos(c_roll*GRAD2RAD)));
 			if (k == 0)
 				k = maxAngle;
 			if (k > maxAngle){
@@ -373,7 +377,7 @@ void BalanceClass::loop()
 
 		// rate PIDS
 	
-		const float max_delta = (throttle < 0.6) ? 0.3 : MAX_DELTA;
+		const float max_delta = (throttle < 0.6f) ? 0.3f : MAX_DELTA;
 
 
 
@@ -382,7 +386,7 @@ void BalanceClass::loop()
 		float roll_output =  pK * pids[PID_ROLL_RATE].get_pid(roll_stab_output + Mpu.gyroRoll, Mpu.dt);
 		roll_output = constrain(roll_output, -max_delta, max_delta);
 		float yaw_output =   pK * pids[PID_YAW_RATE].get_pid(yaw_stab_output - Mpu.gyroYaw, Mpu.dt);
-		yaw_output = constrain(yaw_output, -0.1, 0.1);
+		yaw_output = constrain(yaw_output, -0.1f, 0.1f);
 
 
 		float m_yaw_output = -yaw_output;  //антираскачивание при низкой мощности на плече
@@ -425,16 +429,16 @@ void BalanceClass::loop()
 		//throttle = 0;
 
 
-	
+#define TIME_FOR_SETUP 1800
 
 		if (power_on_time==0 && Telemetry.b[2] > 0)
 			power_on_time = millis();
 
-		if (Telemetry.b[2] == 0 || ( millis() - power_on_time) < 1500) {
+		if (Telemetry.b[2] == 0 || ( millis() - power_on_time) < TIME_FOR_SETUP) {
 			if (f_[0] == 0)
 				printf("power off\n");
 			throttle = f_[0] = f_[1] = f_[2] = f_[3] = 1;
-			if (power_on_time>0 && millis() - power_on_time > 1500)
+			if (power_on_time>0 && millis() - power_on_time > TIME_FOR_SETUP)
 				power_on_time = 0;
 			
 		}
@@ -457,10 +461,9 @@ void BalanceClass::loop()
 	Pwm.throttle(0, 0, 0, 0);  //670 micros
 #else
 
-
 	Pwm.throttle(f_[0], f_[1], f_[2], f_[3]);  //670 micros
 
-	//Pwm.throttle(throttle, throttle, throttle, throttle);  //670 micros
+	//Pwm.throttle(throttle, throttle, throttle, throttle);  //400 micros
 
 #endif
 //	Debug.load(1, f_[0], f_[3]);

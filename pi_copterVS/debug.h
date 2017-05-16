@@ -17,9 +17,9 @@ class DebugClass
 #define MAXARR 10
 	 int i;
 	 float ar[MAXARR][2];
-	 float readSeralFloat();
 
-	 void graphic(const uint8_t n, const float x, const float y);
+
+	 void graphic(const int n, const float x, const float y);
 
  public:
 	 int n_debug;

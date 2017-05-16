@@ -36,7 +36,8 @@ class ProgClass
 	 byte prog[PROG_MEMORY_SIZE];
 	 float speed_X, speed_Y, speed_Z;
 	 bool program_is_OK();
-	 float r_time,time4step2done,speed_corected_delta, begin_time, old_dt;
+	 float r_time,time4step2done,speed_corected_delta, old_dt;
+	 uint32_t begin_time;
 	 float max_speed_xy,timer;
  public:
 	 bool intersactionFlag;

@@ -24,12 +24,12 @@
 
 //#define BAT_ZERO 370 //80 процентов разряд
 #define BAT_100P 422
-#define BAT_ZERO (360.0*3)
-#define BAT_50P (391.0*3)
+#define BAT_ZERO (360.0f*3)
+#define BAT_50P (391.0f*3)
 #define MAX_VOLTAGE_AT_START 406
-#define MAX_FLY_TIME 120000.0
+#define MAX_FLY_TIME 120000.0f
 //батареи хватает на 
-#define FALSE_TIME_TO_BATERY_OFF 120000.0
+#define FALSE_TIME_TO_BATERY_OFF 120000.0f
 
 void TelemetryClass::addMessage(const string msg){
 	printf("%s\n", msg.c_str());
@@ -42,7 +42,7 @@ void TelemetryClass::addMessage(const string msg){
 }
 
 void TelemetryClass::getSettings(int n){
-	Out.println("up set");
+	printf("up set\n");
 	if (n > 4 || n < 0)
 		return;
 
@@ -104,7 +104,8 @@ void TelemetryClass::init_()
 #endif
 	newGPSData = false;
 	//Out.println("TELEMETRY INIT");
-	timeAtStart = voltage_at_start = 0;
+	timeAtStart = 0;
+	voltage_at_start = 0;
 	
 }
 
@@ -117,7 +118,7 @@ void TelemetryClass::loop()
 		testBatteryVoltage();
 
 		if (Autopilot.progState() && check_time_left_if_go_to_home() < 60 && ++no_time_cnt>3){ // на тестах ошибся на 5 минут.  
-			Out.println("too far from HOME!");
+			printf("too far from HOME!\n");
 			addMessage(e_BATERY_OFF_GO_2_HOME);
 			Autopilot.going2HomeStartStop(false);
 		}	
@@ -127,9 +128,9 @@ void TelemetryClass::loop()
 #define BALANCE_DELAY 120
 
 int16_t TelemetryClass::check_time_left_if_go_to_home(){
-	float max_fly_time;
+	float max_fly_time=0;
 	if (voltage_at_start > 0){
-		float work_time = 0.001*(float)(millis() - timeAtStart);
+		float work_time = 0.001f*(float)(millis() - timeAtStart);
 		if (work_time > BALANCE_DELAY && voltage_at_start > voltage){
 			max_fly_time = ((voltage - BAT_ZERO)*work_time / (voltage_at_start - voltage));
 		}
@@ -137,14 +138,14 @@ int16_t TelemetryClass::check_time_left_if_go_to_home(){
 			max_fly_time = MAX_FLY_TIME - work_time;
 			no_time_cnt = 0;
 		}
-		const float dist2home = sqrt(GPS.loc.dist2home_2);
-		const float time2home = dist2home *(1.0 / MAX_HOR_SPEED);
-		const float time2down = abs((Autopilot.corectedAltitude())*(1.0 / MAX_VER_SPEED_MINUS));
+		const float dist2home = (float)sqrt(GPS.loc.dist2home_2);
+		const float time2home = dist2home *(1.0f / MAX_HOR_SPEED);
+		const float time2down = abs((Autopilot.corectedAltitude())*(1.0f / MAX_VER_SPEED_MINUS));
 	//	Debug.dump(max_fly_time, time2home + time2down, voltage, 0);
-		return max_fly_time - time2home - time2down;
+		return (int16_t)(max_fly_time - time2home - time2down);
 	}
 	else
-		return max_fly_time;
+		return (int16_t)max_fly_time;
 
 }
 
@@ -188,9 +189,9 @@ void TelemetryClass::update_voltage(){
 	//int t = micros();
 	Pwm.get_analog(buf);  //300 microsec
 
-	float a0 = (float)buf[0] / 2.36;
-	float a1 = (float)buf[1] / 1.16;
-	voltage = (float)buf[2] / 0.76;
+	float a0 = (float)buf[0] / 2.397f;
+	float a1 = (float)buf[1] / 1.16f;
+	voltage = (float)buf[2] / 0.76f;
 
 
 
@@ -229,8 +230,10 @@ void TelemetryClass::testBatteryVoltage(){
 		if (Autopilot.motors_is_on()){
 			timeAtStart = millis();
 		}
-		else
-			timeAtStart = voltage_at_start = 0;
+		else {
+			timeAtStart = 0;
+			voltage_at_start = 0;
+		}
 	}
 
 	
@@ -254,7 +257,7 @@ void TelemetryClass::testBatteryVoltage(){
 		addMessage(e_VOLT_MON_ERROR);
 	}
 	powerK = (MAX_VOLTAGE_AT_START*3) / (float)voltage;
-	powerK = constrain(powerK, 1, 1.35);
+	powerK = constrain(powerK, 1, 1.35f);
 }
 
 bool newGPSData = false;
@@ -317,13 +320,15 @@ void TelemetryClass::update_buf() {
 //	printf("out <- %i\n", mod);
 	loadBUF32(i, mod);
 	//printf("message=", message.c_str());
-
+	const bool err = (GPS.loc.accuracy_hor_pos >= 99);
 	loadBUF(i, 1000 + (Balance.get_throttle() * 1000));
-	loadBUF32(i, GPS.loc.lat_);
-	loadBUF32(i, GPS.loc.lon_);
-	buf[i++] = (byte)GPS.loc.accuracy_hor_pos;
-	buf[i++] = (byte)GPS.loc.accuracy_ver_pos;
-	loadBUF(i, 10.0*Autopilot.corectedAltitude());// -Autopilot.startAltitude));
+	loadBUF32(i, (err)?0:GPS.loc.lat_);
+	loadBUF32(i, (err)?0:GPS.loc.lon_);
+
+	buf[i++] = (byte)(err)?99: GPS.loc.accuracy_hor_pos;
+	buf[i++] = (byte)(err)?99: GPS.loc.accuracy_ver_pos;
+
+	loadBUF(i, 10.0f*Autopilot.corectedAltitude());// -Autopilot.startAltitude));
 	//Out.print(t_old_alt); Out.print(" "); Out.println(MS5611.altitude);// -Autopilot.startAltitude);
 	loadBUF8(i, -Mpu.get_pitch());
 	loadBUF8(i, Mpu.get_roll());
@@ -337,7 +342,7 @@ void TelemetryClass::update_buf() {
 	t = (int16_t)b[2];
 	buf[i++] = ((byte*)&t)[0];
 	buf[i++] = (int8_t)Autopilot.getGimbalPitch();
-	loadBUF8(i, Mpu.yaw * 0.70555555555555555555555555555556);
+	loadBUF8(i, Mpu.yaw * 0.705555555555555f);
 
 	if (message.length() && i + message.length() < TELEMETRY_BUF_SIZE) {
 		memcpy(&buf[i], message.c_str(), message.length());
