@@ -365,7 +365,7 @@ void MpuClass::loop(){
 void MpuClass::loop(){//-------------------------------------------------L O O P-------------------------------------------------------------
 
 
-	int zzz = micros();
+	///int zzz = micros();
 
 //	if (calibrated == false){
 
@@ -468,8 +468,8 @@ void MpuClass::loop(){//-------------------------------------------------L O O P
 		speedY += (cosYaw*rspeedY - sinYaw*rspeedX);
 
 #ifndef MOTORS_OFF
-		//cx += total_ax;
-		//cy -= total_ay;
+		cx += total_ax;
+		cy -= total_ay;
 #endif
 
 	}
@@ -531,11 +531,11 @@ void MpuClass::loop(){//-------------------------------------------------L O O P
 	
 
 
-	
+	   
 
 	
 	
-//	Debug.load(0, dt*100, 0);
+//	Debug.load(0, dt*100, 0);     
 
 //	Debug.load(1, aPitch/40, pitch/40);
 //	Debug.load(0, yaw/180, Hmc.headingGrad / 180);

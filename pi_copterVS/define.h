@@ -40,7 +40,7 @@
 #define LED_ON
 
 
-
+#define BEEPS_ON 0
 
 
 #define LOWEST_HEIGHT_ 1.6f
@@ -56,8 +56,8 @@
 
 
 
-//#define FALSE_GPS
-//#define FASLE_GPS_STILL
+#define FALSE_GPS
+#define FASLE_GPS_STILL
 //#define MOTORS_OFF
 //#define NO_BATTERY
 

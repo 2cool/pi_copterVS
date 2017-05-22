@@ -174,6 +174,17 @@ bool PwmClass::gimbal_roll( float angle){
 	}
 	return false;
 }
+
+void PwmClass::beep_code(uint8_t c) {
+	char buf[1];
+
+	((int8_t*)buf)[0] = c;
+	write(fd, buf, 1);
+
+
+}
+
+
 bool PwmClass::gimagl_pitch( float angle){
 
 

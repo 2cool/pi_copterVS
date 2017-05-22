@@ -463,6 +463,7 @@ bool AutopilotClass::motors_do_on(const bool start, const string msg){//////////
 		printf("on ");
 		if (Balance.power_is_on() == false) {
 			printf("!!! power is off !!!\n");
+			Pwm.beep_code(BEEPS_ON+(1<<1));
 			return false;
 		}
 		LED.error_code = 0;
@@ -472,11 +473,13 @@ bool AutopilotClass::motors_do_on(const bool start, const string msg){//////////
 			if (Telemetry.low_voltage){
 				Telemetry.addMessage(e_LOW_VOLTAGE);
 				printf(" LOW VOLTAGE\n");
+				Pwm.beep_code(BEEPS_ON + (2 << 1));
 				return false;
 			}
 
 			if (GPS.loc.accuracy_hor_pos > MIN_ACUR_HOR_POS_2_START ){
 				printf(" GPS error\n");
+				Pwm.beep_code(BEEPS_ON + (3 << 1));
 				Telemetry.addMessage(e_GPS_ERROR);
 				LED.error_time = millis();
 				LED.error_code &= 255^1;
@@ -521,11 +524,13 @@ bool AutopilotClass::motors_do_on(const bool start, const string msg){//////////
 		else{
 			if (Hmc.calibrated == false){
 				printf("compas, ");
+				Pwm.beep_code(BEEPS_ON + (4 << 1));
 				LED.error_time = millis();
 				LED.error_code &= 255 ^ 2;
 			}
 			if (Mpu.gyro_calibratioan == false){
 				printf("gyro");
+				Pwm.beep_code(BEEPS_ON + (5 << 1));
 				LED.error_time = millis();
 				LED.error_code &= 255 ^ 4;
 			}

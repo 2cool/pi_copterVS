@@ -122,6 +122,7 @@ class PwmClass
 
 
 	 static void sound(const float);
+	 static void beep_code(uint8_t);
 	 static void throttle(const float n0, const float n1, const float n2, const float n3);
 	static void throttle_0(const float n);
 	static void throttle_1(const float n);

@@ -168,6 +168,7 @@ int setup() {////--------------------------------------------- SETUP -----------
 	Telemetry.init_();
 	Telemetry.testBatteryVoltage();
 	printf("telemetry init OK \n");
+	Pwm.beep_code(BEEPS_ON);
 	return 0;
 
 }

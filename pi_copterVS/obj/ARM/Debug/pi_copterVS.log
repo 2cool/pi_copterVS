@@ -1,8 +1,22 @@
 ﻿  Validating architecture
   Validating sources
-  Copying sources remotely to '192.168.43.15'
+  Copying sources remotely to '192.168.1.105'
   Starting remote build
   Compiling sources:
-  Balance.cpp
+  mpu.cpp
+C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\mpu.cpp(141,13): warning : conversion to ‘uint32_t {aka unsigned int}’ from ‘uint64_t {aka long long unsigned int}’ may alter its value [-Wconversion]
+C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\define.h(21,18): warning : conversion to ‘float’ from ‘double’ may alter its value [-Wfloat-conversion]
+C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\mpu.cpp(376,28): warning : conversion to ‘uint32_t {aka unsigned int}’ from ‘uint64_t {aka long long unsigned int}’ may alter its value [-Wconversion]
+C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\mpu.cpp(387,6): warning : conversion to ‘int16_t {aka short int}’ from ‘int’ may alter its value [-Wconversion]
+C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\mpu.cpp(388,6): warning : conversion to ‘int16_t {aka short int}’ from ‘int’ may alter its value [-Wconversion]
+C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\mpu.cpp(389,6): warning : conversion to ‘int16_t {aka short int}’ from ‘int’ may alter its value [-Wconversion]
+C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\mpu.cpp(390,6): warning : conversion to ‘int16_t {aka short int}’ from ‘int’ may alter its value [-Wconversion]
+C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\mpu.cpp(675,22): warning : conversion to ‘int16_t {aka short int}’ from ‘int’ may alter its value [-Wconversion]
+C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\mpu.cpp(678,22): warning : conversion to ‘int16_t {aka short int}’ from ‘int’ may alter its value [-Wconversion]
+C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\mpu.cpp(681,22): warning : conversion to ‘int16_t {aka short int}’ from ‘int’ may alter its value [-Wconversion]
+C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\mpu.cpp(684,22): warning : conversion to ‘int16_t {aka short int}’ from ‘int’ may alter its value [-Wconversion]
+C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\mpu.cpp(687,22): warning : conversion to ‘int16_t {aka short int}’ from ‘int’ may alter its value [-Wconversion]
+C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\mpu.cpp(690,22): warning : conversion to ‘int16_t {aka short int}’ from ‘int’ may alter its value [-Wconversion]
+C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\mpu.cpp(28,20): warning : ‘const float f_constrain(float, float, float)’ defined but not used [-Wunused-function]
   Linking objects
   pi_copterVS.vcxproj -> C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\bin\ARM\Debug\pi_copterVS.out
