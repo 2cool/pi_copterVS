@@ -31,7 +31,7 @@ void HmcClass::init()
 
 	baseX = baseY = baseZ = 0;
 	dx = dy = dz = 0;
-	headingGrad = 0;
+	heading = 0;
 	ok = true;
 	calibrated = true;
 #ifndef FALSE_COMPAS
@@ -277,7 +277,7 @@ void HmcClass::loop(){
 	float Yh = fmx * Mpu.sinRoll * Mpu.sinPitch + fmy * Mpu.cosRoll - fmz * Mpu.sinRoll * Mpu.cosPitch;
 	
 
-	headingGrad = RAD2GRAD*(float)atan2(Yh, Xh);
+	heading = (float)atan2(Yh, Xh);
 	//Out.println(fmx);
 	//Out.print(roll); Out.print(" "); Out.print(pitch); Out.print(" ");  Out.println(Hmc.heading / PI * 180);
 	

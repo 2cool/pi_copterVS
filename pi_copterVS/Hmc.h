@@ -101,14 +101,14 @@ class HmcClass
 	 void set(const float buf[]);
 	// int16_t mx, my, mz;
 	 bool motors_power_on;
-	 float headingGrad;
+	 float heading;
 	void init();
 	void loop();
 	bool ok;
 	bool calibration(const bool newc=false);
 	bool selfTest();
 
-	float get_headingGrad(){ return headingGrad; }
+	float get_headingGrad(){ return heading*RAD2GRAD; }
 
 
 

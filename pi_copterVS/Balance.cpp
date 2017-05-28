@@ -134,19 +134,12 @@ void BalanceClass::init()
 	Mpu.init();
 	Hmc.init();
 	Hmc.loop();
-	Mpu.initYaw(Hmc.headingGrad);
+	Mpu.initYaw(Hmc.heading);
 #ifdef DEBUG_MODE
 	Out.print("Heading :"); Out.println(Hmc.headingGrad);
 #endif
 
-	delay(2000);
-	Telemetry.update_voltage();
-	if (Telemetry.b[2] > 200) {
-		power_on_time = millis() - 2000;
-	}
-	else {
-		power_on_time = 0;
-	}
+	
 }
 
 
@@ -243,8 +236,19 @@ float BalanceClass::powerK(){
 	return pk;
 }
 /////////////////////////////////////////////////////////////////////////////////////////
-
-
+int motors_off_i = 0;
+void BalanceClass::escCalibration() {
+	if (motors_off_i == 0 && Telemetry.power_is_on() == false) {
+		throttle = f_[0] = f_[1] = f_[2] = f_[3] = 1;
+		printf("!!!max power!!!\n");
+		motors_off_i++;
+	}else
+		if (motors_off_i == 1 && Telemetry.power_is_on()) {
+			throttle = f_[0] = f_[1] = f_[2] = f_[3] = 0;
+			printf("!!!off power!!!\n");
+			motors_off_i++;
+		}
+}
 
 void BalanceClass::setMaxAngle(const float ang){
 	maxAngle = ang;
@@ -267,7 +271,7 @@ void BalanceClass::loop()
 		Hmc.loop();
 	else
 		usleep(1500);
-	if ((devices_cnt & 7) == 3)
+	if ((devices_cnt & 3) == 3)
 		GPS.loop();
 	else
 		usleep(100);
@@ -428,25 +432,9 @@ void BalanceClass::loop()
 	//	Pwm.throttle(0, 0, 0, 0);
 		//throttle = 0;
 
-
-#define TIME_FOR_SETUP 1800
-
-		if (power_on_time==0 && Telemetry.b[2] > 0)
-			power_on_time = millis();
-
-		if (Telemetry.b[2] == 0 || ( millis() - power_on_time) < TIME_FOR_SETUP) {
-			if (f_[0] == 0)
-				printf("power off\n");
-			throttle = f_[0] = f_[1] = f_[2] = f_[3] = 1;
-			if (power_on_time>0 && millis() - power_on_time > TIME_FOR_SETUP)
-				power_on_time = 0;
-			
-		}
-		else {
-			if (f_[0] == 1)
-				printf("!!! power on !!!\n");
-			throttle = f_[0] = f_[1] = f_[2] = f_[3] = 0;
-		}
+		if (Debug.n_p1 > 0)
+			escCalibration();
+		
 	}
 	
 

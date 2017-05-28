@@ -6,7 +6,7 @@
 
 #include "WProgram.h"
 #include "define.h"
-
+#include "debug.h"
 
 
 enum {	NO_MESSAGE = 0, START_ROTTATION = 1, STOP_ROTTATION};
@@ -16,6 +16,7 @@ enum { T_TEMP = 0, T_PRES = 1, T_LAT = 3, T_LON = 7, T_GPS_HEIGHT = 11, T_GPS_HE
 class TelemetryClass
 {
  protected:
+	 uint32_t power_on_time;
 	 uint8_t buf[TELEMETRY_BUF_SIZE];
 	 volatile int buffer_size;
 	 void loadBUF32(int &i, int32_t val);
@@ -38,6 +39,14 @@ class TelemetryClass
 	 void update_buf();
  public:
 	float b[3];
+	uint32_t get_power_on_time() { return power_on_time; }
+	bool power_is_on() {
+#ifdef NO_BATTERY
+		return true;
+#else 
+		return (power_on_time > 0 && millis() - power_on_time > ((Debug.n_p1>0)?2000:Debug.n_p1));
+#endif 
+	}
 
 	 uint8_t no_time_cnt = 0;
 	 void update_voltage();

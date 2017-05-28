@@ -461,7 +461,7 @@ bool AutopilotClass::motors_do_on(const bool start, const string msg){//////////
 	
 	if (start){
 		printf("on ");
-		if (Balance.power_is_on() == false) {
+		if (Telemetry.power_is_on() == false) {
 			printf("!!! power is off !!!\n");
 			Pwm.beep_code(BEEPS_ON+(1<<1));
 			return false;

@@ -85,6 +85,7 @@ void TelemetryClass::getSettings(int n){
 
 void TelemetryClass::init_()
 {
+	uint32_t power_on_time = 0;
 	timeAtStart = 0;
 	buffer_size = 0;
 
@@ -218,6 +219,22 @@ void TelemetryClass::update_voltage(){
 	
 
 #endif
+
+	if (Telemetry.b[2] == 0) {
+		if (power_on_time > 0) {
+			power_on_time = 0;
+			printf("power off\n");
+		}
+	}
+	else {
+		if (power_on_time == 0) {
+			power_on_time = millis();
+			printf("!!! power on !!!\n");
+		}
+	}
+
+
+
 }
 
 

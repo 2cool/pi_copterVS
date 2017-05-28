@@ -27,9 +27,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{d67572bb-f385-41a8-a9c0-950a8e671a86}</ProjectGuid>
+    <ProjectGuid>{3f7b6336-771f-4e97-b27a-92a3dfd66419}</ProjectGuid>
     <Keyword>Linux</Keyword>
-    <RootNamespace>pi_copterVS</RootNamespace>
+    <RootNamespace>motion_sensor</RootNamespace>
     <MinimumVisualStudioVersion>15.0</MinimumVisualStudioVersion>
     <ApplicationType>Linux</ApplicationType>
     <ApplicationTypeRevision>1.0</ApplicationTypeRevision>
@@ -61,81 +61,23 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
-    <ClCompile Include="AP_PID.cpp" />
-    <ClCompile Include="Autopilot.cpp" />
-    <ClCompile Include="Balance.cpp" />
-    <ClCompile Include="commander.cpp" />
-    <ClCompile Include="debug.cpp" />
-    <ClCompile Include="Direction.cpp" />
-    <ClCompile Include="Filter.cpp" />
-    <ClCompile Include="FilterTwoPole.cpp" />
-    <ClCompile Include="FIND.cpp" />
-    <ClCompile Include="GeoDot.cpp" />
-    <ClCompile Include="GPS.cpp" />
-    <ClCompile Include="Hmc.cpp" />
     <ClCompile Include="I2Cdev.cpp" />
     <ClCompile Include="inv_mpu.cpp" />
     <ClCompile Include="inv_mpu_dmp_motion_driver.cpp" />
-    <ClCompile Include="LED.cpp" />
-    <ClCompile Include="Location.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="mpu.cpp" />
-    <ClCompile Include="MPU6050.cpp" />
-    <ClCompile Include="MS5611.cpp" />
-    <ClCompile Include="Prog.cpp" />
-    <ClCompile Include="Pwm.cpp" />
-    <ClCompile Include="RC_Filter.cpp" />
-    <ClCompile Include="Settings.cpp" />
-    <ClCompile Include="Stabilization.cpp" />
-    <ClCompile Include="Telemetry.cpp" />
-    <ClCompile Include="Wi_Fi.cpp" />
-    <ClCompile Include="WProgram.cpp" />
+    <ClCompile Include="sensor.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AP_PID.h" />
-    <ClInclude Include="Autopilot.h" />
-    <ClInclude Include="Balance.h" />
-    <ClInclude Include="commander.h" />
-    <ClInclude Include="debug.h" />
-    <ClInclude Include="define.h" />
-    <ClInclude Include="Direction.h" />
     <ClInclude Include="dmpKey.h" />
     <ClInclude Include="dmpmap.h" />
-    <ClInclude Include="Filter.h" />
-    <ClInclude Include="FilterTwoPole.h" />
-    <ClInclude Include="FIND.h" />
-    <ClInclude Include="GeoDot.h" />
-    <ClInclude Include="GPS.h" />
     <ClInclude Include="helper_3dmath.h" />
-    <ClInclude Include="Hmc.h" />
     <ClInclude Include="I2Cdev.h" />
     <ClInclude Include="inv_mpu.h" />
     <ClInclude Include="inv_mpu_dmp_motion_driver.h" />
-    <ClInclude Include="LED.h" />
-    <ClInclude Include="Location.h" />
     <ClInclude Include="MotionSensor.h" />
-    <ClInclude Include="mpu.h" />
-    <ClInclude Include="MPU6050.h" />
-    <ClInclude Include="MS5611.h" />
-    <ClInclude Include="Prog.h" />
-    <ClInclude Include="Pwm.h" />
-    <ClInclude Include="RC_Filter.h" />
-    <ClInclude Include="Settings.h" />
-    <ClInclude Include="Stabilization.h" />
-    <ClInclude Include="Telemetry.h" />
-    <ClInclude Include="Wi_Fi.h" />
-    <ClInclude Include="WProgram.h" />
+    <ClInclude Include="sensor.h" />
   </ItemGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
-    <Link>
-      <LibraryDependencies>pthread</LibraryDependencies>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
-    <Link>
-      <LibraryDependencies>pthread</LibraryDependencies>
-    </Link>
-  </ItemDefinitionGroup>
+  <ItemDefinitionGroup />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
 </Project>

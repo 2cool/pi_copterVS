@@ -255,10 +255,10 @@ void PwmClass::throttle(const float n0, const float n1, const float n2, const fl
 
 void PwmClass::throttle(const float n0, const float n1, const float n2, const float n3) {
 	char pwm_out_buffer[4];
-	((uint8_t*)&pwm_out_buffer)[0] =(uint8_t)( 127 + (uint8_t)(n0 * 127));
-	((uint8_t*)&pwm_out_buffer)[3] = (uint8_t)(127 + (uint8_t)(n1 * 127));
-	((uint8_t*)&pwm_out_buffer)[1] = (uint8_t)(127 + (uint8_t)(n2 * 127));
-	((uint8_t*)&pwm_out_buffer)[2] = (uint8_t)(127 + (uint8_t)(n3 * 127));
+	((uint8_t*)&pwm_out_buffer)[0] =(uint8_t)( 127 + (uint8_t)(n0 * 127.0f));
+	((uint8_t*)&pwm_out_buffer)[3] = (uint8_t)(127 + (uint8_t)(n1 * 127.0f));
+	((uint8_t*)&pwm_out_buffer)[1] = (uint8_t)(127 + (uint8_t)(n2 * 127.0f));
+	((uint8_t*)&pwm_out_buffer)[2] = (uint8_t)(127 + (uint8_t)(n3 * 127.0f));
 	write(fd, pwm_out_buffer, 4);
 
 }

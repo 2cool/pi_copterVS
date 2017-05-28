@@ -264,15 +264,33 @@ void handler(int sig) { // can be called asynchronously
 	flag = 1; // set flag
 }
 
-
+int printHelp() {
+	printf("<-help> for this help\n");
+	printf(" <setup_time=1600> <debug delay=20>\n");
+	return -1;
+}
 
 int main(int argc, char *argv[]) {
+	Debug.n_p1 = 1600;
+	Debug.n_p2 = 100;
 	Debug.n_debug = 0;
-	if (argc == 2) {
-		Debug.n_debug = atoi(argv[1]);
+	if (argc >= 2) {
+		int tt = string(argv[1]).compare("-help");
+		if (tt==0) {
+
+		
+			return printHelp();
+
+		}
+		Debug.n_p1 = atoi(argv[1]);
+		if (argc >= 3) {
+			Debug.n_p2 = atoi(argv[2]);
+		}
 		
 	}
-	printf("Debug n=%i\n", Debug.n_debug);
+	else
+		return printHelp();
+
 
 	if (signal(SIGINT, handler) == SIG_ERR) {
 		return EXIT_FAILURE;
@@ -281,8 +299,17 @@ int main(int argc, char *argv[]) {
 	if (setup())
 		return -1;
 	old_time4loop =micros();
-	while (flag==0)
+	float dfr = 100;
+	while (flag == 0) {
+
 		loop();
+	//	int ttt = micros();
+	//	dfr += ((1000000 / (ttt - old_time4loop)) - dfr)*0.01;
+	//	Debug.load(0, dfr, 0);
+	//	old_time4loop = ttt;
+		usleep(4500);
+		//Debug.dump();
+	}
 	printf("\n Signal caught! and exit\n");
 	EEPROM.write_set();
 

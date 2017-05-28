@@ -151,6 +151,8 @@
 
 #define TELEMETRY_BUF_SIZE 1024
 #define wrap_180(x) (x < -180 ? x+360 : (x > 180 ? x - 360: x))
+#define wrap_PI(x) (x < -PI ? x+TWO_PI : (x > PI ? x - TWO_PI: x))
+
 
 #define SETTINGS_ARRAY_SIZE 10
 #define SETTINGS_IS_OK 1

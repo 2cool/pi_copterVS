@@ -46,7 +46,7 @@ void DebugClass::graphic(const int n, const float x, const float y) {
 		 if (n_debug > 9)
 			 return;
 		 uint32_t t = millis();
-		 if (t - old_time < 20)//20)
+		 if (t - old_time < n_p2)//20)
 			 return;
 		 old_time = t;
 

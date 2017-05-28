@@ -12,6 +12,9 @@
 //#include "Mem.h"
 
 
+#define delay_ms(a)    usleep(a*1000)
+
+
 
 
 
@@ -28,11 +31,103 @@
 static const float f_constrain(const float v, const float min, const float max){
 	return constrain(v, min, max);
 }
-
+#define DIM 3
 //WiFiClass wi_fi;
 
+
+void  MpuClass::initYaw(const float angle){
+	float add_2_yaw = angle;
+}
+
+
+int MpuClass::ms_open() {
+	dmpReady = 1;
+	initialized = 0;
+	for (int i = 0; i<DIM; i++) {
+		lastval[i] = 10;
+	}
+
+	// initialize device
+	printf("Initializing MPU...\n");
+	if (mpu_init(NULL) != 0) {
+		printf("MPU init failed!\n");
+		return -1;
+	}
+	printf("Setting MPU sensors...\n");
+	if (mpu_set_sensors(INV_XYZ_GYRO | INV_XYZ_ACCEL) != 0) {
+		printf("Failed to set sensors!\n");
+		return -1;
+	}
+	printf("Setting GYRO sensitivity...\n");
+	if (mpu_set_gyro_fsr(2000) != 0) {
+		printf("Failed to set gyro sensitivity!\n");
+		return -1;
+	}
+	printf("Setting ACCEL sensitivity...\n");
+	if (mpu_set_accel_fsr(2) != 0) {
+		printf("Failed to set accel sensitivity!\n");
+		return -1;
+	}
+	// verify connection
+	printf("Powering up MPU...\n");
+	mpu_get_power_state(&devStatus);
+	printf(devStatus ? "MPU6050 connection successful\n" : "MPU6050 connection failed %u\n", devStatus);
+
+	//fifo config
+	printf("Setting MPU fifo...\n");
+	if (mpu_configure_fifo(INV_XYZ_GYRO | INV_XYZ_ACCEL) != 0) {
+		printf("Failed to initialize MPU fifo!\n");
+		return -1;
+	}
+
+	// load and configure the DMP
+	printf("Loading DMP firmware...\n");
+	if (dmp_load_motion_driver_firmware() != 0) {
+		printf("Failed to enable DMP!\n");
+		return -1;
+	}
+
+	printf("Activating DMP...\n");
+	if (mpu_set_dmp_state(1) != 0) {
+		printf("Failed to enable DMP!\n");
+		return -1;
+	}
+
+	//dmp_set_orientation()
+	//if (dmp_enable_feature(DMP_FEATURE_LP_QUAT|DMP_FEATURE_SEND_RAW_GYRO)!=0) {
+	printf("Configuring DMP...\n");
+	if (dmp_enable_feature(DMP_FEATURE_6X_LP_QUAT | DMP_FEATURE_SEND_RAW_ACCEL | DMP_FEATURE_SEND_CAL_GYRO | DMP_FEATURE_GYRO_CAL) != 0) {
+		printf("Failed to enable DMP features!\n");
+		return -1;
+	}
+
+
+	printf("Setting DMP fifo rate...\n");
+	if (dmp_set_fifo_rate(rate) != 0) {
+		printf("Failed to set dmp fifo rate!\n");
+		return -1;
+	}
+	printf("Resetting fifo queue...\n");
+	if (mpu_reset_fifo() != 0) {
+		printf("Failed to reset fifo!\n");
+		return -1;
+	}
+
+	printf("Checking... ");
+	do {
+		delay_ms(1000 / rate);  //dmp will habve 4 (5-1) packets based on the fifo_rate
+		r = dmp_read_fifo(g, a, _q, &sensors, &fifoCount);
+	} while (r != 0 || fifoCount<5); //packtets!!!
+	printf("Done.\n");
+
+	initialized = 1;
+	return 0;
+}
 void MpuClass::init()
 {
+
+	rate = 100;// Debug.n_p1;
+	yaw = add_2_yaw = 0;
 	//f/speed^2/0.5=cS;
 	//speed^2*0.5*cS=f
 	//speed = sqrt(2f / cS)
@@ -41,33 +136,32 @@ void MpuClass::init()
 	cS = (float)tan(NEED_ANGLE_4_SPEED_10_MS * GRAD2RAD)*0.02f;
 	speedX = speedY;
 	max_g_cnt = 0;
-
 	cosYaw = 1;
 	sinYaw = 0;
 	temp_deb = 6;
 	fx = fy = fz = 0;
 	upsidedown = false;
-
 	faccX = faccY = faccZ = 0;
+	oldmpuTime = micros();
+	yaw = pitch = roll = gyroPitch = gyroRoll = gyroYaw = accX = accY = accZ = 0;
+	sinPitch = sinRoll = 0;
+	tiltPower = cosPitch = cosRoll = 1;
+	//COMP_FILTR = 0;// 0.003;
+	addStep = 0.001f;
+
+
+
+
 
 	printf("Initializing MPU6050\n");
-#ifndef FALSE_WIRE
 
-
-	accelgyro.initialize();
-
-
-	//accelgyro.setI2CMasterModeEnabled(false);
-	//accelgyro.setI2CBypassEnabled(true);
-	//accelgyro.setSleepEnabled(false);
-#endif
 #ifndef FALSE_MPU
-	//accelgyro.setClockSource(MPU6050_CLOCK_PLL_XGYRO);
-	//accelgyro.setFullScaleGyroRange(MPU6050_GYRO_FS_1000);
-	//accelgyro.setFullScaleAccelRange(MPU6050_ACCEL_FS_2);
 
 
-	// verify connection
+
+	ms_open();
+/*
+	accelgyro.initialize();
 	printf("Testing device connections...\n");
 	if (accelgyro.testConnection())
 	{
@@ -79,24 +173,10 @@ void MpuClass::init()
 		delay(10000);
 	}
 
-	// Set Gyro Low Pass Filter(0..6, 0=fastest, 6=slowest)
-
-	//	accelgyro.setDLPFMode(gLPF);
-
-
 	accelgyro.setDLPFMode(MPU6050_DLPF_BW_256);
-
-	//accelgyro.setDLPFMode(MPU6050_DLPF_BW_188);///
-
+	//accelgyro.setDLPFMode(MPU6050_DLPF_BW_188);//
 	//accelgyro.setDLPFMode(MPU6050_DLPF_BW_98);
-
-	//accelgyro.setDLPFMode(MPU6050_DLPF_BW_42);
-	//accelgyro.setDLPFMode(gLPF = MPU6050_DLPF_BW_20);
-	//accelgyro.setDLPFMode(MPU6050_DLPF_BW_10);
-	//accelgyro.setDLPFMode(MPU6050_DLPF_BW_5);
-
-
-
+*/
 #ifdef GYRO_CALIBR
 	gyro_calibratioan = false;
 #else
@@ -107,12 +187,12 @@ void MpuClass::init()
 	gyro_calibratioan &= mpu_calibrated;
 
 	if (mpu_calibrated) {
-		accelgyro.setXAccelOffset(offset_[ax_offset]);
+		/*accelgyro.setXAccelOffset(offset_[ax_offset]);
 		accelgyro.setYAccelOffset(offset_[ay_offset]);
 		accelgyro.setZAccelOffset(offset_[az_offset]);
 		accelgyro.setXGyroOffset(offset_[gx_offset]);
 		accelgyro.setYGyroOffset(offset_[gy_offset]);
-		accelgyro.setZGyroOffset(offset_[gz_offset]);
+		accelgyro.setZGyroOffset(offset_[gz_offset]);*/
 #ifdef DEBUG_MODE
 		for (int i = 0; i < 6; i++)
 			Out.println(offset_[i]);
@@ -136,20 +216,6 @@ void MpuClass::init()
 	wind_x = wind_y=0;
 
 #endif
-
-
-	oldmpuTime = micros();
-
-	yaw = pitch = roll = gyroPitch = gyroRoll = gyroYaw = accX = accY = accZ = 0;
-	sinPitch = sinRoll = 0;
-	tiltPower = cosPitch = cosRoll = 1;
-	//COMP_FILTR = 0;// 0.003;
-	addStep = 0.001f;
-	
-
-
-
-
 
 }
 
@@ -209,7 +275,10 @@ int16_t MpuClass::getGX(){
 }
 
 const float n003 = 0.030517578f;
+const float n006 =  0.061035156f;
+
 const float n604 = 0.00006103515625f;
+const float to_98g = 0.0005981445312f;
 
 #ifdef FALSE_MPU
 
@@ -358,91 +427,129 @@ void MpuClass::loop(){
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
+uint8_t GetGravity(VectorFloat *v, Quaternion *q) {
+	v->x = 2 * (q->x*q->z - q->w*q->y);
+	v->y = 2 * (q->w*q->x + q->y*q->z);
+	v->z = q->w*q->w - q->x*q->x - q->y*q->y + q->z*q->z;
+	return 0;
+}
+
+
+
+
 #define ROLL_COMPENSATION_IN_YAW_ROTTATION 0.02
 #define PITCH_COMPENSATION_IN_YAW_ROTTATION 0.025
 
 
+
+float ttYaw = 0;
+float ttPitch = 0;
+float ttRoll = 0;
+
+float ttt_yaw = 0;
+bool dkdkdkd = false;
 void MpuClass::loop(){//-------------------------------------------------L O O P-------------------------------------------------------------
 
-
-	///int zzz = micros();
-
-//	if (calibrated == false){
-
-		//	new_calibration();
-		//re_calibration();
-//		calibrated = true;
-//	}
 	uint32_t mputime = micros();
 	dt = (float)(mputime - oldmpuTime)*0.000001f;// *div;
 	rdt = 1.0f / dt;
 	oldmpuTime = mputime;
 
-	float x, y, z;
-	{
-		int16_t ax, ay, az, gx, gy, gz;
-		accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+	int cnt = 0;
 
-#ifndef SESOR_UPSIDE_DOWN
-		ay = -ay;
-		az = -az;
-		gy = -gy;
-		gz = -gz;
-#endif
-		upsidedown = az>0;
+	//dmp
+	while (dmp_read_fifo(g, a, _q, &sensors, &fifoCount) != 0)cnt++; //gyro and accel can be null because of being disabled in the efeatures
+	q = _q;
 
+	//GetGravity();
+	gravity.x = 2 * (q.x*q.z - q.w*q.y);
+	gravity.y = 2 * (q.w*q.x + q.y*q.z);
+	gravity.z = q.w*q.w - q.x*q.x - q.y*q.y + q.z*q.z;
 
-#ifdef ON_MAX_G_MOTORS_OFF
-		if ((abs(ax) > MAX_G || abs(ay) > MAX_G || abs(az) > MAX_G) && ++max_g_cnt>2){
-			Autopilot.off_throttle(true, e_MAX_ACCELERATION);
-			max_g_cnt = 0;
-		}
-#endif
-		//iz na minus
+	gyroPitch = -n006*(float)g[1];  //in grad
+	gyroYaw = -n006*(float)g[2];
+	gyroRoll = n006*(float)g[0];
 
+//	GetYawPitchRoll();
+//	float gyro_yaw = RAD2GRAD*2.0f*atan2(2.0 * q.x*q.y - 2.0 * q.w*q.z, 2.0 * q.w*q.w + 2.0 * q.x*q.x - 1);
+	float head = Hmc.heading*RAD2GRAD;
 
-		x = n604*(float)ax;
-		y = n604*(float)ay;
-		z = -n604*(float)az;
-
-
-
-		gyroRoll = ((float)gx)*n003;
-		gyroPitch = ((float)gy)*n003;
-		gyroYaw = ((float)gz)*n003;
-
-	}
-
-	const float CF = 0.01f;
 
 	yaw += gyroYaw*dt;
-	float t = Hmc.headingGrad - yaw;
+	float t = head - yaw;
+
 	if (t > 180)
 		yaw += 360;
 	else if (t < -180)
 		yaw -= 360;
+	yaw += (head- yaw)*0.0031f;
+
+	pitch = atan(gravity.x / sqrt(gravity.y*gravity.y + gravity.z*gravity.z));
+	roll = atan(gravity.y / sqrt(gravity.x*gravity.x + gravity.z*gravity.z));
 
 
 
 
-	//yaw = (1 - ACC_F_FREC)*yaw + ACC_F_FREC * Hmc.headingGrad;
-	yaw += (Hmc.headingGrad - yaw)*CF;
+	ttYaw += gyroYaw*dt;
+	ttPitch += gyroPitch*dt;
+	ttRoll += gyroRoll*dt;
 
-	//yaw = Hmc.headingGrad;
+
+
+
+	float x = n604*(float)a[0];
+	float y = -n604*(float)a[1];  //
+	float z = n604*(float)a[2];
+	
+
+	cosPitch = (float)cos(pitch);
+	sinPitch = (float)sin(pitch);
+	cosRoll = (float)cos(roll);
+	sinRoll = (float)sin(roll);
+
+	tiltPower = cosPitch*cosRoll;
+	tiltPower = constrain(tiltPower, 0.5f, 1);
+
+
+
+
+	accZ = z*cosPitch + sinPitch*x;
+	accZ = 9.8f*(accZ*cosRoll - sinRoll*y - 1);
+
+	accX = 9.8f*(x*cosPitch - z*sinPitch);
+	accY = 9.8f*(y*cosRoll + z*sinRoll);
+
+
+	
 
 	cosYaw = (float)cos(yaw*GRAD2RAD);
 	sinYaw = (float)sin(yaw*GRAD2RAD);
 
-	roll += gyroRoll*dt;
+	//yaw *= RAD2GRAD;
+	pitch *= RAD2GRAD;
+	roll *= RAD2GRAD;
+
+//	Debug.load(0, cnt, 0);
+//	Debug.load(1, gyro_yaw / 180, add_2_yaw / 180);
+//	Debug.load(2, gyro_yaw / 180, head / 180);
+/*	Debug.load(1, pitch / 40, ttPitch / 40);
+	Debug.load(2, yaw / 180, ttYaw / 180);
 
 
-	pitch += gyroPitch*dt;
+	Debug.load(3, yaw / 180, Hmc.heading/PI);
+	Debug.load(4, accX*0.1, accY*0.1);
+	Debug.load(5, accZ*0.05, 0);
+	//Debug.load(6, pitch / 90, accX/M_PI_2);
+	//Debug.load(7, roll / 90, -accY / M_PI_2);
+*/	//Debug.load(6, roll / 90, -accY / M_PI_2);
+	//Debug.dump();
+	
 
 
 /*
 	если квадр летит вперед(опуская нос) то sinpitch ортицательный, x - отрицательный.а при ускорении квадра x - уходит в положительную сторону.квадр какбы задирается
 	если квадр летит вправо, (наклоняясь по часовой к нам жопой) sinroll положительный, y - отрицательный, а при ускорении квадра н уходит в положит сторону, квадр какбы задирается против часовой
-*/
+
 
 	float cx = x, cy = y;
 	if (Autopilot.motors_is_on()){
@@ -476,58 +583,8 @@ void MpuClass::loop(){//-------------------------------------------------L O O P
 	else{
 		speedY = speedX = 0;
 	}
-
-
-
-
-
-
-#ifdef RESTRICT_PITCH // Eq. 25 and 26
-	const float aRoll = (float)atan2(cy, tiltPower) * RAD2GRAD;
-	const float aPitch = (float)atan(cx / sqrt(cy * cy + tiltPower * tiltPower)) * RAD2GRAD;
-#else // Eq. 28 and 29
-	double roll = atan(accY / sqrt(accX * accX + accZ * accZ)) * RAD_TO_DEG;
-	double pitch = atan2(-accX, accZ) * RAD_TO_DEG;
-#endif
-
-
-	//float aRoll = RAD2GRAD*atan(y / sqrt(x*x + z*z));
-	//float aPitch = RAD2GRAD*atan(x / sqrt(y*y + z*z));
-
-
-
-
-
-	roll -= (aRoll + roll)*CF;
-	pitch += (aPitch - pitch)*CF;
-
-
-	cosPitch = (float)cos(pitch*GRAD2RAD);
-	sinPitch = (float)sin(pitch*GRAD2RAD);
-	cosRoll = (float)cos(roll*GRAD2RAD);
-	sinRoll = (float)sin(roll*GRAD2RAD);
-
+*/
 	
-
-
-
-
-	tiltPower = cosPitch*cosRoll;
-	tiltPower = constrain(tiltPower, 0.5f, 1);
-
-
-	//float _accZ = 9.8*(z - tiltPower) * tiltPower;
-	//float _accX = 9.8*((x - sinPitch)* tiltPower);
-	//float _accY = 9.8*((y + sinRoll)* tiltPower);
-	
-	//pitch L+ a+
-	//Roll  L+ a-
-
-	accZ = z*cosPitch + sinPitch*x;
-	accZ = 9.8f*(accZ*cosRoll - sinRoll*y - 1);
-
-	accX = 9.8f*(x*cosPitch - z*sinPitch);
-	accY = 9.8f*(y*cosRoll  + z*sinRoll);
 	
 
 

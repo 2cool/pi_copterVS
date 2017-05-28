@@ -15,7 +15,14 @@
 #include "MPU6050.h"
 
 #include "RC_Filter.h"
+#include "helper_3dmath.h"
+//#include "MotionSensor.h"
+#include "inv_mpu.h"
+#include "inv_mpu_dmp_motion_driver.h"
+
+
 #include "define.h"
+
 //===================================================
 
 //#define SESOR_UPSIDE_DOWN
@@ -23,6 +30,29 @@ class MpuClass
 {
 	friend class HmcClass;
  protected:
+	 float add_2_yaw;
+	 int ms_open();
+	 // MPU control/status vars
+	 uint8_t devStatus;      // return status after each device operation
+							 //(0 = success, !0 = error)
+	 uint8_t fifoCount;     // count of all bytes currently in FIFO
+	 uint8_t fifoBuffer[64]; // FIFO storage buffer
+
+	 int16_t a[3];              // [x, y, z]            accel vector
+	 int16_t g[3];              // [x, y, z]            gyro vector
+	 int32_t _q[4];
+	 int32_t t;
+	 int16_t c[3];
+
+	 VectorFloat gravity;    // [x, y, z]            gravity vector
+
+	 int r;
+	 int initialized = 0;
+	 int dmpReady = 0;
+	 float lastval[3];
+	 int16_t sensors;
+	 Quaternion q;
+	 uint8_t rate;
 
 	 //calibration offsets for MPU6050
 	 ///////////////////////////////////   CONFIGURATION   /////////////////////////////
@@ -73,7 +103,7 @@ class MpuClass
 
 	 float temp_deb;
 	 float faccX,faccY,faccZ;
-	 void initYaw(const float angle){ yaw = angle; }
+	 void initYaw(const float angle);
 	 void new_calibration_(int16_t ar[]);
 	 void new_calibration(const bool onlyGyro);
 	 void re_calibration_();
