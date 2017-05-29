@@ -43,7 +43,7 @@
 #define BEEPS_ON 0
 
 
-#define LOWEST_HEIGHT_ 1.6f
+f
 
 
 #define ULTRASOUND_MAX_DETECT_HEIGHT 4

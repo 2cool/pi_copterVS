@@ -126,7 +126,7 @@ int MpuClass::ms_open() {
 void MpuClass::init()
 {
 
-	rate = 100;// Debug.n_p1;
+	rate = 100;
 	yaw = add_2_yaw = 0;
 	//f/speed^2/0.5=cS;
 	//speed^2*0.5*cS=f

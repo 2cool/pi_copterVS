@@ -259,25 +259,13 @@ void BalanceClass::setMaxAngle(const float ang){
 #define MAX_YAW_SPEED 20
 //#define MAX_POWER_K_IF_MAX_ANGLE_30 1.12
 
-
-int devices_cnt = 0;
 void BalanceClass::loop()
 {
 	 Mpu.loop();
+	 MS5611.loop();
+	 Hmc.loop();
+	 GPS.loop();
 
-	if ((devices_cnt & 3) == 0)
-		 MS5611.loop();
-	if ((devices_cnt & 3) == 1)
-		Hmc.loop();
-	else
-		usleep(1500);
-	if ((devices_cnt & 3) == 3)
-		GPS.loop();
-	else
-		usleep(100);
-
-
-	devices_cnt++;
 
 		// Do the magic
 	if (Autopilot.motors_is_on()){  // Throttle raised, turn on stablisation.

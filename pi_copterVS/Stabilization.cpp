@@ -105,10 +105,10 @@ void StabilizationClass::XY(float &pitch, float&roll){
 	const float ay = (-Mpu.cosYaw*Mpu.accY - Mpu.sinYaw*Mpu.accX);
 //#endif
 	//--------------------------------------------------------prediction
-	sX = sX + speedX*Mpu.dt + ax*Mpu.dt*Mpu.dt*0.5f;
-	speedX = speedX + ax*Mpu.dt;
-	sY = sY + speedY*Mpu.dt + ay*Mpu.dt*Mpu.dt*0.5f;
-	speedY = speedY + ay*Mpu.dt;
+	sX += Mpu.dt*(speedX + ax*Mpu.dt*0.5f);
+	speedX += (ax*Mpu.dt);
+	sY += Mpu.dt*(speedY + ay*Mpu.dt*0.5f);
+	speedY += (ay*Mpu.dt);
 	// -------------------------------------------------------corection
 
 
@@ -194,7 +194,7 @@ int tttcnt = 0;
 float StabilizationClass::Z(){/////////////////////////////////////////////////////////////
 
 
-	sZ += speedZ*Mpu.dt + Mpu.accZ*Mpu.dt*Mpu.dt*0.5f;
+	sZ += Mpu.dt*(speedZ + Mpu.accZ*Mpu.dt*0.5f);
 	sZ += (Autopilot.corectedAltitude() - sZ)*Z_CF_DIST;
 
 	speedZ += Mpu.accZ*Mpu.dt;

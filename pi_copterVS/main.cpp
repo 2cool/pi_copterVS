@@ -266,13 +266,13 @@ void handler(int sig) { // can be called asynchronously
 
 int printHelp() {
 	printf("<-help> for this help\n");
-	printf(" <setup_time=1600> <debug delay=20>\n");
+	printf(" <fly at start at hight> <debug delay=20>\n");
 	return -1;
 }
-
+const uint32_t LOOP_TIME = 9500;
 int main(int argc, char *argv[]) {
-	Debug.n_p1 = 1600;
-	Debug.n_p2 = 100;
+	Debug.n_p1 = 3;
+	Debug.n_p2 = 1.6;
 	Debug.n_debug = 0;
 	if (argc >= 2) {
 		int tt = string(argv[1]).compare("-help");
@@ -282,9 +282,13 @@ int main(int argc, char *argv[]) {
 			return printHelp();
 
 		}
-		Debug.n_p1 = atoi(argv[1]);
+		int t= atoi(argv[1]);
+		if (t>=1 && t<=5)
+		Debug.n_p1 = t;
 		if (argc >= 3) {
-			Debug.n_p2 = atoi(argv[2]);
+			t=atoi(argv[2]);
+			if (t >= 0.5 && t <= 1.6)
+				Debug.n_p2 = t;
 		}
 		
 	}
@@ -307,7 +311,11 @@ int main(int argc, char *argv[]) {
 	//	dfr += ((1000000 / (ttt - old_time4loop)) - dfr)*0.01;
 	//	Debug.load(0, dfr, 0);
 	//	old_time4loop = ttt;
-		usleep(4500);
+		uint64_t t = micros();
+		uint32_t time_past = (uint32_t)(t - old_time4loop);
+		old_time4loop = t;
+		if (time_past < LOOP_TIME);
+			usleep(LOOP_TIME -time_past);
 		//Debug.dump();
 	}
 	printf("\n Signal caught! and exit\n");

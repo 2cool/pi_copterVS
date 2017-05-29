@@ -45,7 +45,7 @@ THG out of Perimetr high
 
 
 void AutopilotClass::init(){/////////////////////////////////////////////////////////////////////////////////////////////////
-	lowest_height = LOWEST_HEIGHT_;
+	lowest_height = Debug.n_p2;
 	last_time_data_recived = 0;
 	gimBalPitch = 0;
 	Balance.init();
@@ -498,7 +498,7 @@ bool AutopilotClass::motors_do_on(const bool start, const string msg){//////////
 			tflyAtAltitude = flyAtAltitude = corectedAltitude();
 			
 			Mpu.max_g_cnt = 0;
-			holdAltitude(3);
+			holdAltitude(Debug.n_p1);
 			holdLocation(GPS.loc.lat_, GPS.loc.lon_);
 			aYaw_ = Mpu.yaw;
 
