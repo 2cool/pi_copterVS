@@ -420,7 +420,7 @@ void BalanceClass::loop()
 	//	Pwm.throttle(0, 0, 0, 0);
 		//throttle = 0;
 
-		if (Debug.n_p1 > 0)
+		if (false)
 			escCalibration();
 		
 	}

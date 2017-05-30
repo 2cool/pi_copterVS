@@ -61,7 +61,7 @@ using namespace std;
 #define Serial1 Serial
 
 uint32_t millis(void);
-uint64_t micros(void);
+int64_t micros(void);
 void delay(unsigned long);
 
 

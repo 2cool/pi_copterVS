@@ -21,13 +21,13 @@ uint32_t millis(){
 
 
 
-uint64_t micros(void){
+int64_t micros(void){
 	timespec t;
 	clock_gettime(CLOCK_REALTIME,&t);
-	uint64_t ret;
+	int64_t ret;
 	if (start_seconds == 0)
 		start_seconds = t.tv_sec;
-	ret=((uint64_t)(t.tv_sec-start_seconds)*1000000)+(t.tv_nsec/1000);
+	ret=((int64_t)(t.tv_sec-start_seconds)*1000000)+(t.tv_nsec/1000);
 	return ret;
 }
 

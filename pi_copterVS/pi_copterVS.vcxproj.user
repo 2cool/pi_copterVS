@@ -7,6 +7,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <RemoteDebuggingMode>gdbserver</RemoteDebuggingMode>
     <DebuggerFlavor>LinuxDebugger</DebuggerFlavor>
-    <RemoteDebuggerCommandArguments>0 100</RemoteDebuggerCommandArguments>
+    <RemoteDebuggerCommandArguments>150 100</RemoteDebuggerCommandArguments>
   </PropertyGroup>
 </Project>

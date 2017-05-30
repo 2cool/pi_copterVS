@@ -82,7 +82,7 @@ void buzz_until_not_finded() {
 	//long time_ms = micros();
 	//int sb = 0;
 #ifdef MOTORS_OFF
-	Pwm.on(PWM_COUNTER, pwm_OFF_THROTTLE);
+	Pwm.on(0, pwm_OFF_THROTTLE);
 	
 #else	
 
@@ -151,8 +151,6 @@ int setup() {////--------------------------------------------- SETUP -----------
 	EEPROM.read_set();
 	LED.init();
 	printf("___setup___\n");
-
-	delay(100);
 	printf("gps init...\n");
 	GPS.init();
 
@@ -266,13 +264,13 @@ void handler(int sig) { // can be called asynchronously
 
 int printHelp() {
 	printf("<-help> for this help\n");
-	printf(" <fly at start at hight> <debug delay=20>\n");
+	printf(" <fly at start at hight in sm> <lower hight in sm>\n");
 	return -1;
 }
-const uint32_t LOOP_TIME = 9500;
+
 int main(int argc, char *argv[]) {
 	Debug.n_p1 = 3;
-	Debug.n_p2 = 1.6;
+	Debug.n_p2 = 1.6f;
 	Debug.n_debug = 0;
 	if (argc >= 2) {
 		int tt = string(argv[1]).compare("-help");
@@ -283,12 +281,12 @@ int main(int argc, char *argv[]) {
 
 		}
 		int t= atoi(argv[1]);
-		if (t>=1 && t<=5)
-		Debug.n_p1 = t;
+		if (t>=100 && t<=500)
+		Debug.n_p1 = 0.01f*(float)t;
 		if (argc >= 3) {
 			t=atoi(argv[2]);
-			if (t >= 0.5 && t <= 1.6)
-				Debug.n_p2 = t;
+			if (t >= 50 && t <= 160)
+				Debug.n_p2 = 0.01f*(float)t;
 		}
 		
 	}
@@ -311,12 +309,11 @@ int main(int argc, char *argv[]) {
 	//	dfr += ((1000000 / (ttt - old_time4loop)) - dfr)*0.01;
 	//	Debug.load(0, dfr, 0);
 	//	old_time4loop = ttt;
-		uint64_t t = micros();
-		uint32_t time_past = (uint32_t)(t - old_time4loop);
+		int64_t t = micros();
+		int32_t time_past = (int32_t)(t - old_time4loop);
 		old_time4loop = t;
-		if (time_past < LOOP_TIME);
-			usleep(LOOP_TIME -time_past);
-		//Debug.dump();
+		usleep(5400);
+
 	}
 	printf("\n Signal caught! and exit\n");
 	EEPROM.write_set();

@@ -176,7 +176,7 @@ void HmcClass::loop(){
 
 
 		//(-Autopilot.get_Yaw() - Mpu.yaw)
-		headingGrad = -f;
+		heading = -f*GRAD2RAD;
 	}
 //	headingGrad = 0;
 

@@ -447,7 +447,7 @@ float ttPitch = 0;
 float ttRoll = 0;
 
 float ttt_yaw = 0;
-bool dkdkdkd = false;
+
 void MpuClass::loop(){//-------------------------------------------------L O O P-------------------------------------------------------------
 
 	uint32_t mputime = micros();

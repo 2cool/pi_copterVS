@@ -39,6 +39,9 @@ THG out of Perimetr high
 #include "debug.h"
 #include "Prog.h"
 #include "Wi_Fi.h"
+#include "Pwm.h"
+
+
 //каждий новий режим работі добовляется в месадж
 
 #define MIDDLE_POSITION 0.5f
@@ -456,6 +459,8 @@ bool AutopilotClass::holdLocationStartStop(){///////////////////////////////////
 	return false;
 }
 
+
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 bool AutopilotClass::motors_do_on(const bool start, const string msg){////////////////////////  M O T O R S  D O  ON  /////////////////////////////////////////////////////////////////////////
 	printf("%s - ",msg.c_str());
 	

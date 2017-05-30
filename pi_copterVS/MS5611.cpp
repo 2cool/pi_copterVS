@@ -120,9 +120,9 @@ int cntssdde = 0;
 #endif
 float fspeed = 0;
 void MS5611Class::copterStarted(){
-	if (altitude_error == 0 || presure_altitude_at_start == 0){
+	//if (altitude_error == 0 || presure_altitude_at_start == 0){
 		altitude_error = presure_altitude_at_start = altitude_;
-	}
+	//}
 }
 
 
