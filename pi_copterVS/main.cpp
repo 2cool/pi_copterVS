@@ -305,6 +305,7 @@ int main(int argc, char *argv[]) {
 	while (flag == 0) {
 
 		loop();
+		//usleep(5400);
 	//	int ttt = micros();
 	//	dfr += ((1000000 / (ttt - old_time4loop)) - dfr)*0.01;
 	//	Debug.load(0, dfr, 0);
@@ -312,7 +313,9 @@ int main(int argc, char *argv[]) {
 		int64_t t = micros();
 		int32_t time_past = (int32_t)(t - old_time4loop);
 		old_time4loop = t;
-		usleep(5400);
+
+		//Debug.load(0, time_past, 0);
+		//Debug.dump();
 
 	}
 	printf("\n Signal caught! and exit\n");

@@ -438,6 +438,8 @@ void BalanceClass::loop()
 #else
 
 	Pwm.throttle(f_[0], f_[1], f_[2], f_[3]);  //670 micros
+//	Debug.load(0, f_[0], f_[3]);
+//	Debug.dump();
 
 	//Pwm.throttle(throttle, throttle, throttle, throttle);  //400 micros
 
