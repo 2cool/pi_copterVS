@@ -43,7 +43,7 @@ private:
 	void  resset_z();
 public:
 
-
+	float getAltitude() { return sZ; }
 	float getSpeed_Z(float dist){
 		return dist*accZ_stabKP;
 	}

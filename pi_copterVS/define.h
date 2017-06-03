@@ -33,7 +33,7 @@
 
 // millis take less time then micros
 //#define OFF_MOTOR_IF_LOST_CONNECTION  
-
+#define _cos(_sin_) (sqrt(1 - min(1, _sin_*_sin_)))
 
 //#define PLUS_CAMERA
 #define WORK_WITH_WIFI
@@ -56,7 +56,7 @@
 #define FALSE_GPS
 #define FASLE_GPS_STILL
 //#define MOTORS_OFF
-//#define NO_BATTERY
+#define NO_BATTERY
 
 #ifdef FALSE_WIRE
 #define FALSE_GPS
@@ -91,9 +91,9 @@
 
 #define NO_CONNECTION_DELAY_TO_RESET_IF_MOTORS_OFF 60000
 #define NO_GPS_TIME_TO_FALL 5000
-#define MIN_ACUR_HOR_POS_TO_FLY 5
-#define MIN_ACUR_HOR_POS_2_START 3
-#define MIN_ACUR_VER_POS_2_START 5
+#define MIN_ACUR_HOR_POS_TO_FLY 99
+#define MIN_ACUR_HOR_POS_2_START 99
+
 
 #define PRESSURE_AT_0 101325
 

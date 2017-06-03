@@ -15,7 +15,12 @@
 #define delay_ms(a)    usleep(a*1000)
 
 
-
+inline void sin_cos(const float a, float &s, float &c) {
+	s = (float)sin(a);
+	const float ss = s*s;
+	c = (float)sqrt(1 - min(1.0f, ss));
+	c = c;
+}
 
 
 
@@ -125,7 +130,7 @@ int MpuClass::ms_open() {
 }
 void MpuClass::init()
 {
-
+	acc_callibr_time = 0;
 	rate = 100;
 	yaw = add_2_yaw = 0;
 	//f/speed^2/0.5=cS;
@@ -147,11 +152,6 @@ void MpuClass::init()
 	sinPitch = sinRoll = 0;
 	tiltPower = cosPitch = cosRoll = 1;
 	//COMP_FILTR = 0;// 0.003;
-	addStep = 0.001f;
-
-
-
-
 
 	printf("Initializing MPU6050\n");
 
@@ -436,21 +436,72 @@ uint8_t GetGravity(VectorFloat *v, Quaternion *q) {
 
 
 
+float c_cosPitch = 1, c_sinPitch = 0, c_cosRoll = 1, c_sinRoll = 0, c_tiltPower=0, c_pitch=0, c_roll=0;
+void MpuClass::acceleration_angle_correction(float cx,float cy) {
+	if (Autopilot.motors_is_on()) {
+		//спедд икс и игрик они же недолжны вращатся вместе с const float _ax = cosYaw*GPS.loc.aX + sinYaw*GPS.loc.aY;
+#ifndef MOTORS_OFF
+		float rspeedX = cosYaw*speedX - sinYaw*speedY;
+		float rspeedY = cosYaw*speedY + sinYaw*speedX;
+
+
+		float break_fx = 0.5f*abs(rspeedX)*rspeedX*(cS + cS*abs(c_sinPitch));
+		float total_ax = c_sinPitch / c_cosPitch - break_fx;
+		rspeedX = 9.8f*total_ax*dt;
+		total_ax *= c_cosPitch;
+
+
+		float break_fy = 0.5f*abs(rspeedY)*rspeedY*(cS + cS*abs(c_sinRoll));
+		float total_ay = c_sinRoll / c_cosRoll - break_fy;
+		rspeedY = 9.8f*total_ay*dt;
+		total_ay *= c_cosRoll;
+
+
+		speedX += (cosYaw*rspeedX + sinYaw*rspeedY);
+		speedY += (cosYaw*rspeedY - sinYaw*rspeedX);
+
+
+		cx += total_ax;
+		cy -= total_ay;
+
+#define CF 0.007f
+		const float aRoll = atan2(cy, c_tiltPower) * RAD2GRAD;
+		const float aPitch = atan(cx / sqrt(cy * cy + c_tiltPower * c_tiltPower)) * RAD2GRAD;
+		c_roll += gyroRoll*dt;
+		c_pitch += gyroPitch*dt;
+		c_roll -= (aRoll + c_roll)*CF;//podobrat experimentalno
+		c_pitch += (aPitch - c_pitch)*CF;
+
+		//c_cosPitch = cos(c_pitch*GRAD2RAD);
+		//c_sinPitch = sin(c_pitch*GRAD2RAD);
+		sin_cos(c_pitch*GRAD2RAD, c_sinPitch, c_cosPitch);
+
+		//c_cosRoll = cos(c_roll*GRAD2RAD);
+		//c_sinRoll = sin(c_roll*GRAD2RAD);
+		sin_cos(c_roll*GRAD2RAD, c_sinRoll, c_cosRoll);
+
+		c_tiltPower = c_cosPitch*c_cosRoll;
+		c_tiltPower = constrain(c_tiltPower, 0.5, 1);
+
+
+#endif
+
+	}
+	else {
+		speedY = speedX = 0;
+		c_cosPitch = c_cosRoll =1; c_sinPitch = c_sinRoll = c_tiltPower = c_pitch = c_roll = 0;
+	}
+
+}
+
 
 #define ROLL_COMPENSATION_IN_YAW_ROTTATION 0.02
 #define PITCH_COMPENSATION_IN_YAW_ROTTATION 0.025
 
-
-
-float ttYaw = 0;
-float ttPitch = 0;
-float ttRoll = 0;
-
-float ttt_yaw = 0;
-
+float ac_accX = 0, ac_accY = 0, ac_accZ = -0.3664f;
 void MpuClass::loop(){//-------------------------------------------------L O O P-------------------------------------------------------------
 
-	uint32_t mputime = micros();
+	uint64_t mputime = micros();
 	dt = (float)(mputime - oldmpuTime)*0.000001f;// *div;
 	rdt = 1.0f / dt;
 	oldmpuTime = mputime;
@@ -487,25 +538,17 @@ void MpuClass::loop(){//-------------------------------------------------L O O P
 	pitch = atan(gravity.x / sqrt(gravity.y*gravity.y + gravity.z*gravity.z));
 	roll = atan(gravity.y / sqrt(gravity.x*gravity.x + gravity.z*gravity.z));
 
-
-
-
-	ttYaw += gyroYaw*dt;
-	ttPitch += gyroPitch*dt;
-	ttRoll += gyroRoll*dt;
-
-
-
-
 	float x = n604*(float)a[0];
 	float y = -n604*(float)a[1];  //
 	float z = n604*(float)a[2];
 	
 
-	cosPitch = (float)cos(pitch);
-	sinPitch = (float)sin(pitch);
-	cosRoll = (float)cos(roll);
-	sinRoll = (float)sin(roll);
+	//cosPitch = (float)cos(pitch);
+	//sinPitch = (float)sin(pitch);
+	sin_cos(pitch, sinPitch, cosPitch);
+	//cosRoll = (float)cos(roll);
+	//sinRoll = (float)sin(roll);
+	sin_cos(roll, sinRoll, cosRoll);
 
 	tiltPower = cosPitch*cosRoll;
 	tiltPower = constrain(tiltPower, 0.5f, 1);
@@ -514,22 +557,53 @@ void MpuClass::loop(){//-------------------------------------------------L O O P
 
 
 	accZ = z*cosPitch + sinPitch*x;
-	accZ = 9.8f*(accZ*cosRoll - sinRoll*y - 1);
-
-	accX = 9.8f*(x*cosPitch - z*sinPitch);
-	accY = 9.8f*(y*cosRoll + z*sinRoll);
-
-
+	accZ = 9.8f*(accZ*cosRoll - sinRoll*y - 1)-ac_accZ;
 	
 
-	cosYaw = (float)cos(yaw*GRAD2RAD);
-	sinYaw = (float)sin(yaw*GRAD2RAD);
+	accX = 9.8f*(x*cosPitch - z*sinPitch)-ac_accX;
+	accY = 9.8f*(y*cosRoll + z*sinRoll)-ac_accY;
+
+	if (acc_callibr_time > mputime) {
+		ac_accZ += accZ*0.01;
+		ac_accY += accY*0.01;
+		ac_accX += accX*0.01;
+	}
+	
+
+	//cosYaw = (float)cos(yaw*GRAD2RAD);
+	//sinYaw = (float)sin(yaw*GRAD2RAD);
+	sin_cos(yaw*GRAD2RAD, sinYaw, cosYaw);
 
 	//yaw *= RAD2GRAD;
 	pitch *= RAD2GRAD;
 	roll *= RAD2GRAD;
 
-//	Debug.load(0, cnt, 0);
+	acceleration_angle_correction(x, y);
+	//float pk = pitch / c_pitch;
+	//float rk = roll / c_roll;
+
+	float r_max_angle = 20, p_max_angle = 20;
+	if (abs(c_pitch) > 20 || abs(pitch) > 20) {//potom ispravit na summu uglov
+		float pk = abs(c_pitch / pitch);
+		if (pk < 1)
+			pk = 1;
+		else if (pk > 2)
+			pk = 2;
+		p_max_angle = 20 / pk;
+	}
+	if (abs(c_roll) > 20 || abs(roll) > 20) {
+		float rk = abs(c_roll / roll);
+		if (rk < 1)
+			rk = 1;
+		else if (rk > 2)
+			rk = 2;
+		r_max_angle = 20 / rk;
+	}
+
+
+
+	Debug.load(0, r_max_angle /20, p_max_angle /20);
+	//Debug.load(1, roll / 40, c_roll / 30);
 //	Debug.load(1, gyro_yaw / 180, add_2_yaw / 180);
 //	Debug.load(2, gyro_yaw / 180, head / 180);
 /*	Debug.load(1, pitch / 40, ttPitch / 40);
@@ -542,7 +616,7 @@ void MpuClass::loop(){//-------------------------------------------------L O O P
 	//Debug.load(6, pitch / 90, accX/M_PI_2);
 	//Debug.load(7, roll / 90, -accY / M_PI_2);
 */	//Debug.load(6, roll / 90, -accY / M_PI_2);
-	//Debug.dump();
+	Debug.dump();
 	
 
 
@@ -791,6 +865,11 @@ void MpuClass::re_calibration_(){
 
 void MpuClass::new_calibration(const bool onlyGyro){
 	LED.off();
+	acc_callibr_time = micros()+(uint64_t)10000000;
+	
+
+
+	/*
 	//wdt_disable();
 	printf("on begin\n");
 	int16_t offset_[6];
@@ -840,6 +919,8 @@ void MpuClass::new_calibration(const bool onlyGyro){
 	//Out.println("reseting");
 	//delay(10000);
 	//calibrated = Settings.readMpuSettings(offset_);
+
+	*/
 }
 void MpuClass::new_calibration_(int16_t ar[]){
 	//Pwm.Buzzer(false);

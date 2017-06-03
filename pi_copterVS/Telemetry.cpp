@@ -141,7 +141,7 @@ int16_t TelemetryClass::check_time_left_if_go_to_home(){
 		}
 		const float dist2home = (float)sqrt(GPS.loc.dist2home_2);
 		const float time2home = dist2home *(1.0f / MAX_HOR_SPEED);
-		const float time2down = abs((Autopilot.corectedAltitude())*(1.0f / MAX_VER_SPEED_MINUS));
+		const float time2down = abs((MS5611.altitude())*(1.0f / MAX_VER_SPEED_MINUS));
 	//	Debug.dump(max_fly_time, time2home + time2down, voltage, 0);
 		return (int16_t)(max_fly_time - time2home - time2down);
 	}
@@ -345,7 +345,7 @@ void TelemetryClass::update_buf() {
 	buf[i++] = (byte)(err)?99: GPS.loc.accuracy_hor_pos;
 	buf[i++] = (byte)(err)?99: GPS.loc.accuracy_ver_pos;
 
-	loadBUF(i, 10.0f*Autopilot.corectedAltitude());// -Autopilot.startAltitude));
+	loadBUF(i, 10.0f*Autopilot.corectedAltitude4tel());// -Autopilot.startAltitude));
 	//Out.print(t_old_alt); Out.print(" "); Out.println(MS5611.altitude);// -Autopilot.startAltitude);
 	loadBUF8(i, -Mpu.get_pitch());
 	loadBUF8(i, Mpu.get_roll());

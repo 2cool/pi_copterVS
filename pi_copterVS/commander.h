@@ -24,7 +24,7 @@ class CommanderClass
 
 	 bool ButtonMessage(string);
 
-	 float out_yaw;
+	 
 	 float throttle, yaw, yaw_offset, pitch, roll;
 	 bool Settings(string msg);//settings
 
@@ -33,12 +33,12 @@ class CommanderClass
 	 void setThrottle(const float t){ throttle = t; }
 	 void setPitch(const float p){ pitch = p; }
 	 void setRoll(const float r){ roll = r; }
-	 float getYaw(){ return out_yaw; }
+	 float getYaw();
 	 float getThrottle(){ return throttle; }
 	 float getPitch();
 	 float getRoll();
 	// float getYaw_offset(){ return yaw_offset; }
-	 float get_contr_yaw(){ return yaw; }
+	
 	 bool ret;
 	//short recived_counter;
 	

@@ -171,7 +171,7 @@ void HmcClass::loop(){
 		return;
 	comTime = millis();
 	float dt = 0.05;
-	if (Autopilot.corectedAltitude()>0){
+	if (MS5611.altitude()>0){
 		float f = Autopilot.get_yaw();
 
 

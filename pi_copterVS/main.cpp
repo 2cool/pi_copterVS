@@ -176,10 +176,10 @@ uint8_t teil = 0, maxTeilN = 3;
 
 
 
-uint32_t tt, maxTT = 0; \
+uint64_t tt, maxTT = 0; \
 void print_time() {
 	\
-		uint32_t d = micros() - tt; \
+		uint64_t d = micros() - tt; \
 		if (d > maxTT) {
 			\
 				maxTT = d; \
@@ -281,11 +281,11 @@ int main(int argc, char *argv[]) {
 
 		}
 		int t= atoi(argv[1]);
-		if (t>=100 && t<=500)
+		//if (t>=100 && t<=500)
 		Debug.n_p1 = 0.01f*(float)t;
 		if (argc >= 3) {
 			t=atoi(argv[2]);
-			if (t >= 50 && t <= 160)
+			//if (t >= 50 && t <= 160)
 				Debug.n_p2 = 0.01f*(float)t;
 		}
 		

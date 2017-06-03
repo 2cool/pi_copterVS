@@ -60,7 +60,7 @@ int MS5611Class::init(){
 	bar_zero = 0x0;
 	ct=10;
 	
-	altitude_error = presure_altitude_at_start=0;
+	speed=altitude_=alt=altitude_error = presure_altitude_at_start=0;
 
 	powerK = 1;
 
@@ -71,7 +71,6 @@ int MS5611Class::init(){
 
 #endif
 	pressure = PRESSURE_AT_0;
-	altitude_ = speed = 0;
 	ms5611_count = 0;
 	lastTime = millis();
 	
@@ -114,7 +113,9 @@ int MS5611Class::init(){
 	
 	
 }
-float MS5611Class::altitude() { return altitude_ - altitude_error; }
+float MS5611Class::altitude() {
+	return alt;// altitude_ - altitude_error;
+}
 #ifndef WORK_WITH_WIFI
 int cntssdde = 0;
 #endif
@@ -353,6 +354,7 @@ void MS5611Class::phase4() {
 
 	speed = (new_altitude - altitude_ - altitude_error) / dt;
 	altitude_ = new_altitude;
+	alt = altitude_ - altitude_error;
 //	if (tttalt == 0)
 	//	tttalt = new_altitude;
 	//tttalt += (new_altitude - tttalt)*0.01;

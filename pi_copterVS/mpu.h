@@ -30,6 +30,7 @@ class MpuClass
 {
 	friend class HmcClass;
  protected:
+	 
 	 float add_2_yaw;
 	 int ms_open();
 	 // MPU control/status vars
@@ -68,14 +69,14 @@ class MpuClass
 	 float fx, fy, fz;
 	// float const_gyroRoll0, const_gyroPitch0, const_gyroYaw0;
 	 uint32_t gyroTime;
-	 float addStep;
+	 
 	 
 	MPU6050 accelgyro;
 	 float h_yaw;
 	uint8_t gLPF;
 
 
-	  uint32_t oldmpuTime;
+	  uint64_t oldmpuTime;
 	  float pitch, roll;
 	  void meansensors();
 	  void calibrationF(int16_t ar[]);
@@ -83,7 +84,10 @@ class MpuClass
 	  void calibrationPrint(int16_t ar[],const bool onlyGyro);
 	  float cS;
 	  float speedX, speedY;
+	  void acceleration_angle_correction(float cx, float cy);
+	  uint64_t acc_callibr_time;
  public:
+	 
 	 void set_cS(const float v){ cS = v; }
 	 float cosYaw,sinYaw;
 	 int8_t max_g_cnt;

@@ -78,6 +78,10 @@ void AutopilotClass::init(){////////////////////////////////////////////////////
 
 }
 
+float AutopilotClass::corectedAltitude4tel() {
+	return ((control_bits & Z_STAB) == 0) ? MS5611.altitude() : Stabilization.getAltitude();
+}
+
 
 void AutopilotClass::add_2_need_yaw(float speed, const float dt){ 
 	aYaw_ += speed*dt;
@@ -88,29 +92,32 @@ void AutopilotClass::add_2_need_yaw(float speed, const float dt){
 
 void AutopilotClass::add_2_need_altitude(float speed, const float dt){
 
+	if (speed != 0) {
+		if (speed > 0) {
+			if (speed > MAX_VER_SPEED_PLUS)
+				speed = MAX_VER_SPEED_PLUS;
+		}
+		else
+			if (speed < MAX_VER_SPEED_MINUS)
+				speed = MAX_VER_SPEED_MINUS;
 
-	if (speed > 0){
-		if (speed > MAX_VER_SPEED_PLUS)
-			speed = MAX_VER_SPEED_PLUS;
-	}else
-		if (speed < MAX_VER_SPEED_MINUS)
-			speed = MAX_VER_SPEED_MINUS;
+		tflyAtAltitude += speed * dt;
+		if (tflyAtAltitude < lowest_height)
+			tflyAtAltitude = lowest_height;
 
-	tflyAtAltitude += speed * dt;
-	if (tflyAtAltitude < lowest_height)
-		tflyAtAltitude = lowest_height;
+		flyAtAltitude = tflyAtAltitude + Stabilization.getDist_Z(speed);
+		if (flyAtAltitude < lowest_height)
+			flyAtAltitude = lowest_height;
 
-	flyAtAltitude = tflyAtAltitude + Stabilization.getDist_Z(speed);
-	if (flyAtAltitude < lowest_height)
-		flyAtAltitude = lowest_height;
-
+		printf("f@alt %f\n", flyAtAltitude);
+	}
 }
 //-------------------------------------------------------------------------
 void AutopilotClass::smart_commander(const float dt){
 	if (Commander.getPitch() != 0 || Commander.getRoll() != 0){
 		const float addX = sens_xy*(Commander.getPitch());
 		const float addY = -sens_xy*(Commander.getRoll());
-		const float yaw = Commander.get_contr_yaw()*GRAD2RAD;
+		const float yaw = Commander.getYaw()*GRAD2RAD;
 		const float cosL = (float)cos(yaw);
 		const float sinL = (float)sin(yaw);
 		float speedX = addX * cosL + addY *sinL;
@@ -260,7 +267,8 @@ bool AutopilotClass::holdAltitude(float alt){
 		control_bits |= Z_STAB;
 		Stabilization.init_Z();
 	}
-	printf("FlyAt:%f ",flyAtAltitude);
+	//setbuf(stdout, NULL);
+	printf("FlyAt: %f \n",flyAtAltitude);
 
 	return true;
 }
@@ -271,7 +279,7 @@ bool AutopilotClass::holdAltitudeStartStop(){
 		return false;
 	bool h = (control_bits & Z_STAB)==0;
 	if (h){
-		return holdAltitude(corectedAltitude());
+		return holdAltitude(MS5611.altitude());
 	}
 	else{
 		control_bits ^= Z_STAB;
@@ -294,7 +302,7 @@ bool AutopilotClass::go2HomeProc(const float dt){
 #ifdef FALL_IF_STRONG_WIND
 				  dist2home_at_begin2 = GPS.loc.dist2home_2;
 #endif
-				  if (corectedAltitude() < 3)
+				  if (MS5611.altitude() < 3)
 					  holdAltitude(3);
 				  go2homeIndex=HOWER;
 				  break;
@@ -312,7 +320,7 @@ bool AutopilotClass::go2HomeProc(const float dt){
 			   const float accuracy = ACCURACY_XY + GPS.loc.accuracy_hor_pos;
 			   if (fabs(GPS.loc.x2home) <= accuracy && fabs(GPS.loc.y2home) <= accuracy){
 				   f_go2homeTimer = 6; //min time for stab
-				   go2homeIndex = (corectedAltitude() <= (FAST_DESENDING_TO_HIGH)) ? SLOW_DESENDING : START_FAST_DESENDING;
+				   go2homeIndex = (MS5611.altitude() <= (FAST_DESENDING_TO_HIGH)) ? SLOW_DESENDING : START_FAST_DESENDING;
 				   GPS.loc.setNeedLoc2HomeLoc();
 				   break;
 			   }	
@@ -322,7 +330,7 @@ bool AutopilotClass::go2HomeProc(const float dt){
 			   break;
 	}
 	case TEST_ALT1:{
-			   if (fabs(corectedAltitude() - flyAtAltitude) <= (ACCURACY_Z)){
+			   if (fabs(MS5611.altitude() - flyAtAltitude) <= (ACCURACY_Z)){
 				   go2homeIndex = GO2HOME_LOC;
 			   }
 			   break;
@@ -351,7 +359,7 @@ bool AutopilotClass::go2HomeProc(const float dt){
 
 
 	case TEST_ALT2:{//спуск до FAST_DESENDING_TO_HIGH метров
-			   if (fabs(corectedAltitude() - flyAtAltitude) < (ACCURACY_Z)){
+			   if (fabs(MS5611.altitude() - flyAtAltitude) < (ACCURACY_Z)){
 				   go2homeIndex = SLOW_DESENDING;
 				}
 			   
@@ -360,8 +368,8 @@ bool AutopilotClass::go2HomeProc(const float dt){
 	case SLOW_DESENDING:
 	{ 
 		//плавній спуск
-				if (corectedAltitude()>lowest_height){
-					float k = corectedAltitude()*0.05f;
+				if (MS5611.altitude()>lowest_height){
+					float k = MS5611.altitude()*0.05f;
 					if (k < 0.1f)
 						k = 0.1f;
 					flyAtAltitude -= (dt*k);
@@ -387,7 +395,7 @@ bool AutopilotClass::going2HomeON(const bool hower){
 
 	howeAt2HOME = hower;//зависнуть на месте или нет
 
-	bool res = holdAltitude(corectedAltitude());
+	bool res = holdAltitude(MS5611.altitude());
 	res &= holdLocation(GPS.loc.lat_, GPS.loc.lon_);
 	if (res){
 		control_bits |= GO2HOME;
@@ -469,7 +477,6 @@ bool AutopilotClass::motors_do_on(const bool start, const string msg){//////////
 		if (Telemetry.power_is_on() == false) {
 			printf("!!! power is off !!!\n");
 			Pwm.beep_code(BEEPS_ON+(1<<1));
-			return false;
 		}
 		LED.error_code = 0;
 		LED.error_code = 255;
@@ -479,7 +486,7 @@ bool AutopilotClass::motors_do_on(const bool start, const string msg){//////////
 				Telemetry.addMessage(e_LOW_VOLTAGE);
 				printf(" LOW VOLTAGE\n");
 				Pwm.beep_code(BEEPS_ON + (2 << 1));
-				return false;
+				//return false;
 			}
 
 			if (GPS.loc.accuracy_hor_pos > MIN_ACUR_HOR_POS_2_START ){
@@ -500,11 +507,11 @@ bool AutopilotClass::motors_do_on(const bool start, const string msg){//////////
 			GPS.loc.setHomeLoc();
 
 			MS5611.copterStarted();
-			tflyAtAltitude = flyAtAltitude = corectedAltitude();
+			tflyAtAltitude = flyAtAltitude = MS5611.altitude();
 			
 			Mpu.max_g_cnt = 0;
-			holdAltitude(Debug.n_p1);
-			holdLocation(GPS.loc.lat_, GPS.loc.lon_);
+			//holdAltitude(Debug.n_p1);
+			//holdLocation(GPS.loc.lat_, GPS.loc.lon_);
 			aYaw_ = Mpu.yaw;
 
 #ifdef DEBUG_MODE
@@ -579,7 +586,7 @@ bool AutopilotClass::off_throttle(const bool force, const string msg){//////////
 	//	if (control_bits_ & (255 ^ (COMPASS_ON | HORIZONT_ON)))
 	//		return true;
 
-		if (corectedAltitude()  < 2){
+		if (MS5611.altitude()  < 2){
 			motors_do_on(false,msg);
 		}
 		else{
@@ -726,7 +733,7 @@ bool AutopilotClass::start_stop_program(const bool stopHere){
 		Prog.clear();
 		Stabilization.setDefaultMaxSpeeds();
 		if (stopHere){
-			float alt = corectedAltitude();
+			float alt = MS5611.altitude();
 			if (alt  < 10)
 				alt = 10;
 			holdAltitude(alt);
@@ -738,7 +745,7 @@ bool AutopilotClass::start_stop_program(const bool stopHere){
 		if (Prog.start()){
 			if (go2homeState())
 				going2HomeStartStop(false);
-			bool res = holdAltitude(corectedAltitude());
+			bool res = holdAltitude(MS5611.altitude());
 			res &= holdLocation(GPS.loc.lat_, GPS.loc.lon_);
 			if (res){
 				control_bits |= PROGRAM;

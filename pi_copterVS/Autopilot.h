@@ -73,7 +73,7 @@ class AutopilotClass
 	 void control_falling(const string msg);
 	 void gimBalPitchADD(const float add);
 
-	float corectedAltitude(){ return MS5611.altitude(); }
+	 float corectedAltitude4tel();
 	
 	
 	void reset_compas_motors_calibr_bit() {control_bits &= (~COMPASS_MOTOR_CALIBR);}

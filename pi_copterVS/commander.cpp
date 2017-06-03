@@ -256,7 +256,10 @@ int get16to8bMask(int v) {
 
 	return mask;
 }
-
+float CommanderClass::getYaw() { 
+	float y = yaw - yaw_offset;
+	return wrap_180(y);
+}
 bool CommanderClass::input(){
 	if (data_size) {
 

@@ -118,7 +118,7 @@ void StabilizationClass::XY(float &pitch, float&roll){
 	//--------------------------------------------------------
 	sY += (GPS.loc.dY - sY)*XY_KF_DIST;
 	speedY += (GPS.loc.speedY - speedY)*XY_KF_SPEED;
-	
+
 
 	float stabX, stabY;
 	if (Autopilot.progState() && Prog.intersactionFlag){
@@ -175,7 +175,7 @@ float old_altitude = 0;
 
 
 void StabilizationClass::init_Z(){
-	sZ = Autopilot.corectedAltitude();
+	sZ = MS5611.altitude();
 	//speedZ = speedz;
 	Stabilization.resset_z();
 
@@ -193,9 +193,9 @@ int tttcnt = 0;
 
 float StabilizationClass::Z(){/////////////////////////////////////////////////////////////
 
-
+	float alt = MS5611.altitude();
 	sZ += Mpu.dt*(speedZ + Mpu.accZ*Mpu.dt*0.5f);
-	sZ += (Autopilot.corectedAltitude() - sZ)*Z_CF_DIST;
+	sZ += (alt - sZ)*Z_CF_DIST;
 
 	speedZ += Mpu.accZ*Mpu.dt;
 	speedZ += (MS5611.speed - speedZ)*Z_CF_SPEED;

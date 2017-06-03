@@ -231,7 +231,9 @@ bool LocationClass::processGPS() {
 
 					
 					accuracy_hor_pos = DELTA_ANGLE_C*(float)posllh.hAcc;
+					if (accuracy_hor_pos > 99)accuracy_hor_pos = 99;
 					accuracy_ver_pos = DELTA_ANGLE_C*(float)posllh.vAcc;
+					if (accuracy_ver_pos > 99)accuracy_ver_pos = 99;
 					mseconds = posllh.iTOW;
 					dt = DELTA_ANGLE_C*(float)(posllh.iTOW - old_iTOW);
 					rdt = 1.0f / dt;

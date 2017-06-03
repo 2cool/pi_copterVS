@@ -145,27 +145,29 @@ void GPSClass::loop(){
 #else
 
 
-
+uint32_t last_gps_time = 0;
 void GPSClass::loop(){
+	uint32_t t = millis();
+	if (t - last_gps_time >= 5) {
+		last_gps_time = t;
+		if (loc.processGPS()) {
+			//printf("pgs %i\n", micros() - ttt);
+			if (loc.accuracy_hor_pos < (MIN_ACUR_HOR_POS_TO_FLY)) {
+				errors = 0;
 
-	//int ttt = micros();
-	if (loc.processGPS()) {
-		//printf("pgs %i\n", micros() - ttt);
-		if (loc.accuracy_hor_pos < (MIN_ACUR_HOR_POS_TO_FLY )){
-			errors = 0;	
-
-			loc.updateXY();
-		}else{
-			errors++;
-			if (errors > 50){
-				Autopilot.control_falling(e_GPS_ERRORS_M_50);
+				loc.updateXY();
+			}
+			else {
+				errors++;
+				if (errors > 50) {
+					Autopilot.control_falling(e_GPS_ERRORS_M_50);
+				}
 			}
 		}
+		if ((last_gps_time - loc.last_gps_data_time) > NO_GPS_TIME_TO_FALL) {
+				Autopilot.control_falling(e_GPS_NO_UPDATE);
+		}
 	}
-	if ((millis() - loc.last_gps_data_time) > (long)NO_GPS_TIME_TO_FALL){
-		Autopilot.control_falling(e_GPS_NO_UPDATE);
-	}
-
 	
 }
 

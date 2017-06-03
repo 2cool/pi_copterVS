@@ -62,7 +62,7 @@ protected:
 	 inline bool phase3();
 	 inline void phase4();
 
-	float altitude_;
+	float altitude_,alt;
 public:
 	float altitude();
 

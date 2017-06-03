@@ -115,11 +115,11 @@ void BalanceClass::init()
 	//pitch_roll_rateIMAX = 0.05;
 	
 
-	pids[PID_PITCH_RATE].kP(0.0017f);
+	pids[PID_PITCH_RATE].kP(0.0014f);
 	pids[PID_PITCH_RATE].kI(0.0001f);
 	pids[PID_PITCH_RATE].imax(MAX_DELTA*0.1f);
 
-	pids[PID_ROLL_RATE].kP(0.0017f);
+	pids[PID_ROLL_RATE].kP(0.0014f);
 	pids[PID_ROLL_RATE].kI(0.0001f);
 	pids[PID_ROLL_RATE].imax(MAX_DELTA*0.1f);
 
@@ -127,7 +127,7 @@ void BalanceClass::init()
 
 	pids[PID_YAW_RATE].kP(0.0017f);
 	pids[PID_YAW_RATE].kI(0.0017f);
-	pids[PID_YAW_RATE].imax(MAX_YAW_DELTA*0.1f);
+	pids[PID_YAW_RATE].imax(MAX_YAW_DELTA);
 	
 
 
@@ -256,7 +256,7 @@ void BalanceClass::setMaxAngle(const float ang){
 }
 
 #define MAX_ANGLE_SPEED 300
-#define MAX_YAW_SPEED 20
+#define MAX_YAW_SPEED 60
 //#define MAX_POWER_K_IF_MAX_ANGLE_30 1.12
 
 void BalanceClass::loop()
@@ -438,6 +438,8 @@ void BalanceClass::loop()
 #else
 
 	Pwm.throttle(f_[0], f_[1], f_[2], f_[3]);  //670 micros
+	//Pwm.throttle(f_[0], 0, 0, f_[3]);  //670 micros
+
 //	Debug.load(0, f_[0], f_[3]);
 //	Debug.dump();
 
