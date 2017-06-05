@@ -333,13 +333,16 @@ void BalanceClass::loop()
 		}
 
 			
-			
-			
-				
+		const float maxPa = Mpu.get_pitch_max_a();
+		c_pitch = constrain(c_pitch, -maxPa, maxPa);
+		const float maxRa = Mpu.get_roll_max_a();
+		c_roll = constrain(c_roll, -maxRa, maxRa);
+
+		
 		const float maxAngle07 = maxAngle*0.7f;
 		if (abs(c_pitch) > maxAngle07 || abs(c_roll) > maxAngle07){
-			c_pitch = constrain(c_pitch, -maxAngle, maxAngle);
-			c_roll = constrain(c_roll, -maxAngle, maxAngle);
+		//	c_pitch = constrain(c_pitch, -maxAngle, maxAngle);
+			//c_roll = constrain(c_roll, -maxAngle, maxAngle);
 			float k = (float)(RAD2GRAD*acos(cos(c_pitch*GRAD2RAD)*cos(c_roll*GRAD2RAD)));
 			if (k == 0)
 				k = maxAngle;
@@ -349,6 +352,7 @@ void BalanceClass::loop()
 				c_roll *= k;
 			}
 		}
+		
 #define BCF 0.1
 
 		float pitch_stab_output = f_constrain(pitch_roll_stabKP*(Mpu.get_pitch() - c_pitch), -MAX_ANGLE_SPEED, MAX_ANGLE_SPEED);

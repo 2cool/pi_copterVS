@@ -151,6 +151,7 @@ void MpuClass::init()
 	yaw = pitch = roll = gyroPitch = gyroRoll = gyroYaw = accX = accY = accZ = 0;
 	sinPitch = sinRoll = 0;
 	tiltPower = cosPitch = cosRoll = 1;
+	roll_max_angle = pitch_max_angle = MAX_ANGLE;
 	//COMP_FILTR = 0;// 0.003;
 
 	printf("Initializing MPU6050\n");
@@ -437,7 +438,8 @@ uint8_t GetGravity(VectorFloat *v, Quaternion *q) {
 
 
 float c_cosPitch = 1, c_sinPitch = 0, c_cosRoll = 1, c_sinRoll = 0, c_tiltPower=0, c_pitch=0, c_roll=0;
-void MpuClass::acceleration_angle_correction(float cx,float cy) {
+void MpuClass::set_max_angle(float cx,float cy) {
+	roll_max_angle = pitch_max_angle = MAX_ANGLE;
 	if (Autopilot.motors_is_on()) {
 		//спедд икс и игрик они же недолжны вращатся вместе с const float _ax = cosYaw*GPS.loc.aX + sinYaw*GPS.loc.aY;
 #ifndef MOTORS_OFF
@@ -469,7 +471,7 @@ void MpuClass::acceleration_angle_correction(float cx,float cy) {
 		const float aPitch = atan(cx / sqrt(cy * cy + c_tiltPower * c_tiltPower)) * RAD2GRAD;
 		c_roll += gyroRoll*dt;
 		c_pitch += gyroPitch*dt;
-		c_roll -= (aRoll + c_roll)*CF;//podobrat experimentalno
+		c_roll -= (aRoll + c_roll)*CF;
 		c_pitch += (aPitch - c_pitch)*CF;
 
 		//c_cosPitch = cos(c_pitch*GRAD2RAD);
@@ -483,7 +485,13 @@ void MpuClass::acceleration_angle_correction(float cx,float cy) {
 		c_tiltPower = c_cosPitch*c_cosRoll;
 		c_tiltPower = constrain(c_tiltPower, 0.5, 1);
 
+		float pk = abs(c_pitch-pitch);
+		pk = constrain(pk, 0, MAX_ANGLE);
+		pitch_max_angle -= pk;
 
+		float rk = abs(c_roll - roll);
+		rk = constrain(rk, 0, MAX_ANGLE);
+		roll_max_angle -= rk;
 #endif
 
 	}
@@ -491,7 +499,7 @@ void MpuClass::acceleration_angle_correction(float cx,float cy) {
 		speedY = speedX = 0;
 		c_cosPitch = c_cosRoll =1; c_sinPitch = c_sinRoll = c_tiltPower = c_pitch = c_roll = 0;
 	}
-
+	Debug.load(0, roll_max_angle / MAX_ANGLE, pitch_max_angle / MAX_ANGLE);
 }
 
 
@@ -578,31 +586,12 @@ void MpuClass::loop(){//-------------------------------------------------L O O P
 	pitch *= RAD2GRAD;
 	roll *= RAD2GRAD;
 
-	acceleration_angle_correction(x, y);
+	set_max_angle(x, y);
 	//float pk = pitch / c_pitch;
 	//float rk = roll / c_roll;
 
-	float r_max_angle = 20, p_max_angle = 20;
-	if (abs(c_pitch) > 20 || abs(pitch) > 20) {//potom ispravit na summu uglov
-		float pk = abs(c_pitch / pitch);
-		if (pk < 1)
-			pk = 1;
-		else if (pk > 2)
-			pk = 2;
-		p_max_angle = 20 / pk;
-	}
-	if (abs(c_roll) > 20 || abs(roll) > 20) {
-		float rk = abs(c_roll / roll);
-		if (rk < 1)
-			rk = 1;
-		else if (rk > 2)
-			rk = 2;
-		r_max_angle = 20 / rk;
-	}
 
-
-
-	Debug.load(0, r_max_angle /20, p_max_angle /20);
+	
 	//Debug.load(1, roll / 40, c_roll / 30);
 //	Debug.load(1, gyro_yaw / 180, add_2_yaw / 180);
 //	Debug.load(2, gyro_yaw / 180, head / 180);

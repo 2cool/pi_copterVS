@@ -30,7 +30,7 @@ class MpuClass
 {
 	friend class HmcClass;
  protected:
-	 
+	 float roll_max_angle, pitch_max_angle;
 	 float add_2_yaw;
 	 int ms_open();
 	 // MPU control/status vars
@@ -84,10 +84,11 @@ class MpuClass
 	  void calibrationPrint(int16_t ar[],const bool onlyGyro);
 	  float cS;
 	  float speedX, speedY;
-	  void acceleration_angle_correction(float cx, float cy);
+	  void set_max_angle(float cx, float cy);
 	  uint64_t acc_callibr_time;
  public:
-	 
+	 float get_roll_max_a() { return roll_max_angle; }
+	 float get_pitch_max_a() { return pitch_max_angle; }
 	 void set_cS(const float v){ cS = v; }
 	 float cosYaw,sinYaw;
 	 int8_t max_g_cnt;
