@@ -23,6 +23,8 @@
 #include "define.h"
 #include "debug.h"
 #include "Stabilization.h"
+#include "Autopilot.h"
+
 #define gps Serial2
 #define DELTA_ANGLE_C 0.001f
 #define DELTA_A_RAD (DELTA_ANGLE_C*GRAD2RAD)
@@ -126,6 +128,12 @@ void LocationClass::xy(){
 	dX = from_lat2X((float)(lat_needV_ - (float)lat_)) + (speedX*0.5f);
 	
 	set_cos_sin_dir();
+
+
+#ifdef XY_SAFE_AREA
+	if (Autopilot.motors_is_on() && sqrt(x2home*x2home+y2home*y2home)>XY_SAFE_AREA)
+		Autopilot.control_falling(i_CONTROL_FALL);
+#endif
 }
 void LocationClass::update(){
 

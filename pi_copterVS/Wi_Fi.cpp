@@ -20,6 +20,10 @@ void error(const char *msg)
     exit(1);
 }
 
+ofstream logfile;
+
+
+
 int wifi_connections=0;
 	int sockfd, newsockfd, portno;
      socklen_t clilen;
@@ -31,6 +35,7 @@ int wifi_connections=0;
      bool run=true;
 
 void mclose(){
+	logfile.close();
     wifi_connections--;
 	close(newsockfd);
     close(sockfd);
@@ -58,7 +63,8 @@ void server(){
 	  while(run){
 		// bzero(buffer,256);
 		 n = read(newsockfd,inbuffer, TELEMETRY_BUF_SIZE);
-
+		// if (Autopilot.motors_is_on())
+			// logfile.write((char*)inbuffer, n);
 		if (n>0){
 			if (connected == 0)
 				printf("connected \n");
@@ -69,6 +75,8 @@ void server(){
 		//	printf("T\n");
 			
 			n = write(newsockfd,outbuffer,buf_len);
+		//	if (Autopilot.motors_is_on())
+			//	logfile.write((char*)outbuffer, buf_len);
 		}else{
 			if (connected) {
 				
@@ -102,6 +110,15 @@ WiFiClass::~WiFiClass(){
 
 int WiFiClass::init()
 {
+
+	logfile.open("/home/igor/log4444.log", fstream::in | fstream::out | fstream::trunc);
+
+
+
+
+
+
+
 #ifdef WORK_WITH_WIFI
 	com=&Commander;
 	tel=&Telemetry;

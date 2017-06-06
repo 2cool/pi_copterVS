@@ -53,7 +53,6 @@ class MS5611Class {
 	
 protected:
 	 int ct;
-	 float presure_altitude_at_start;
 	 float altitude_error;
 
 	 inline void phase0();

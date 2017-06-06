@@ -18,6 +18,10 @@
 //#define GPSPRINT
 //#define MPU_PRINTTIME_CICLE
 
+
+#define XY_SAFE_AREA 200
+#define Z_SAFE_AREA 60
+
 #define RAD2GRAD 57.29578f
 #define GRAD2RAD 0.0174533f
 
@@ -51,12 +55,12 @@
 
 
 
+//#define LOST_BEEP
 
-
-#define FALSE_GPS
-#define FASLE_GPS_STILL
+//#define FALSE_GPS
+//#define FASLE_GPS_STILL
 //#define MOTORS_OFF
-#define NO_BATTERY
+//#define NO_BATTERY
 
 #ifdef FALSE_WIRE
 #define FALSE_GPS
@@ -78,7 +82,7 @@
 
 
 
-#define NEED_ANGLE_4_SPEED_10_MS 10.1f
+#define NEED_ANGLE_4_SPEED_10_MS 15.1f
 
 #define FALL_IF_STRONG_WIND
 
@@ -91,8 +95,8 @@
 
 #define NO_CONNECTION_DELAY_TO_RESET_IF_MOTORS_OFF 60000
 #define NO_GPS_TIME_TO_FALL 5000
-#define MIN_ACUR_HOR_POS_TO_FLY 99
-#define MIN_ACUR_HOR_POS_2_START 99
+#define MIN_ACUR_HOR_POS_TO_FLY 7
+#define MIN_ACUR_HOR_POS_2_START 5
 
 
 #define PRESSURE_AT_0 101325

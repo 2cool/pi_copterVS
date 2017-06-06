@@ -420,7 +420,7 @@ void MpuClass::loop(){
 	getFalse(accX, accY);
 	cosYaw = cos(Mpu.yaw*GRAD2RAD);
 	sinYaw = sin(Mpu.yaw*GRAD2RAD);
-	
+	delay(9);
 }
 
 #else
@@ -499,7 +499,7 @@ void MpuClass::set_max_angle(float cx,float cy) {
 		speedY = speedX = 0;
 		c_cosPitch = c_cosRoll =1; c_sinPitch = c_sinRoll = c_tiltPower = c_pitch = c_roll = 0;
 	}
-	Debug.load(0, roll_max_angle / MAX_ANGLE, pitch_max_angle / MAX_ANGLE);
+	//Debug.load(0, roll_max_angle / MAX_ANGLE, pitch_max_angle / MAX_ANGLE);
 }
 
 
@@ -524,6 +524,13 @@ void MpuClass::loop(){//-------------------------------------------------L O O P
 	gravity.x = 2 * (q.x*q.z - q.w*q.y);
 	gravity.y = 2 * (q.w*q.x + q.y*q.z);
 	gravity.z = q.w*q.w - q.x*q.x - q.y*q.y + q.z*q.z;
+
+
+	if ((abs(a[0]) > MAX_G || abs(a[1]) > MAX_G || abs(a[2]) > MAX_G) && ++max_g_cnt>20) {
+		Autopilot.off_throttle(true, e_MAX_ACCELERATION);
+		max_g_cnt = 0;
+	}
+	
 
 	gyroPitch = -n006*(float)g[1];  //in grad
 	gyroYaw = -n006*(float)g[2];
@@ -605,69 +612,7 @@ void MpuClass::loop(){//-------------------------------------------------L O O P
 	//Debug.load(6, pitch / 90, accX/M_PI_2);
 	//Debug.load(7, roll / 90, -accY / M_PI_2);
 */	//Debug.load(6, roll / 90, -accY / M_PI_2);
-	Debug.dump();
-	
-
-
-/*
-	если квадр летит вперед(опуская нос) то sinpitch ортицательный, x - отрицательный.а при ускорении квадра x - уходит в положительную сторону.квадр какбы задирается
-	если квадр летит вправо, (наклоняясь по часовой к нам жопой) sinroll положительный, y - отрицательный, а при ускорении квадра н уходит в положит сторону, квадр какбы задирается против часовой
-
-
-	float cx = x, cy = y;
-	if (Autopilot.motors_is_on()){
-		//спедд икс и игрик они же недолжны вращатся вместе с const float _ax = cosYaw*GPS.loc.aX + sinYaw*GPS.loc.aY;
-
-		float rspeedX = cosYaw*speedX - sinYaw*speedY;
-		float rspeedY = cosYaw*speedY + sinYaw*speedX;
-
-
-		float break_fx = 0.5f*abs(rspeedX)*rspeedX*(cS+cS*abs(sinPitch));
-		float total_ax = sinPitch / cosPitch - break_fx;
-		rspeedX = 9.8f*total_ax*dt;
-		total_ax *= cosPitch;
-
-
-		float break_fy = 0.5f*abs(rspeedY)*rspeedY*(cS+cS*abs(sinRoll));
-		float total_ay = sinRoll / cosRoll - break_fy;
-		rspeedY = 9.8f*total_ay*dt;
-		total_ay *= cosRoll;
-
-
-		speedX += (cosYaw*rspeedX + sinYaw*rspeedY);
-		speedY += (cosYaw*rspeedY - sinYaw*rspeedX);
-
-#ifndef MOTORS_OFF
-		cx += total_ax;
-		cy -= total_ay;
-#endif
-
-	}
-	else{
-		speedY = speedX = 0;
-	}
-*/
-	
-	
-
-
-	   
-
-	
-	
-//	Debug.load(0, dt*100, 0);     
-
-//	Debug.load(1, aPitch/40, pitch/40);
-//	Debug.load(0, yaw/180, Hmc.headingGrad / 180);
-//	Debug.load(3, accX/10, accY/10);
-//	Debug.load(4, accZ/10, 0);
-
-
-
-		//Debug.load(1, speedY/20, yaw/180);
-
-//	Debug.dump();
-
+	//Debug.dump();
 	
 }
 
@@ -727,208 +672,12 @@ bool MpuClass::selfTest(){
 
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void MpuClass::meansensors(){
-	long i = 0, buff_ax = 0, buff_ay = 0, buff_az = 0, buff_gx = 0, buff_gy = 0, buff_gz = 0;
-
-	while (i<(buffersize + 101)){
-		// read raw accel/gyro measurements from device
-		accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-
-#ifdef SESOR_UPSIDE_DOWN
-		az += 32768;///
-#else
-		//az -= 32768;
-#endif
-		//wdt_reset();
-
-
-		if (i>100 && i <= (buffersize + 100)){ //First 100 measures are discarded
-			buff_ax = buff_ax + ax;
-			buff_ay = buff_ay + ay;
-			buff_az = buff_az + az;
-			buff_gx = buff_gx + gx;
-			buff_gy = buff_gy + gy;
-			buff_gz = buff_gz + gz;
-		}
-		if (i == (buffersize + 100)){
-			mean_ax = buff_ax / buffersize;
-			mean_ay = buff_ay / buffersize;
-			mean_az = buff_az / buffersize;
-			float rbuf = 1.0f / (float)buffersize;
-			float x = (float)buff_ax*rbuf;
-			float y = (float)buff_ay*rbuf;
-			float z = (float)buff_az*rbuf;
-
-			roll = RAD2GRAD*(float)atan(y / sqrt(x*x + z*z));
-			pitch = RAD2GRAD*(float)atan(x / sqrt(y*y + z*z));
-
-			//float rbufs = n003 / (float)buffersize;
-			//const_gyroRoll0= (float)buff_gx * rbufs;
-			//const_gyroPitch0 =  (float)buff_gy * rbufs;
-			//const_gyroYaw0 =  (float)buff_gz * rbufs;
-			gyroTime = millis();
-			//Out.println(const_gyroRoll);
-			//Out.println(const_gyroPitch);
-			mean_gx = buff_gx / buffersize;
-			mean_gy = buff_gy / buffersize;
-			mean_gz = buff_gz / buffersize;
-		}
-		i++;
-		delay(2); //Needed so we don't get repeated measures
-	}
-}
-void MpuClass::calibrationF0(int16_t ar[]){
-	while (1){
-		int ready = 0;
-		accelgyro.setXAccelOffset(ar[ax_offset]);
-		accelgyro.setYAccelOffset(ar[ay_offset]);
-		accelgyro.setZAccelOffset(ar[az_offset]);
-
-		accelgyro.setXGyroOffset(ar[gx_offset]);
-		accelgyro.setYGyroOffset(ar[gy_offset]);
-		accelgyro.setZGyroOffset(ar[gz_offset]);
-
-		meansensors();
-		printf("...\n");
-
-		if (abs(mean_ax) <= acel_deadzone) ready++;
-		else ar[ax_offset] = ar[ax_offset] - (int16_t)(mean_ax / acel_deadzone);
-
-		if (abs(mean_ay) <= acel_deadzone) ready++;
-		else ar[ay_offset] = ar[ay_offset] - (int16_t)(mean_ay / acel_deadzone);
-
-		if (abs(16384 - mean_az) <= acel_deadzone) ready++;
-		else ar[az_offset] = ar[az_offset] + (int16_t)((16384 - mean_az) / acel_deadzone);
-
-		if (abs(mean_gx) <= giro_deadzone) ready++;
-		else ar[gx_offset] = ar[gx_offset] - (int16_t)(mean_gx / (giro_deadzone + 1));
-
-		if (abs(mean_gy) <= giro_deadzone) ready++;
-		else ar[gy_offset] = ar[gy_offset] - (int16_t)(mean_gy / (giro_deadzone + 1));
-
-		if (abs(mean_gz) <= giro_deadzone) ready++;
-		else ar[gz_offset] = ar[gz_offset] - (int16_t)(mean_gz / (giro_deadzone + 1));
-
-		if (ready == 6) break;
-	}
-}
-void MpuClass::calibrationF(int16_t ar[]){
-	ar[ax_offset] = (int16_t)(-mean_ax / 8);
-	ar[ay_offset] = (int16_t)(-mean_ay / 8);
-	ar[az_offset] = (int16_t)((16384 - mean_az) / 8);
-
-	ar[gx_offset] = (int16_t)(-mean_gx / 4);
-	ar[gy_offset] = (int16_t)(-mean_gy / 4);
-	ar[gz_offset] = (int16_t)(-mean_gz / 4);
-	calibrationF0(ar);
-}
-
-void MpuClass::calibrationPrint(int16_t ar[], const bool onlyGyro){
-	meansensors();
-	printf("\nFINISHED!\n\nSensor readings with offsets:\t");
-	if (onlyGyro == false){
-		printf("%i\t%i\t%i\t", mean_ax, mean_ay, mean_az);
-	}
-	printf("%i\t%i\t%i\n", mean_gx, mean_gy, mean_gz);
-	printf("Your offsets:\t");
-	if (onlyGyro == false){
-		printf("%i\t%i\t%i\t", ar[ax_offset], ar[ay_offset], ar[az_offset]);
-	}
-	printf("%i\t%i\t%i\n\nData is printed as: ", ar[gx_offset], ar[gy_offset], ar[gz_offset]);
-
-	if (onlyGyro == false)
-		printf("acelX acelY acelZ ");
-	printf("giroX giroY giroZ\n");
-	printf("Check that your sensor readings are close to ");
-	if (onlyGyro == false)
-		printf("0 0 16384 ");
-	printf("0 0 0\n");
-	//Out.println("If calibration was succesful write down your offsets so you can set them in your projects using something similar to mpu.setXAccelOffset(youroffset)");
-}
-void MpuClass::re_calibration_(){
-	//Pwm.Buzzer(false);
-	//calibrationF0();
-	//calibrationPrint();
-	//Pwm.Buzzer(true);
-}
 
 void MpuClass::new_calibration(const bool onlyGyro){
 	LED.off();
 	acc_callibr_time = micros()+(uint64_t)10000000;
-	
-
-
-	/*
-	//wdt_disable();
-	printf("on begin\n");
-	int16_t offset_[6];
-	offset_[ax_offset] = accelgyro.getXAccelOffset();
-	offset_[ay_offset] = accelgyro.getYAccelOffset();
-	offset_[az_offset] = accelgyro.getZAccelOffset();
-
-	offset_[gx_offset] = accelgyro.getXGyroOffset();
-	offset_[gy_offset] = accelgyro.getYGyroOffset();
-	offset_[gz_offset] = accelgyro.getZGyroOffset();
-
-	calibrationPrint(offset_, onlyGyro);
 	gyro_calibratioan = true;
-	if (onlyGyro==false || abs(mean_gx) > 2 || abs(mean_gy) > 2 || abs(mean_gz) > 2){
-
-
-		new_calibration_(offset_);
-		delay(1000);
-		calibrationPrint(offset_, onlyGyro);
-		if (onlyGyro)
-			Settings.saveMpuOnlyGyroSettings(offset_);
-		else
-			Settings.saveMpuSettings(offset_);
-
-		mpu_calibrated = gyro_calibratioan = Settings.readMpuSettings(offset_);
-		if (mpu_calibrated){
-			if (onlyGyro){
-				accelgyro.setXAccelOffset(offset_[ax_offset]);
-				accelgyro.setYAccelOffset(offset_[ay_offset]);
-				accelgyro.setZAccelOffset(offset_[az_offset]);
-			}
-#ifndef WORK_WITH_WIFI
-			//calibrated = false;
-#endif
-		}
-		else{
-			printf("MPU NOT CALIBRATED !!!\n");
-		}
-
-
-
-
-	}else
-
-	Pwm.Buzzer(true);
-	//wdt_enable(WATCHDOG);
-	//Out.println("reseting");
-	//delay(10000);
-	//calibrated = Settings.readMpuSettings(offset_);
-
-	*/
 }
-void MpuClass::new_calibration_(int16_t ar[]){
-	//Pwm.Buzzer(false);
-	accelgyro.setXAccelOffset(0);
-	accelgyro.setYAccelOffset(0);
-	accelgyro.setZAccelOffset(0);
-	accelgyro.setXGyroOffset(0);
-	accelgyro.setYGyroOffset(0);
-	accelgyro.setZGyroOffset(0);
-	printf("\nReading sensors for first time...\n");
-	meansensors();
-	delay(1000);
-
-	printf("\nCalculating offsets...\n");
-	calibrationF(ar);
-
-
-}
-
 
 
 MpuClass Mpu;

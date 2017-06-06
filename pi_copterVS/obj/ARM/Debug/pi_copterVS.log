@@ -1,9 +1,9 @@
 ﻿  Validating architecture
   Validating sources
-  Copying sources remotely to '192.168.1.105'
+  Copying sources remotely to '192.168.1.155'
   Starting remote build
   Compiling sources:
-  mpu.cpp
+  GPS.cpp
 C:\Users\tcool\Desktop\pi_copterVS\pi_copterVS\helper_3dmath.h(82,36): warning : conversion to ‘float’ from ‘double’ may alter its value [-Wfloat-conversion]
 C:\Users\tcool\Desktop\pi_copterVS\pi_copterVS\helper_3dmath.h(119,30): warning : conversion to ‘float’ from ‘double’ may alter its value [-Wfloat-conversion]
 C:\Users\tcool\Desktop\pi_copterVS\pi_copterVS\helper_3dmath.h(124,5): warning : conversion to ‘int16_t {aka short int}’ from ‘float’ may alter its value [-Wfloat-conversion]
@@ -13,22 +13,19 @@ C:\Users\tcool\Desktop\pi_copterVS\pi_copterVS\helper_3dmath.h(155,5): warning :
 C:\Users\tcool\Desktop\pi_copterVS\pi_copterVS\helper_3dmath.h(156,5): warning : conversion to ‘int16_t {aka short int}’ from ‘float’ may alter its value [-Wfloat-conversion]
 C:\Users\tcool\Desktop\pi_copterVS\pi_copterVS\helper_3dmath.h(157,5): warning : conversion to ‘int16_t {aka short int}’ from ‘float’ may alter its value [-Wfloat-conversion]
 C:\Users\tcool\Desktop\pi_copterVS\pi_copterVS\helper_3dmath.h(186,30): warning : conversion to ‘float’ from ‘double’ may alter its value [-Wfloat-conversion]
-C:\Users\tcool\Desktop\pi_copterVS\pi_copterVS\mpu.cpp(44,8): warning : unused variable ‘add_2_yaw’ [-Wunused-variable]
-C:\Users\tcool\Desktop\pi_copterVS\pi_copterVS\define.h(21,18): warning : conversion to ‘float’ from ‘double’ may alter its value [-Wfloat-conversion]
-C:\Users\tcool\Desktop\pi_copterVS\pi_copterVS\define.h(21,18): warning : conversion to ‘float’ from ‘double’ may alter its value [-Wfloat-conversion]
-C:\Users\tcool\Desktop\pi_copterVS\pi_copterVS\define.h(21,18): warning : conversion to ‘float’ from ‘double’ may alter its value [-Wfloat-conversion]
-C:\Users\tcool\Desktop\pi_copterVS\pi_copterVS\mpu.cpp(486,15): warning : conversion to ‘float’ from ‘double’ may alter its value [-Wfloat-conversion]
-C:\Users\tcool\Desktop\pi_copterVS\pi_copterVS\mpu.cpp(546,8): warning : conversion to ‘float’ from ‘double’ may alter its value [-Wfloat-conversion]
-C:\Users\tcool\Desktop\pi_copterVS\pi_copterVS\mpu.cpp(547,7): warning : conversion to ‘float’ from ‘double’ may alter its value [-Wfloat-conversion]
-C:\Users\tcool\Desktop\pi_copterVS\pi_copterVS\mpu.cpp(575,11): warning : conversion to ‘float’ from ‘double’ may alter its value [-Wfloat-conversion]
-C:\Users\tcool\Desktop\pi_copterVS\pi_copterVS\mpu.cpp(576,11): warning : conversion to ‘float’ from ‘double’ may alter its value [-Wfloat-conversion]
-C:\Users\tcool\Desktop\pi_copterVS\pi_copterVS\mpu.cpp(577,11): warning : conversion to ‘float’ from ‘double’ may alter its value [-Wfloat-conversion]
-C:\Users\tcool\Desktop\pi_copterVS\pi_copterVS\mpu.cpp(795,22): warning : conversion to ‘int16_t {aka short int}’ from ‘int’ may alter its value [-Wconversion]
-C:\Users\tcool\Desktop\pi_copterVS\pi_copterVS\mpu.cpp(798,22): warning : conversion to ‘int16_t {aka short int}’ from ‘int’ may alter its value [-Wconversion]
-C:\Users\tcool\Desktop\pi_copterVS\pi_copterVS\mpu.cpp(801,22): warning : conversion to ‘int16_t {aka short int}’ from ‘int’ may alter its value [-Wconversion]
-C:\Users\tcool\Desktop\pi_copterVS\pi_copterVS\mpu.cpp(804,22): warning : conversion to ‘int16_t {aka short int}’ from ‘int’ may alter its value [-Wconversion]
-C:\Users\tcool\Desktop\pi_copterVS\pi_copterVS\mpu.cpp(807,22): warning : conversion to ‘int16_t {aka short int}’ from ‘int’ may alter its value [-Wconversion]
-C:\Users\tcool\Desktop\pi_copterVS\pi_copterVS\mpu.cpp(810,22): warning : conversion to ‘int16_t {aka short int}’ from ‘int’ may alter its value [-Wconversion]
-C:\Users\tcool\Desktop\pi_copterVS\pi_copterVS\mpu.cpp(36,20): warning : ‘const float f_constrain(float, float, float)’ defined but not used [-Wunused-function]
+  Location.cpp
+C:\Users\tcool\Desktop\pi_copterVS\pi_copterVS\helper_3dmath.h(82,36): warning : conversion to ‘float’ from ‘double’ may alter its value [-Wfloat-conversion]
+C:\Users\tcool\Desktop\pi_copterVS\pi_copterVS\helper_3dmath.h(119,30): warning : conversion to ‘float’ from ‘double’ may alter its value [-Wfloat-conversion]
+C:\Users\tcool\Desktop\pi_copterVS\pi_copterVS\helper_3dmath.h(124,5): warning : conversion to ‘int16_t {aka short int}’ from ‘float’ may alter its value [-Wfloat-conversion]
+C:\Users\tcool\Desktop\pi_copterVS\pi_copterVS\helper_3dmath.h(125,5): warning : conversion to ‘int16_t {aka short int}’ from ‘float’ may alter its value [-Wfloat-conversion]
+C:\Users\tcool\Desktop\pi_copterVS\pi_copterVS\helper_3dmath.h(126,5): warning : conversion to ‘int16_t {aka short int}’ from ‘float’ may alter its value [-Wfloat-conversion]
+C:\Users\tcool\Desktop\pi_copterVS\pi_copterVS\helper_3dmath.h(155,5): warning : conversion to ‘int16_t {aka short int}’ from ‘float’ may alter its value [-Wfloat-conversion]
+C:\Users\tcool\Desktop\pi_copterVS\pi_copterVS\helper_3dmath.h(156,5): warning : conversion to ‘int16_t {aka short int}’ from ‘float’ may alter its value [-Wfloat-conversion]
+C:\Users\tcool\Desktop\pi_copterVS\pi_copterVS\helper_3dmath.h(157,5): warning : conversion to ‘int16_t {aka short int}’ from ‘float’ may alter its value [-Wfloat-conversion]
+C:\Users\tcool\Desktop\pi_copterVS\pi_copterVS\helper_3dmath.h(186,30): warning : conversion to ‘float’ from ‘double’ may alter its value [-Wfloat-conversion]
+C:\Users\tcool\Desktop\pi_copterVS\pi_copterVS\Location.cpp(195,9): warning : conversion to ‘unsigned char’ from ‘int’ may alter its value [-Wconversion]
+C:\Users\tcool\Desktop\pi_copterVS\pi_copterVS\Location.cpp(196,9): warning : conversion to ‘unsigned char’ from ‘int’ may alter its value [-Wconversion]
+C:\Users\tcool\Desktop\pi_copterVS\pi_copterVS\Location.cpp(363,1): warning : no return statement in function returning non-void [-Wreturn-type]
+C:\Users\tcool\Desktop\pi_copterVS\pi_copterVS\Location.cpp(329,1): warning : control reaches end of non-void function [-Wreturn-type]
   Linking objects
   pi_copterVS.vcxproj -> C:\Users\tcool\Desktop\pi_copterVS\pi_copterVS\bin\ARM\Debug\pi_copterVS.out

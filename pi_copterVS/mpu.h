@@ -61,7 +61,7 @@ class MpuClass
 	 const int buffersize = 1000;     //Amount of readings used to average, make it higher to get more precision but sketch will be slower  (default:1000)
 	 const int acel_deadzone = 8;     //Acelerometer error allowed, make it lower to get more precision, but sketch may not converge  (default:8)
 	 const int giro_deadzone = 1;     //Giro error allowed, make it lower to get more precision, but sketch may not converge  (default:1)
-	 int16_t ax, ay, az, gx, gy, gz;
+	 
 	 int mean_ax, mean_ay, mean_az, mean_gx, mean_gy, mean_gz;
 	 enum{ ax_offset, ay_offset, az_offset, gx_offset, gy_offset, gz_offset };
 	// int16_t offset_[6];
@@ -109,9 +109,9 @@ class MpuClass
 	 float temp_deb;
 	 float faccX,faccY,faccZ;
 	 void initYaw(const float angle);
-	 void new_calibration_(int16_t ar[]);
+	
 	 void new_calibration(const bool onlyGyro);
-	 void re_calibration_();
+	 
 	 
 	 float get_pitch(){ return pitch; }
 	 float get_roll(){ return roll; }

@@ -109,7 +109,7 @@ void AutopilotClass::add_2_need_altitude(float speed, const float dt){
 		if (flyAtAltitude < lowest_height)
 			flyAtAltitude = lowest_height;
 
-		printf("f@alt %f\n", flyAtAltitude);
+		//printf("f@alt %f\n", flyAtAltitude);
 	}
 }
 //-------------------------------------------------------------------------
@@ -136,13 +136,22 @@ void AutopilotClass::smart_commander(const float dt){
 		GPS.loc.setSpeedZero();
 	}
 }
-
+uint32_t last_beep_time = 0;
 void AutopilotClass::loop(){/////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	const uint32_t t = millis();
 	const float dt = 0.001f*(float)(t - controlDeltaTime); 
 	if (dt < 0.05)
 		return;
+
+
+#ifdef LOST_BEEP
+	if (!motors_is_on() && t - last_beep_time > 3000) {
+		last_beep_time = t;
+		Pwm.beep_code(BEEPS_ON + (1 << 1));
+	}
+#endif
+
 	controlDeltaTime = t;
 	uint8_t smart = 0;
 
@@ -486,7 +495,7 @@ bool AutopilotClass::motors_do_on(const bool start, const string msg){//////////
 				Telemetry.addMessage(e_LOW_VOLTAGE);
 				printf(" LOW VOLTAGE\n");
 				Pwm.beep_code(BEEPS_ON + (2 << 1));
-				//return false;
+				return false;
 			}
 
 			if (GPS.loc.accuracy_hor_pos > MIN_ACUR_HOR_POS_2_START ){
@@ -510,8 +519,8 @@ bool AutopilotClass::motors_do_on(const bool start, const string msg){//////////
 			tflyAtAltitude = flyAtAltitude = MS5611.altitude();
 			
 			Mpu.max_g_cnt = 0;
-			//holdAltitude(Debug.n_p1);
-			//holdLocation(GPS.loc.lat_, GPS.loc.lon_);
+			holdAltitude(Debug.n_p1);
+			holdLocation(GPS.loc.lat_, GPS.loc.lon_);
 			aYaw_ = Mpu.yaw;
 
 #ifdef DEBUG_MODE

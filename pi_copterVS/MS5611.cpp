@@ -53,14 +53,15 @@ long CONV_read(int DA, char CONV_CMD)
 	return ret;
 }
 	char RESET = 0x1E;
-	
+#define ALT_NOT_SET -1000000
 int MS5611Class::init(){
 
 	bar_task = 0;
 	bar_zero = 0x0;
 	ct=10;
 	
-	speed=altitude_=alt=altitude_error = presure_altitude_at_start=0;
+	speed=altitude_=alt=0;
+	altitude_error = ALT_NOT_SET;
 
 	powerK = 1;
 
@@ -121,9 +122,9 @@ int cntssdde = 0;
 #endif
 float fspeed = 0;
 void MS5611Class::copterStarted(){
-	//if (altitude_error == 0 || presure_altitude_at_start == 0){
-		altitude_error = presure_altitude_at_start = altitude_;
-	//}
+	if (altitude_error == ALT_NOT_SET){
+		altitude_error = altitude_;
+	}
 }
 
 
@@ -174,9 +175,15 @@ uint8_t MS5611Class::loop(){
 	if (flying == false && Mpu.altitude_Z > 1)
 		flying = true;
 	speed = Mpu.speed_Z;
+	
+	alt = altitude_ - altitude_error;
 	//Serial.println(altitude_)
 
-
+#ifdef Z_SAFE_AREA
+	if (Autopilot.motors_is_on() && alt > Z_SAFE_AREA) {
+		Autopilot.control_falling(i_CONTROL_FALL);
+	}
+#endif
 
 
 
@@ -352,9 +359,14 @@ void MS5611Class::phase4() {
 	lastTime = millis();
 	const float new_altitude = getAltitude(pressure);
 
-	speed = (new_altitude - altitude_ - altitude_error) / dt;
+	speed = (new_altitude - altitude_) / dt;
 	altitude_ = new_altitude;
 	alt = altitude_ - altitude_error;
+#ifdef Z_SAFE_AREA
+	if (Autopilot.motors_is_on() && alt > Z_SAFE_AREA) {
+		Autopilot.control_falling(i_CONTROL_FALL);
+	}
+#endif
 //	if (tttalt == 0)
 	//	tttalt = new_altitude;
 	//tttalt += (new_altitude - tttalt)*0.01;

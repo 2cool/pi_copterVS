@@ -303,7 +303,7 @@ void BalanceClass::loop()
 			throttle /= Mpu.tiltPower;
 			throttle = constrain(throttle, 0.3f, MAX_THROTTLE_);
 		//	Debug.load(0, throttle, f_[0]);
-			if (throttle < min_throttle){
+			if (throttle < 0.3f){
 				// reset yaw target so we maintain this on takeoff
 				// reset PID integrals whilst on the ground
 				pids[PID_PITCH_RATE].reset_I();
