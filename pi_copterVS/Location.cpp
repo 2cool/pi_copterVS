@@ -235,7 +235,7 @@ bool LocationClass::processGPS() {
 			}
 			else if (fpos == (payloadSize + 4)) {
 				fpos = 0;
-				if (c == checksum[1]) {
+				if (c == buf[buf_ind]) {
 
 					
 					accuracy_hor_pos = DELTA_ANGLE_C*(float)posllh.hAcc;
@@ -244,6 +244,8 @@ bool LocationClass::processGPS() {
 					if (accuracy_ver_pos > 99)accuracy_ver_pos = 99;
 					mseconds = posllh.iTOW;
 					dt = DELTA_ANGLE_C*(float)(posllh.iTOW - old_iTOW);
+					if (dt == 0)
+						dt = 0.1f;
 					rdt = 1.0f / dt;
 					old_iTOW = posllh.iTOW;
 					last_gps_data_time = millis();

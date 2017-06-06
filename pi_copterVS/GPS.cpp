@@ -148,7 +148,7 @@ void GPSClass::loop(){
 uint32_t last_gps_time1 = 0;
 void GPSClass::loop(){
 	uint32_t t = millis();
-	if (t - last_gps_time1 >= 50) {
+	if (t - last_gps_time1 >= 33) {
 		last_gps_time1 = t;
 		if (loc.processGPS()) {
 			//printf("pgs %i\n", micros() - ttt);

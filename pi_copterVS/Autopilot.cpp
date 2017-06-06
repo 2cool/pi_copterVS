@@ -146,7 +146,7 @@ void AutopilotClass::loop(){////////////////////////////////////////////////////
 
 
 #ifdef LOST_BEEP
-	if (!motors_is_on() && t - last_beep_time > 3000) {
+	if ( t - last_time_data_recived>3000 && t - last_beep_time > 3000) {
 		last_beep_time = t;
 		Pwm.beep_code(BEEPS_ON + (1 << 1));
 	}

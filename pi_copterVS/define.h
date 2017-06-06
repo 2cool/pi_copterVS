@@ -55,7 +55,7 @@
 
 
 
-//#define LOST_BEEP
+#define LOST_BEEP
 
 //#define FALSE_GPS
 //#define FASLE_GPS_STILL

@@ -53,7 +53,7 @@ long CONV_read(int DA, char CONV_CMD)
 	return ret;
 }
 	char RESET = 0x1E;
-#define ALT_NOT_SET -1000000
+#define ALT_NOT_SET 0
 int MS5611Class::init(){
 
 	bar_task = 0;
