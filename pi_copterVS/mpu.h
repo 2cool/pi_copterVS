@@ -76,7 +76,7 @@ class MpuClass
 	uint8_t gLPF;
 
 
-	  uint64_t oldmpuTime;
+	  
 	  float pitch, roll;
 	  void meansensors();
 	  void calibrationF(int16_t ar[]);
@@ -87,6 +87,7 @@ class MpuClass
 	  void set_max_angle(float cx, float cy);
 	  uint64_t acc_callibr_time;
  public:
+	 uint64_t oldmpuTime;
 	 float get_roll_max_a() { return roll_max_angle; }
 	 float get_pitch_max_a() { return pitch_max_angle; }
 	 void set_cS(const float v){ cS = v; }
@@ -134,7 +135,7 @@ class MpuClass
 
 
 	void init();
-	void loop();
+	bool loop();
 	void setDLPFMode_(const uint8_t f);
 };
 

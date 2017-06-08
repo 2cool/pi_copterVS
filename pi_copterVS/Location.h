@@ -54,7 +54,7 @@ public:
 	float x2home, y2home, dX, dY, speedX, speedY;
 	float dist2home_2;
 	//---------------
-	uint32_t last_gps_data_time;
+	uint64_t last_gps_data_time;
 	
 	float bearing_(const float lat, const float lon, const float lat2, const float lon2);
 	void sin_cos(float &x, float &y, const float lat, const float lon, const float lat2, const float lon2);

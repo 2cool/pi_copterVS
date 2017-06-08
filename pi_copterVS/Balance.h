@@ -66,7 +66,7 @@ string get_set();
 void set(const float  *ar);
 
 	void init();
-	void loop();
+	bool loop();
 
 
 

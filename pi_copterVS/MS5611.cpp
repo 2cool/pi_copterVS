@@ -55,10 +55,10 @@ long CONV_read(int DA, char CONV_CMD)
 	char RESET = 0x1E;
 #define ALT_NOT_SET 0
 int MS5611Class::init(){
-
+	old_time = micros();
 	bar_task = 0;
 	bar_zero = 0x0;
-	ct=10;
+	ct=10000;
 	
 	speed=altitude_=alt=0;
 	altitude_error = ALT_NOT_SET;
@@ -73,7 +73,7 @@ int MS5611Class::init(){
 #endif
 	pressure = PRESSURE_AT_0;
 	ms5611_count = 0;
-	lastTime = millis();
+	
 	
 	//----------------------------
 	
@@ -82,8 +82,6 @@ int MS5611Class::init(){
 
 #ifndef FALSE_BAROMETR
 
-	curSampled_time = 0;
-	prevSampled_time = 0;
 
 	if ((fd = open("/dev/i2c-1", O_RDWR)) < 0){
 		printf("Failed to open the bus.\n");
@@ -101,7 +99,7 @@ int MS5611Class::init(){
 
 	usleep(10000);
 
-	for (i = 0; i < 7; i++){
+	for (i = 0; i < 6; i++){
 		usleep(1000);
 
 		C[i] = PROM_read(fd, CMD_PROM_READ + (i * 2));
@@ -205,7 +203,7 @@ uint8_t MS5611Class::loop(){
 
 
 uint8_t MS5611Class::loop(){
-	int64_t start = micros();
+	
 	switch (bar_task)
 	{
 	case 0:
@@ -222,9 +220,7 @@ uint8_t MS5611Class::loop(){
 			phase4();
 	}
 
-	int64_t dt = micros() - start-800;
-	if (dt>0)
-		usleep(dt);
+	
 	return 0;
 }
 
@@ -242,24 +238,19 @@ float tttalt = 0;
 void MS5611Class::phase0() {
 	bar_D[0] = bar_D[1] = bar_D[2] = 0;
 	bar_zero = 0;
-	curSampled_time = millis();
+	
 
-	prevSampling_time = Sampling_time;
-	Sampling_time = (float)curSampled_time - (float)prevSampled_time;
-
-	if (Sampling_time < 0) // to prevent negative sampling time
-		Sampling_time = prevSampling_time;
 	char CONV_CMD = CONV_D1_4096;
 	if (write(fd, &CONV_CMD, 1) != 1) {
 		printf("write reg 8 bit Failed to write to the i2c bus.\n");
 	}
-	b_timeDelay = millis() + ct;
+	b_timeDelay = Mpu.oldmpuTime + ct;
 	bar_task++;
 }
 
 void MS5611Class::phase1()
 {
-	if (millis() > b_timeDelay) {
+	if (Mpu.oldmpuTime  > b_timeDelay) {
 		if (write(fd, &bar_zero, 1) != 1) {
 			printf("write reset 8 bit Failed to write to the i2c bus.\n");
 		}
@@ -271,7 +262,8 @@ void MS5611Class::phase1()
 
 		}
 
-		D1 = bar_D[0] * (unsigned long)65536 + bar_D[1] * (unsigned long)256 + bar_D[2];
+		//D1 = bar_D[0] * (unsigned long)65536 + bar_D[1] * (unsigned long)256 + bar_D[2];
+		D1 = ((int32_t)bar_D[0] << 16) | ((int32_t)bar_D[1] << 8) | bar_D[2];
 		bar_task++;
 	}
 }
@@ -284,12 +276,12 @@ void MS5611Class::phase2()
 	if (write(fd, &CONV_CMD, 1) != 1) {
 		printf("write reg 8 bit Failed to write to the i2c bus.\n");
 	}
-	b_timeDelay = millis() + ct;
+	b_timeDelay = Mpu.oldmpuTime + ct;
 	bar_task++;
 	
 }
 bool MS5611Class::phase3() {
-	if (millis() > b_timeDelay) {
+	if (Mpu.oldmpuTime  > b_timeDelay) {
 		if (write(fd, &bar_zero, 1) != 1) {
 			printf("write reset 8 bit Failed to write to the i2c bus.\n");
 		}
@@ -301,7 +293,8 @@ bool MS5611Class::phase3() {
 
 		}
 
-		D2 = bar_D[0] * (unsigned long)65536 + bar_D[1] * (unsigned long)256 + bar_D[2];
+		//D2 = bar_D[0] * (unsigned long)65536 + bar_D[1] * (unsigned long)256 + bar_D[2];
+		D2 = ((int32_t)bar_D[0] << 16) | ((int32_t)bar_D[1] << 8) | bar_D[2];
 		bar_task = 0;
 		return true;
 	}
@@ -313,12 +306,14 @@ bool MS5611Class::phase3() {
 
 
 void MS5611Class::phase4() {
-	dT = D2 - (uint32_t)C[5] * pow(2, 8);
-	TEMP = (2000 + (dT * (int64_t)C[5] / pow(2, 23)));
+	dT = D2 - (uint32_t)C[5] * 256;
+	//dT = D2 - (uint32_t)C[4] * 256;
+	TEMP = (2000 + ((int64_t)dT * (int64_t)C[5] / 8388608));
 
-	OFF = (int64_t)C[2] * pow(2, 16) + (dT*C[4]) / pow(2, 7);
-	SENS = (int32_t)C[1] * pow(2, 15) + dT*C[3] / pow(2, 8);
-
+	OFF = (int64_t)C[2] * 65536 + (dT*C[4]) / 128;
+	//OFF = (int64_t)C[1] * 65536 + (dT*C[3]) / 128;
+	SENS = (int32_t)C[1] * 32768 + dT*C[3] / 256;
+	//SENS = (int32_t)C[0] * 32768 + dT*C[2] / 256;
 	/*
 	SECOND ORDER TEMPARATURE COMPENSATION
 	*/
@@ -329,13 +324,15 @@ void MS5611Class::phase4() {
 		int64_t SENS1 = 0;
 
 		T1 = pow((double)dT, 2) / 2147483648;
-		OFF1 = 5 * pow(((double)TEMP - 2000), 2) / 2;
-		SENS1 = 5 * pow(((double)TEMP - 2000), 2) / 4;
+
+		OFF1 = 5 * ((TEMP - 2000) * (TEMP - 2000)) / 2;
+		SENS1 = 5 * ((TEMP - 2000) * (TEMP - 2000)) / 4;
+
 
 		if (TEMP < -1500) // if temperature lower than -15 Celsius 
 		{
-			OFF1 = OFF1 + 7 * pow(((double)TEMP + 1500), 2);
-			SENS1 = SENS1 + 11 * pow(((double)TEMP + 1500), 2) / 2;
+			OFF1 = OFF1 + 7 * ((TEMP + 1500) * (TEMP + 1500));
+			SENS1 = SENS1 + 11 * ((TEMP + 1500) * (TEMP + 1500)) / 2;
 		}
 
 		TEMP -= T1;
@@ -343,20 +340,26 @@ void MS5611Class::phase4() {
 		SENS -= SENS1;
 	}
 
-
-	P = ((((int64_t)D1*SENS) / pow(2, 21) - OFF) / pow(2, 15));
-	i_readTemperature = ((int8_t)(TEMP * 0.01));
-
+	//nado proverat na korektnost' vysoty 
+	P = ((((int64_t)D1*SENS) / 2097152 - OFF) / 32768);
 	if (pressure == PRESSURE_AT_0) {
+		pressure = (float)P;
+	}
+	if (P < 0) {
 		pressure = P;
 	}
-	pressure += (P - pressure)*0.3;
+	i_readTemperature = ((int8_t)(TEMP * 0.01));
+
+
+	pressure += ((float)P - pressure)*0.3;
 	powerK = PRESSURE_AT_0 / pressure;
+
 	if (powerK>1.4)
 		powerK = 1.4;
 
-	const float dt = Sampling_time*0.001;// (millis() - lastTime)*0.001;
-	lastTime = millis();
+	const float dt = (Mpu.oldmpuTime - old_time)*0.000001;
+	old_time = Mpu.oldmpuTime;
+	//printf("%f\n", dt);
 	const float new_altitude = getAltitude(pressure);
 
 	speed = (new_altitude - altitude_) / dt;
@@ -364,7 +367,7 @@ void MS5611Class::phase4() {
 	alt = altitude_ - altitude_error;
 #ifdef Z_SAFE_AREA
 	if (Autopilot.motors_is_on() && alt > Z_SAFE_AREA) {
-		Autopilot.control_falling(i_CONTROL_FALL);
+		Autopilot.control_falling(e_OUT_OF_PER_V);
 	}
 #endif
 //	if (tttalt == 0)

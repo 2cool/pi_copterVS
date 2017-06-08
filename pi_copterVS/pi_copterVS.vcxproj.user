@@ -9,4 +9,8 @@
     <DebuggerFlavor>LinuxDebugger</DebuggerFlavor>
     <RemoteDebuggerCommandArguments>0 0</RemoteDebuggerCommandArguments>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
+    <RemoteDebuggerCommandArguments>0 0</RemoteDebuggerCommandArguments>
+    <DebuggerFlavor>LinuxDebugger</DebuggerFlavor>
+  </PropertyGroup>
 </Project>

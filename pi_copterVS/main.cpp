@@ -32,7 +32,7 @@
 
 
 
-void loop();
+bool loop();
 
 
 
@@ -204,7 +204,7 @@ int er_cnt = 0;
 long dt_sum=0;
 int max_dt = 0;
 int old_debug = 0;
-void loop()
+bool loop()
 {
 
 #ifndef WORK_WITH_WIFI
@@ -218,41 +218,22 @@ void loop()
 #endif
 
 
-	Balance.loop();
+	if (Balance.loop()) {
+
 #ifdef WORK_WITH_WIFI
-	Telemetry.loop();
+		Telemetry.loop();
 #endif
-	Commander.input();
-	Autopilot.loop();
+		Commander.input();
+		Autopilot.loop();
 
 #ifdef FALSE_WIRE
-	usleep(3000);
+		usleep(3000);
 #endif
-
-
-/*	const uint64_t tnoww = micros();
-	int dtt = (tnoww - old_time4loop);
-	if (dtt > 5500)
-		er_cnt++;
-	//usleep(1000);
-	
-	
-	ok_cnt++;
-	ok_ccc++;
-	if (ok_ccc > 2000) {
-		if (old_debug != Debug.n_debug) {
-			old_debug = Debug.n_debug;
-			ok_ccc = 0;
-			max_dt = 0;
-		}
-		if (max_dt < dtt)
-			max_dt = dtt;
+		return true;
 	}
-	//if (dtt>0)
-	dt_sum += (int)(micros() - old_time4loop);
-	if ((ok_cnt & 1023) == 1023)
-			printf(" %i %f %i\n", dt_sum / ok_cnt, (er_cnt > 0) ? 100.0*(float)er_cnt / (float)ok_cnt : 0, max_dt);
-	old_time4loop = tnoww;*/
+	else
+		return false;
+
 	
 }
 
@@ -304,18 +285,19 @@ int main(int argc, char *argv[]) {
 	float dfr = 100;
 	while (flag == 0) {
 
-		loop();
-		//usleep(5400);
-	//	int ttt = micros();
-	//	dfr += ((1000000 / (ttt - old_time4loop)) - dfr)*0.01;
-	//	Debug.load(0, dfr, 0);
-	//	old_time4loop = ttt;
-		int64_t t = micros();
-		int32_t time_past = (int32_t)(t - old_time4loop);
-		old_time4loop = t;
+		if (loop()) {
+			//usleep(5400);
+		//	int ttt = micros();
+		//	dfr += ((1000000 / (ttt - old_time4loop)) - dfr)*0.01;
+		//	Debug.load(0, dfr, 0);
+		//	old_time4loop = ttt;
+			int64_t t = micros();
+			int32_t time_past = (int32_t)(t - old_time4loop);
+			old_time4loop = t;
 
-		//Debug.load(0, time_past, 0);
-		//Debug.dump();
+			//Debug.load(0, time_past, 0);
+			//Debug.dump();
+		}
 
 	}
 	printf("\n Signal caught! and exit\n");

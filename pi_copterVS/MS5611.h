@@ -68,7 +68,7 @@ public:
 	uint8_t ms5611_count;
 	int init();
 	uint8_t loop();
-	uint32_t lastTime;
+	
 	float pressure , powerK;
 
 
@@ -92,7 +92,7 @@ private:
 
 	int i;
 	int fd;
-	uint16_t C[7];
+	uint16_t C[6];
 	uint32_t D1;
 	uint32_t D2;
 	
@@ -103,14 +103,12 @@ private:
 	int32_t P;
 
 	int bar_task;
-	uint32_t b_timeDelay;
+	uint64_t b_timeDelay,old_time;
 	uint8_t bar_D[3];
 	int  bar_h;
 	char bar_zero;
 
-	long curSampled_time;
-	long prevSampled_time;
-	float Sampling_time, prevSampling_time;
+
 	
 
 	

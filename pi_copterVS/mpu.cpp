@@ -507,7 +507,9 @@ void MpuClass::set_max_angle(float cx,float cy) {
 #define PITCH_COMPENSATION_IN_YAW_ROTTATION 0.025
 
 float ac_accX = 0, ac_accY = 0, ac_accZ = -0.3664f;
-void MpuClass::loop(){//-------------------------------------------------L O O P-------------------------------------------------------------
+
+
+bool MpuClass::loop(){//-------------------------------------------------L O O P-------------------------------------------------------------
 
 	uint64_t mputime = micros();
 	dt = (float)(mputime - oldmpuTime)*0.000001f;// *div;
@@ -517,7 +519,9 @@ void MpuClass::loop(){//-------------------------------------------------L O O P
 	int cnt = 0;
 
 	//dmp
-	while (dmp_read_fifo(g, a, _q, &sensors, &fifoCount) != 0)cnt++; //gyro and accel can be null because of being disabled in the efeatures
+	if (dmp_read_fifo(g, a, _q, &sensors, &fifoCount) != 0) //gyro and accel can be null because of being disabled in the efeatures
+		return false;
+		
 	q = _q;
 
 	//GetGravity();
@@ -613,7 +617,7 @@ void MpuClass::loop(){//-------------------------------------------------L O O P
 	//Debug.load(7, roll / 90, -accY / M_PI_2);
 */	//Debug.load(6, roll / 90, -accY / M_PI_2);
 	//Debug.dump();
-	
+	return true;
 }
 
 #endif

@@ -259,11 +259,20 @@ void BalanceClass::setMaxAngle(const float ang){
 #define MAX_YAW_SPEED 60
 //#define MAX_POWER_K_IF_MAX_ANGLE_30 1.12
 
-void BalanceClass::loop()
+
+
+uint64_t hmc_last_time = 0;
+bool BalanceClass::loop()
 {
-	 Mpu.loop();
-	 MS5611.loop();
-	 Hmc.loop();
+	if (!Mpu.loop()) {
+		usleep(1000);
+		return false;
+	}
+	MS5611.loop();
+	if (Mpu.oldmpuTime - hmc_last_time > 10000) {
+		hmc_last_time = Mpu.oldmpuTime;
+		Hmc.loop();
+	}
 	 GPS.loop();
 
 
@@ -487,7 +496,7 @@ void BalanceClass::loop()
 	}
 	*/
 	
-
+	return true;
 }
 
 

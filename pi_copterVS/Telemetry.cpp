@@ -273,8 +273,12 @@ void TelemetryClass::testBatteryVoltage(){
 		voltage = 1110;
 		addMessage(e_VOLT_MON_ERROR);
 	}
-	powerK = (MAX_VOLTAGE_AT_START*3) / (float)voltage;
-	powerK = constrain(powerK, 1, 1.35f);
+	if (voltage == 0)
+		powerK = 1;
+	else {
+		powerK = (MAX_VOLTAGE_AT_START * 3) / (float)voltage;
+		powerK = constrain(powerK, 1, 1.35f);
+	}
 }
 
 bool newGPSData = false;
@@ -339,8 +343,8 @@ void TelemetryClass::update_buf() {
 	//printf("message=", message.c_str());
 	const bool err = (GPS.loc.accuracy_hor_pos >= 99);
 	loadBUF(i, 1000 + (Balance.get_throttle() * 1000));
-	loadBUF32(i, (err)?0:GPS.loc.lat_);
-	loadBUF32(i, (err)?0:GPS.loc.lon_);
+	loadBUF32(i, GPS.loc.lat_);
+	loadBUF32(i, GPS.loc.lon_);
 
 	buf[i++] = (byte)(err)?99: GPS.loc.accuracy_hor_pos;
 	buf[i++] = (byte)(err)?99: GPS.loc.accuracy_ver_pos;

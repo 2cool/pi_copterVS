@@ -132,7 +132,7 @@ void LocationClass::xy(){
 
 #ifdef XY_SAFE_AREA
 	if (Autopilot.motors_is_on() && sqrt(x2home*x2home+y2home*y2home)>XY_SAFE_AREA)
-		Autopilot.control_falling(i_CONTROL_FALL);
+		Autopilot.control_falling(e_OUT_OF_PER_H);
 #endif
 }
 void LocationClass::update(){
@@ -239,16 +239,15 @@ bool LocationClass::processGPS() {
 
 					
 					accuracy_hor_pos = DELTA_ANGLE_C*(float)posllh.hAcc;
-					if (accuracy_hor_pos > 99)accuracy_hor_pos = 99;
+					if (accuracy_hor_pos > 99)accuracy_hor_pos = 1;// 99;
 					accuracy_ver_pos = DELTA_ANGLE_C*(float)posllh.vAcc;
-					if (accuracy_ver_pos > 99)accuracy_ver_pos = 99;
+					if (accuracy_ver_pos > 99)accuracy_ver_pos = 1;// 99;
 					mseconds = posllh.iTOW;
 					dt = DELTA_ANGLE_C*(float)(posllh.iTOW - old_iTOW);
-					if (dt == 0)
-						dt = 0.1f;
+					dt=constrain(dt, 0.1f, 1);
 					rdt = 1.0f / dt;
 					old_iTOW = posllh.iTOW;
-					last_gps_data_time = millis();
+					last_gps_data_time = Mpu.oldmpuTime;
 					
 					lat_ = posllh.lat;
 					lon_ = posllh.lon;
