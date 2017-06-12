@@ -250,6 +250,7 @@ int printHelp() {
 }
 
 int main(int argc, char *argv[]) {
+	printf("ver 2.170610_ \n");
 	Debug.n_p1 = 3;
 	Debug.n_p2 = 1.6f;
 	Debug.n_debug = 0;
@@ -294,6 +295,8 @@ int main(int argc, char *argv[]) {
 			int64_t t = micros();
 			int32_t time_past = (int32_t)(t - old_time4loop);
 			old_time4loop = t;
+			if (time_past > 15000)
+				printf("too long %i\n",time_past);
 
 			//Debug.load(0, time_past, 0);
 			//Debug.dump();

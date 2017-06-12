@@ -55,11 +55,11 @@ protected:
 	 int ct;
 	 float altitude_error;
 
-	 inline void phase0();
-	 inline void phase1();
-	 inline void phase2();
-	 inline bool phase3();
-	 inline void phase4();
+	  void phase0();
+	  void phase1();
+
+	  void phase2();
+	  void phase3();
 
 	float altitude_,alt;
 public:
@@ -91,7 +91,7 @@ private:
 
 
 	int i;
-	int fd;
+
 	uint16_t C[6];
 	uint32_t D1;
 	uint32_t D2;

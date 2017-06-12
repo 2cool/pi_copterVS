@@ -473,13 +473,7 @@ void MpuClass::set_max_angle(float cx,float cy) {
 		c_pitch += gyroPitch*dt;
 		c_roll -= (aRoll + c_roll)*CF;
 		c_pitch += (aPitch - c_pitch)*CF;
-
-		//c_cosPitch = cos(c_pitch*GRAD2RAD);
-		//c_sinPitch = sin(c_pitch*GRAD2RAD);
 		sin_cos(c_pitch*GRAD2RAD, c_sinPitch, c_cosPitch);
-
-		//c_cosRoll = cos(c_roll*GRAD2RAD);
-		//c_sinRoll = sin(c_roll*GRAD2RAD);
 		sin_cos(c_roll*GRAD2RAD, c_sinRoll, c_cosRoll);
 
 		c_tiltPower = c_cosPitch*c_cosRoll;
@@ -512,16 +506,15 @@ float ac_accX = 0, ac_accY = 0, ac_accZ = -0.3664f;
 bool MpuClass::loop(){//-------------------------------------------------L O O P-------------------------------------------------------------
 
 	uint64_t mputime = micros();
-	dt = (float)(mputime - oldmpuTime)*0.000001f;// *div;
-	rdt = 1.0f / dt;
-	oldmpuTime = mputime;
-
-	int cnt = 0;
 
 	//dmp
 	if (dmp_read_fifo(g, a, _q, &sensors, &fifoCount) != 0) //gyro and accel can be null because of being disabled in the efeatures
 		return false;
 		
+	dt = (float)(mputime - oldmpuTime)*0.000001f;// *div;
+	rdt = 1.0f / dt;
+	oldmpuTime = mputime;
+
 	q = _q;
 
 	//GetGravity();
@@ -561,23 +554,14 @@ bool MpuClass::loop(){//-------------------------------------------------L O O P
 	float y = -n604*(float)a[1];  //
 	float z = n604*(float)a[2];
 	
-
-	//cosPitch = (float)cos(pitch);
-	//sinPitch = (float)sin(pitch);
 	sin_cos(pitch, sinPitch, cosPitch);
-	//cosRoll = (float)cos(roll);
-	//sinRoll = (float)sin(roll);
 	sin_cos(roll, sinRoll, cosRoll);
 
 	tiltPower = cosPitch*cosRoll;
 	tiltPower = constrain(tiltPower, 0.5f, 1);
 
-
-
-
 	accZ = z*cosPitch + sinPitch*x;
 	accZ = 9.8f*(accZ*cosRoll - sinRoll*y - 1)-ac_accZ;
-	
 
 	accX = 9.8f*(x*cosPitch - z*sinPitch)-ac_accX;
 	accY = 9.8f*(y*cosRoll + z*sinRoll)-ac_accY;
@@ -603,7 +587,7 @@ bool MpuClass::loop(){//-------------------------------------------------L O O P
 
 
 	
-	//Debug.load(1, roll / 40, c_roll / 30);
+//	Debug.load(0, rdt, dt);
 //	Debug.load(1, gyro_yaw / 180, add_2_yaw / 180);
 //	Debug.load(2, gyro_yaw / 180, head / 180);
 /*	Debug.load(1, pitch / 40, ttPitch / 40);

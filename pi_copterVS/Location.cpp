@@ -239,18 +239,21 @@ bool LocationClass::processGPS() {
 
 					
 					accuracy_hor_pos = DELTA_ANGLE_C*(float)posllh.hAcc;
-					if (accuracy_hor_pos > 99)accuracy_hor_pos = 1;// 99;
+					if (accuracy_hor_pos > 99)accuracy_hor_pos =  99;
 					accuracy_ver_pos = DELTA_ANGLE_C*(float)posllh.vAcc;
-					if (accuracy_ver_pos > 99)accuracy_ver_pos = 1;// 99;
+					if (accuracy_ver_pos > 99)accuracy_ver_pos =  99;
 					mseconds = posllh.iTOW;
 					dt = DELTA_ANGLE_C*(float)(posllh.iTOW - old_iTOW);
 					dt=constrain(dt, 0.1f, 1);
 					rdt = 1.0f / dt;
 					old_iTOW = posllh.iTOW;
-					last_gps_data_time = Mpu.oldmpuTime;
+					last_gps_data_time = micros();
 					
 					lat_ = posllh.lat;
 					lon_ = posllh.lon;
+
+					//Debug.load(0, lat_, lon_);
+					//Debug.dump();
 
 					buf_ind++;
 					available--;
@@ -326,6 +329,7 @@ int LocationClass::init(){
 	dt = 0.1f;
 	rdt = 10;
 	speedX = speedY = 0;
+	last_gps_data_time = 0;
 	printf("loc init\n");
 }
 

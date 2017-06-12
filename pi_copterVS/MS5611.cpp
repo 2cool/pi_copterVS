@@ -82,19 +82,23 @@ int MS5611Class::init(){
 
 #ifndef FALSE_BAROMETR
 
-
-	if ((fd = open("/dev/i2c-1", O_RDWR)) < 0){
+	int fd4S;
+	if ((fd4S = open("/dev/i2c-1", O_RDWR)) < 0){
 		printf("Failed to open the bus.\n");
+		close(fd4S);
 		return -1;
 	}
 
-	if (ioctl(fd, I2C_SLAVE, MS5611_ADDRESS) < 0){
+	if (ioctl(fd4S, I2C_SLAVE, MS5611_ADDRESS) < 0){
 		printf("Failed to acquire bus access and/or talk to slave.\n");
+		close(fd4S);
 		return -1;
 	}
    
-	if (write(fd, &RESET, 1) != 1) {
+	if (write(fd4S, &RESET, 1) != 1) {
 		printf("write reg 8 bit Failed to write to the i2c bus.\n");
+		close(fd4S);
+		return -1;
 	}
 
 	usleep(10000);
@@ -102,10 +106,11 @@ int MS5611Class::init(){
 	for (i = 0; i < 6; i++){
 		usleep(1000);
 
-		C[i] = PROM_read(fd, CMD_PROM_READ + (i * 2));
+		C[i] = PROM_read(fd4S, CMD_PROM_READ + (i * 2));
 		//printf("C[%d] = %d\n", i, C[i]);
-	}
 
+	}
+	close(fd4S);
 
 #endif
 	return 0;
@@ -201,7 +206,6 @@ uint8_t MS5611Class::loop(){
 
 #else
 
-
 uint8_t MS5611Class::loop(){
 	
 	switch (bar_task)
@@ -212,15 +216,11 @@ uint8_t MS5611Class::loop(){
 	case 1:
 		phase1();
 		break;
-	case 2:
-		phase2();
-		break;
 	default:
-		if (phase3())
-			phase4();
+		phase2();
+
 	}
 
-	
 	return 0;
 }
 
@@ -231,89 +231,147 @@ uint8_t MS5611Class::loop(){
 
 
 
-
-
-float tttalt = 0;
-
 void MS5611Class::phase0() {
 	bar_D[0] = bar_D[1] = bar_D[2] = 0;
 	bar_zero = 0;
+
+	int fd4S;
+	if ((fd4S = open("/dev/i2c-1", O_RDWR)) < 0) {
+		printf("Failed to open the bus.\n");
+		close(fd4S);
+		return;
+	}
+
+	if (ioctl(fd4S, I2C_SLAVE, MS5611_ADDRESS) < 0) {
+		printf("Failed to acquire bus access and/or talk to slave.\n");
+		close(fd4S);
+		return;
+	}
 	
 
 	char CONV_CMD = CONV_D1_4096;
-	if (write(fd, &CONV_CMD, 1) != 1) {
+	if (write(fd4S, &CONV_CMD, 1) != 1) {
 		printf("write reg 8 bit Failed to write to the i2c bus.\n");
+		return;
 	}
-	b_timeDelay = Mpu.oldmpuTime + ct;
-	bar_task++;
+	close(fd4S);
+	b_timeDelay = micros() + ct;
+	bar_task=1;
 }
 
 void MS5611Class::phase1()
 {
-	if (Mpu.oldmpuTime  > b_timeDelay) {
-		if (write(fd, &bar_zero, 1) != 1) {
-			printf("write reset 8 bit Failed to write to the i2c bus.\n");
+
+	if (micros()  > b_timeDelay) {
+
+		int fd4S;
+		if ((fd4S = open("/dev/i2c-1", O_RDWR)) < 0) {
+			printf("Failed to open the bus.\n");
+			close(fd4S);
+			bar_task = 0;
+			return;
 		}
 
-		bar_h = read(fd, &bar_D, 3);
+		if (ioctl(fd4S, I2C_SLAVE, MS5611_ADDRESS) < 0) {
+			printf("Failed to acquire bus access and/or talk to slave.\n");
+			close(fd4S);
+			bar_task = 0;
+			return;
+		}
+
+
+
+
+
+		if (write(fd4S, &bar_zero, 1) != 1) {
+			printf("write reset 8 bit Failed to write to the i2c bus.\n");
+			bar_task = 0;
+			close(fd4S);
+			return;
+		}
+
+		bar_h = read(fd4S, &bar_D, 3);
 
 		if (bar_h != 3) {
 			printf("Failed to read from the i2c bus %d.\n", bar_h);
-
+			bar_task = 0;
+			close(fd4S);
+			return;
 		}
 
-		//D1 = bar_D[0] * (unsigned long)65536 + bar_D[1] * (unsigned long)256 + bar_D[2];
 		D1 = ((int32_t)bar_D[0] << 16) | ((int32_t)bar_D[1] << 8) | bar_D[2];
-		bar_task++;
+		if (D1 == 0) {
+			bar_task = 0;
+			close(fd4S);
+			return;
+		}
+		//-------------------------------------
+		bar_D[0] = bar_D[1] = bar_D[2] = 0;
+		bar_zero = 0;
+		char CONV_CMD = CONV_D2_4096;
+		if (write(fd4S, &CONV_CMD, 1) != 1) {
+			printf("write reg 8 bit Failed to write to the i2c bus.\n");
+			bar_task = 0;
+			close(fd4S);
+			return;
+		}
+		b_timeDelay = micros() + ct;
+		bar_task=2;
+		close(fd4S);
+		
 	}
 }
 
-void MS5611Class::phase2()
-{
-	bar_D[0] = bar_D[1] = bar_D[2] = 0;
-	bar_zero = 0;
-	char CONV_CMD = CONV_D2_4096;
-	if (write(fd, &CONV_CMD, 1) != 1) {
-		printf("write reg 8 bit Failed to write to the i2c bus.\n");
-	}
-	b_timeDelay = Mpu.oldmpuTime + ct;
-	bar_task++;
-	
-}
-bool MS5611Class::phase3() {
-	if (Mpu.oldmpuTime  > b_timeDelay) {
-		if (write(fd, &bar_zero, 1) != 1) {
-			printf("write reset 8 bit Failed to write to the i2c bus.\n");
+
+void MS5611Class::phase2() {
+	if (micros()  > b_timeDelay) 
+	{
+		int fd4S;
+		if ((fd4S = open("/dev/i2c-1", O_RDWR)) < 0) {
+			printf("Failed to open the bus.\n");
+			close(fd4S);
+			bar_task = 0;
+			return;
 		}
 
-		bar_h = read(fd, &bar_D, 3);
+		if (ioctl(fd4S, I2C_SLAVE, MS5611_ADDRESS) < 0) {
+			printf("Failed to acquire bus access and/or talk to slave.\n");
+			close(fd4S);
+			bar_task = 0;
+			return;
+		}
+		if (write(fd4S, &bar_zero, 1) != 1) {
+			printf("write reset 8 bit Failed to write to the i2c bus.\n");
+			bar_task = 0;
+			close(fd4S);
+			return;
+		}
+
+		bar_h = read(fd4S, &bar_D, 3);
 
 		if (bar_h != 3) {
 			printf("Failed to read from the i2c bus %d.\n", bar_h);
-
+			bar_task = 0;
+			close(fd4S);
+			return;
 		}
-
-		//D2 = bar_D[0] * (unsigned long)65536 + bar_D[1] * (unsigned long)256 + bar_D[2];
 		D2 = ((int32_t)bar_D[0] << 16) | ((int32_t)bar_D[1] << 8) | bar_D[2];
+		if (D2 == 0) {
+			bar_task = 0;
+			close(fd4S);
+			return;
+		}
 		bar_task = 0;
-		return true;
+		close(fd4S);
+		phase3();
 	}
-	else
-		return false;
-
-
 }
 
-
-void MS5611Class::phase4() {
+void MS5611Class::phase3() {
 	dT = D2 - (uint32_t)C[5] * 256;
-	//dT = D2 - (uint32_t)C[4] * 256;
 	TEMP = (2000 + ((int64_t)dT * (int64_t)C[5] / 8388608));
-
 	OFF = (int64_t)C[2] * 65536 + (dT*C[4]) / 128;
-	//OFF = (int64_t)C[1] * 65536 + (dT*C[3]) / 128;
 	SENS = (int32_t)C[1] * 32768 + dT*C[3] / 256;
-	//SENS = (int32_t)C[0] * 32768 + dT*C[2] / 256;
 	/*
 	SECOND ORDER TEMPARATURE COMPENSATION
 	*/
@@ -357,8 +415,8 @@ void MS5611Class::phase4() {
 	if (powerK>1.4)
 		powerK = 1.4;
 
-	const float dt = (Mpu.oldmpuTime - old_time)*0.000001;
-	old_time = Mpu.oldmpuTime;
+	const float dt = (micros() - old_time)*0.000001;
+	old_time = micros();
 	//printf("%f\n", dt);
 	const float new_altitude = getAltitude(pressure);
 
@@ -373,7 +431,7 @@ void MS5611Class::phase4() {
 //	if (tttalt == 0)
 	//	tttalt = new_altitude;
 	//tttalt += (new_altitude - tttalt)*0.01;
-	//Debug.load(0, 0, tttalt - new_altitude);
+	//Debug.load(0, MS_errors, 0);
 	//Debug.dump();
 
 }

@@ -61,6 +61,7 @@ void server(){
      if (wite_connection())
 		return;
 	  while(run){
+
 		// bzero(buffer,256);
 		 n = read(newsockfd,inbuffer, TELEMETRY_BUF_SIZE);
 		// if (Autopilot.motors_is_on())

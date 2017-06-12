@@ -19,7 +19,7 @@
 //#define MPU_PRINTTIME_CICLE
 
 
-//#define XY_SAFE_AREA 200
+#define XY_SAFE_AREA 200
 #define Z_SAFE_AREA 60
 
 #define RAD2GRAD 57.29578f
@@ -53,8 +53,7 @@
 //#define FALSE_WIRE
 
 
-
-
+#define STEP_DEBAGING
 #define LOST_BEEP
 
 //#define FALSE_GPS
@@ -95,8 +94,8 @@
 
 #define NO_CONNECTION_DELAY_TO_RESET_IF_MOTORS_OFF 60000
 #define NO_GPS_TIME_TO_FALL 5000000
-#define MIN_ACUR_HOR_POS_TO_FLY 70
-#define MIN_ACUR_HOR_POS_2_START 50
+#define MIN_ACUR_HOR_POS_TO_FLY 7
+#define MIN_ACUR_HOR_POS_2_START 5
 
 
 #define PRESSURE_AT_0 101325

@@ -144,11 +144,14 @@ void GPSClass::loop(){
 
 #else
 
-
+int errors__ =0;
 uint64_t last_gps_time1 = 0;
+
+uint64_t max_time = 0;
 void GPSClass::loop(){
-	if (Mpu.oldmpuTime - last_gps_time1 >= 33000) {
-		last_gps_time1 = Mpu.oldmpuTime;
+	uint64_t ttt = micros();
+	if (micros() - last_gps_time1 >= 33000) {
+		last_gps_time1 = micros();
 		if (loc.processGPS()) {
 			//printf("pgs %i\n", micros() - ttt);
 			if (loc.accuracy_hor_pos < (MIN_ACUR_HOR_POS_TO_FLY)) {
@@ -159,15 +162,27 @@ void GPSClass::loop(){
 			else {
 				errors++;
 				if (errors > 50) {
-					Autopilot.control_falling(e_GPS_ERRORS_M_50);
+					//Autopilot.control_falling(e_GPS_ERRORS_M_50);
 				}
 			}
 		}
-		if ((last_gps_time1 > loc.last_gps_data_time) && (last_gps_time1 - loc.last_gps_data_time) > NO_GPS_TIME_TO_FALL) {
-				Autopilot.control_falling(e_GPS_NO_UPDATE);
+		loc.accuracy_hor_pos = errors__/100;
+		loc.accuracy_ver_pos = errors__ % 100;
+		if ((last_gps_time1 > loc.last_gps_data_time) && (last_gps_time1 - loc.last_gps_data_time) > 500000){//NO_GPS_TIME_TO_FALL) {
+			//printf("gps update error\n");
+			errors__++;
+			loc.last_gps_data_time = micros();
+			
+			
+			Autopilot.control_falling(e_GPS_NO_UPDATE);
 		}
+
 	}
-	
+	uint64_t dt=micros() - ttt;
+	if (dt > max_time) {
+		max_time = dt;
+		printf("max=%i\n", max_time);
+	}
 }
 
 
