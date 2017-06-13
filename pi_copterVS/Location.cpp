@@ -196,29 +196,32 @@ void LocationClass::calcChecksum(unsigned char* CK) {
 		CK[1] += CK[0];
 	}
 }
-
+int available_loc = 0;
+char buf_loc[72];
 bool LocationClass::processGPS() {
 
-	int available;
-	ioctl(fd4S, FIONREAD, &available);
-	//printf("available %i\n",available);
+	int all_available;
+	ioctl(fd4S, FIONREAD, &all_available);
+	//printf("available_loc %i\n",available_loc);
 
-	if (available < 36){
+	if ((available_loc+all_available) < 36){
 		return false;
 	}
 	static int fpos = 0;
 	static unsigned char checksum[2];
 	const int payloadSize = sizeof(NAV_POSLLH);
-	char buf[4096];
+	
 	int buf_ind = 0;
-#define c (buf[buf_ind])
-	available=read(fd4S, &buf[buf_ind], 4096 - buf_ind);
-	while (available) {
+#define c (buf_loc[buf_ind])
+	
+	available_loc+=read(fd4S, &buf_loc[available_loc], 72 - available_loc);
+	while (available_loc) {
 		if (fpos < 2) {
 			if (c == UBX_HEADER[fpos])
 				fpos++;
 			else
 				fpos = 0;
+
 		}
 		else {
 			if ((fpos - 2) < payloadSize)
@@ -235,7 +238,7 @@ bool LocationClass::processGPS() {
 			}
 			else if (fpos == (payloadSize + 4)) {
 				fpos = 0;
-				if (c == buf[buf_ind]) {
+				if (c == buf_loc[buf_ind]) {
 
 					
 					accuracy_hor_pos = DELTA_ANGLE_C*(float)posllh.hAcc;
@@ -256,10 +259,10 @@ bool LocationClass::processGPS() {
 					//Debug.dump();
 
 					buf_ind++;
-					available--;
-					if (available) {
-						memcpy(buf, &buf[buf_ind], available);
-						buf_ind -= available;
+					available_loc--;
+					if (available_loc) {
+						//printf("%i\n", available_loc);
+						memcpy(buf_loc, &buf_loc[buf_ind], available_loc);
 					}
 					return true;
 				}
@@ -268,9 +271,9 @@ bool LocationClass::processGPS() {
 				fpos = 0;
 			}
 		}
-		available--;
+		available_loc--;
 		buf_ind++;
-		//ioctl(fd4S, FIONREAD, &available);
+		//ioctl(fd4S, FIONREAD, &available_loc);
 	}
 	return false;
 }
@@ -300,6 +303,7 @@ void LocationClass::add2NeedLoc(const float speedX, const float speedY, const fl
 
 int LocationClass::init(){
 #ifndef FALSE_GPS
+	close(fd4S);
 	fd4S = open("/dev/ttyS3", O_RDWR | O_NOCTTY | O_SYNC);
 	if (fd4S < 0)
 	{
@@ -329,7 +333,8 @@ int LocationClass::init(){
 	dt = 0.1f;
 	rdt = 10;
 	speedX = speedY = 0;
-	last_gps_data_time = 0;
+	last_gps_data_time = micros();
+	
 	printf("loc init\n");
 }
 

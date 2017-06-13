@@ -57,12 +57,13 @@ bool wite_connection(){
 }
 
 void server(){
-	delay(5000);
+	//delay(5000);
      if (wite_connection())
 		return;
 	  while(run){
 
 		// bzero(buffer,256);
+		  usleep(33000);
 		 n = read(newsockfd,inbuffer, TELEMETRY_BUF_SIZE);
 		// if (Autopilot.motors_is_on())
 			// logfile.write((char*)inbuffer, n);

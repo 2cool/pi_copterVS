@@ -302,6 +302,7 @@ void MS5611Class::phase1()
 		D1 = ((int32_t)bar_D[0] << 16) | ((int32_t)bar_D[1] << 8) | bar_D[2];
 		if (D1 == 0) {
 			bar_task = 0;
+			printf("D1 error\n");
 			close(fd4S);
 			return;
 		}
@@ -359,6 +360,7 @@ void MS5611Class::phase2() {
 		if (D2 == 0) {
 			bar_task = 0;
 			close(fd4S);
+			printf("D2 error\n");
 			return;
 		}
 		bar_task = 0;
@@ -405,6 +407,7 @@ void MS5611Class::phase3() {
 	}
 	if (P < 0) {
 		pressure = P;
+		printf("P error\n");
 	}
 	i_readTemperature = ((int8_t)(TEMP * 0.01));
 

@@ -273,7 +273,7 @@ bool BalanceClass::loop()
 			Hmc.loop();
 		}
 		//usleep(1000);
-		//GPS.loop();
+		GPS.loop();
 		//usleep(3000);
 		return false;
 	}
