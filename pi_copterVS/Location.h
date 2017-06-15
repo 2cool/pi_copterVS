@@ -31,6 +31,7 @@ class LocationClass
 
 
 public:
+	bool processGPS_1();
 	bool processGPS();
 	float cosDirection, sinDirection;
 	float dt, rdt;
@@ -90,6 +91,7 @@ private:
 	void update();
 	float kd_lon_, kd_lat_;
 	float r_kd_lon, r_kd_lat;
+
 
 
 };

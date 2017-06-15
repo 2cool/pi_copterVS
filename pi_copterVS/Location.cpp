@@ -32,14 +32,14 @@
 
 
 
-int fd4S;
+int fd_loc;
 
 
-int set_interface_attribs(int fd4S, int speed, int parity)
+int set_interface_attribs(int fd_loc, int speed, int parity)
 {
 	struct termios tty;
 	memset(&tty, 0, sizeof tty);
-	if (tcgetattr(fd4S, &tty) != 0)
+	if (tcgetattr(fd_loc, &tty) != 0)
 	{
 		printf("error %d from tcgetattr", errno);
 		return -1;
@@ -66,8 +66,9 @@ int set_interface_attribs(int fd4S, int speed, int parity)
 	tty.c_cflag |= parity;
 	tty.c_cflag &= ~CSTOPB;
 	tty.c_cflag &= ~CRTSCTS;
+	tty.c_iflag &= ~(INLCR | ICRNL);   //resseting (Map NL to CR on input |  Map CR to NL on input) https://www.mkssoftware.com/docs/man5/struct_termios.5.asp
 
-	if (tcsetattr(fd4S, TCSANOW, &tty) != 0)
+	if (tcsetattr(fd_loc, TCSANOW, &tty) != 0)
 	{
 		printf("error %d from tcsetattr", errno);
 		return -1;
@@ -75,11 +76,11 @@ int set_interface_attribs(int fd4S, int speed, int parity)
 	return 0;
 }
 
-void set_blocking(int fd4S, int should_block)
+void set_blocking(int fd_loc, int should_block)
 {
 	struct termios tty;
 	memset(&tty, 0, sizeof tty);
-	if (tcgetattr(fd4S, &tty) != 0)
+	if (tcgetattr(fd_loc, &tty) != 0)
 	{
 		printf("error %d from tggetattr", errno);
 		return;
@@ -88,7 +89,7 @@ void set_blocking(int fd4S, int should_block)
 	tty.c_cc[VMIN] = should_block ? 1 : 0;
 	tty.c_cc[VTIME] = 5;            // 0.5 seconds read timeout
 
-	if (tcsetattr(fd4S, TCSANOW, &tty) != 0)
+	if (tcsetattr(fd_loc, TCSANOW, &tty) != 0)
 		printf("error %d setting term attributes", errno);
 }
 
@@ -196,86 +197,102 @@ void LocationClass::calcChecksum(unsigned char* CK) {
 		CK[1] += CK[0];
 	}
 }
-int available_loc = 0;
+
+
+int available_loc = 0, all_available_loc,buf_ind_loc;
 char buf_loc[72];
-bool LocationClass::processGPS() {
 
-	int all_available;
-	ioctl(fd4S, FIONREAD, &all_available);
-	//printf("available_loc %i\n",available_loc);
-
-	if ((available_loc+all_available) < 36){
-		return false;
-	}
-	static int fpos = 0;
-	static unsigned char checksum[2];
+bool LocationClass::processGPS_1() {
+	buf_ind_loc = 0;
 	const int payloadSize = sizeof(NAV_POSLLH);
-	
-	int buf_ind = 0;
-#define c (buf_loc[buf_ind])
-	
-	available_loc+=read(fd4S, &buf_loc[available_loc], 72 - available_loc);
+	static unsigned char checksum[2];
+	static int fpos = 0;
 	while (available_loc) {
+
+		//printf("%#.2X,", c);
 		if (fpos < 2) {
-			if (c == UBX_HEADER[fpos])
+			if (buf_loc[buf_ind_loc] == UBX_HEADER[fpos])
 				fpos++;
 			else
 				fpos = 0;
-
 		}
 		else {
 			if ((fpos - 2) < payloadSize)
-				((unsigned char*)(&posllh))[fpos - 2] = c;
-
+				((unsigned char*)(&posllh))[fpos - 2] = buf_loc[buf_ind_loc];
 			fpos++;
-
 			if (fpos == (payloadSize + 2)) {
 				calcChecksum(checksum);
 			}
 			else if (fpos == (payloadSize + 3)) {
-				if (c != checksum[0])
+				if (buf_loc[buf_ind_loc] != checksum[0]) {
 					fpos = 0;
+				}
 			}
 			else if (fpos == (payloadSize + 4)) {
 				fpos = 0;
-				if (c == buf_loc[buf_ind]) {
+				if (buf_loc[buf_ind_loc] == checksum[1]) {
 
-					
 					accuracy_hor_pos = DELTA_ANGLE_C*(float)posllh.hAcc;
-					if (accuracy_hor_pos > 99)accuracy_hor_pos =  99;
+					if (accuracy_hor_pos > 99)accuracy_hor_pos = 99;
 					accuracy_ver_pos = DELTA_ANGLE_C*(float)posllh.vAcc;
-					if (accuracy_ver_pos > 99)accuracy_ver_pos =  99;
+					if (accuracy_ver_pos > 99)accuracy_ver_pos = 99;
 					mseconds = posllh.iTOW;
+					if (old_iTOW == 0)
+						old_iTOW = posllh.iTOW - 100;
 					dt = DELTA_ANGLE_C*(float)(posllh.iTOW - old_iTOW);
-					dt=constrain(dt, 0.1f, 1);
+					if (dt > 0.11 || dt < 0.09)
+						printf("\ngps dt error: %f, time= %i\n", dt, millis() / 1000);
+					dt = constrain(dt, 0.1f, 0.2);
 					rdt = 1.0f / dt;
 					old_iTOW = posllh.iTOW;
 					last_gps_data_time = micros();
-					
+
 					lat_ = posllh.lat;
 					lon_ = posllh.lon;
 
 					//Debug.load(0, lat_, lon_);
 					//Debug.dump();
 
-					buf_ind++;
+					buf_ind_loc++;
 					available_loc--;
-					if (available_loc) {
-						//printf("%i\n", available_loc);
-						memcpy(buf_loc, &buf_loc[buf_ind], available_loc);
-					}
+					
+				//	printf("\t\tOK\n");
 					return true;
 				}
+
 			}
 			else if (fpos > (payloadSize + 4)) {
 				fpos = 0;
 			}
 		}
 		available_loc--;
-		buf_ind++;
-		//ioctl(fd4S, FIONREAD, &available_loc);
+		buf_ind_loc++;
+		//ioctl(fd_loc, FIONREAD, &available_loc);
 	}
+	//printf("________error\n");
 	return false;
+}
+
+bool LocationClass::processGPS() {
+
+	bool ret = false;
+
+	ioctl(fd_loc, FIONREAD, &all_available_loc);
+
+	if ((available_loc+all_available_loc) < 36){
+		return false;
+	}
+
+	if (all_available_loc)
+		available_loc+=read(fd_loc, &buf_loc[available_loc], 72 - available_loc);
+
+	int t_available_loc = available_loc;
+	ret =  processGPS_1();
+
+	if (available_loc) {
+		memmove(buf_loc, &buf_loc[buf_ind_loc], available_loc);
+	}
+	return ret;
 }
 
 
@@ -303,16 +320,17 @@ void LocationClass::add2NeedLoc(const float speedX, const float speedY, const fl
 
 int LocationClass::init(){
 #ifndef FALSE_GPS
-	close(fd4S);
-	fd4S = open("/dev/ttyS3", O_RDWR | O_NOCTTY | O_SYNC);
-	if (fd4S < 0)
+//	close(fd_loc);
+
+	fd_loc = open("/dev/ttyS3", O_RDWR | O_NOCTTY | O_SYNC);
+	if (fd_loc < 0)
 	{
 		printf("error %d opening /dev/ttyS3: %s", errno, strerror(errno));
 		return -1;
 	}
 
-	set_interface_attribs(fd4S, B9600, 0);  // set speed to 115,200 bps, 8n1 (no parity)
-	set_blocking(fd4S, 0);                // set no blocking
+	set_interface_attribs(fd_loc, B9600, 0);  // set speed to 115,200 bps, 8n1 (no parity)
+	set_blocking(fd_loc, 0);                // set no blocking
 #endif
 	mspeedx =  mspeedy = 0;
 	old_iTOW = 0;

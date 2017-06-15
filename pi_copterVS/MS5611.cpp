@@ -4,7 +4,7 @@
 #include "Autopilot.h"
 #include "debug.h"
 
-
+int fd4S;
 unsigned int PROM_read(int DA, char PROM_CMD)
 {
 	uint16_t ret = 0;
@@ -235,7 +235,7 @@ void MS5611Class::phase0() {
 	bar_D[0] = bar_D[1] = bar_D[2] = 0;
 	bar_zero = 0;
 
-	int fd4S;
+	
 	if ((fd4S = open("/dev/i2c-1", O_RDWR)) < 0) {
 		printf("Failed to open the bus.\n");
 		close(fd4S);
@@ -402,6 +402,14 @@ void MS5611Class::phase3() {
 
 	//nado proverat na korektnost' vysoty 
 	P = ((((int64_t)D1*SENS) / 2097152 - OFF) / 32768);
+	if (P < 50000) {
+		bar_task = 0;
+		close(fd4S);
+		printf("H error\n");
+		return;
+	}
+
+
 	if (pressure == PRESSURE_AT_0) {
 		pressure = (float)P;
 	}

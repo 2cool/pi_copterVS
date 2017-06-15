@@ -151,8 +151,7 @@ int setup() {////--------------------------------------------- SETUP -----------
 	EEPROM.read_set();
 	LED.init();
 	printf("___setup___\n");
-	printf("gps init...\n");
-	GPS.init();
+	
 
 #ifdef WORK_WITH_WIFI
 	printf("wifi init...\n");
@@ -167,6 +166,8 @@ int setup() {////--------------------------------------------- SETUP -----------
 	Telemetry.testBatteryVoltage();
 	printf("telemetry init OK \n");
 	Pwm.beep_code(BEEPS_ON);
+	printf("gps init...\n");
+	GPS.init();
 	return 0;
 
 }
@@ -250,7 +251,7 @@ int printHelp() {
 }
 
 int main(int argc, char *argv[]) {
-	printf("ver 2.170613 \n");
+	printf("ver 2.170615 \n");
 	Debug.n_p1 = 3;
 	Debug.n_p2 = 1.6f;
 	Debug.n_debug = 0;
