@@ -125,9 +125,9 @@ int cntssdde = 0;
 #endif
 float fspeed = 0;
 void MS5611Class::copterStarted(){
-	if (altitude_error == ALT_NOT_SET){
+//	if (altitude_error == ALT_NOT_SET){
 		altitude_error = altitude_;
-	}
+//	}
 }
 
 

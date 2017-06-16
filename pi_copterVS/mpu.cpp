@@ -587,8 +587,8 @@ bool MpuClass::loop(){//-------------------------------------------------L O O P
 
 
 	
-//	Debug.load(0, rdt, dt);
-//	Debug.load(1, gyro_yaw / 180, add_2_yaw / 180);
+	//Debug.load(0, accZ/10, 0);
+	//Debug.load(0, accX * 10, accY * 10);
 //	Debug.load(2, gyro_yaw / 180, head / 180);
 /*	Debug.load(1, pitch / 40, ttPitch / 40);
 	Debug.load(2, yaw / 180, ttYaw / 180);

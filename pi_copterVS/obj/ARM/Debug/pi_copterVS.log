@@ -1,9 +1,9 @@
 ﻿  Validating architecture
   Validating sources
-  Copying sources remotely to '192.168.1.105'
+  Copying sources remotely to '192.168.43.15'
   Starting remote build
   Compiling sources:
-  Location.cpp
+  MS5611.cpp
 C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\helper_3dmath.h(82,36): warning : conversion to ‘float’ from ‘double’ may alter its value [-Wfloat-conversion]
 C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\helper_3dmath.h(119,30): warning : conversion to ‘float’ from ‘double’ may alter its value [-Wfloat-conversion]
 C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\helper_3dmath.h(124,5): warning : conversion to ‘int16_t {aka short int}’ from ‘float’ may alter its value [-Wfloat-conversion]
@@ -13,12 +13,21 @@ C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\helper_3dmath.h(155,5): wa
 C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\helper_3dmath.h(156,5): warning : conversion to ‘int16_t {aka short int}’ from ‘float’ may alter its value [-Wfloat-conversion]
 C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\helper_3dmath.h(157,5): warning : conversion to ‘int16_t {aka short int}’ from ‘float’ may alter its value [-Wfloat-conversion]
 C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\helper_3dmath.h(186,30): warning : conversion to ‘float’ from ‘double’ may alter its value [-Wfloat-conversion]
-C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\Location.cpp(196,9): warning : conversion to ‘unsigned char’ from ‘int’ may alter its value [-Wconversion]
-C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\Location.cpp(197,9): warning : conversion to ‘unsigned char’ from ‘int’ may alter its value [-Wconversion]
-C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\Location.cpp(245,9): warning : conversion to ‘float’ alters ‘double’ constant value [-Wfloat-conversion]
-C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\Location.cpp(245,9): warning : conversion to ‘float’ from ‘double’ may alter its value [-Wfloat-conversion]
-C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\Location.cpp(289,6): warning : unused variable ‘t_available_loc’ [-Wunused-variable]
-C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\Location.cpp(391,1): warning : no return statement in function returning non-void [-Wreturn-type]
-C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\Location.cpp(357,1): warning : control reaches end of non-void function [-Wreturn-type]
+C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\MS5611.cpp(21,6): warning : conversion to ‘uint16_t {aka short unsigned int}’ from ‘int’ may alter its value [-Wconversion]
+C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\MS5611.cpp(70,53): warning : ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\MS5611.cpp(109,49): warning : conversion to ‘char’ from ‘int’ may alter its value [-Wconversion]
+C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\MS5611.cpp(109,8): warning : conversion to ‘uint16_t {aka short unsigned int}’ from ‘unsigned int’ may alter its value [-Wconversion]
+C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\MS5611.cpp(265,16): warning : comparison between signed and unsigned integer expressions [-Wsign-compare]
+C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\MS5611.cpp(328,16): warning : comparison between signed and unsigned integer expressions [-Wsign-compare]
+C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\MS5611.cpp(374,7): warning : conversion to ‘int32_t {aka int}’ from ‘int64_t {aka long long int}’ may alter its value [-Wconversion]
+C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\MS5611.cpp(386,6): warning : conversion to ‘int32_t {aka int}’ from ‘double’ may alter its value [-Wfloat-conversion]
+C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\MS5611.cpp(404,4): warning : conversion to ‘int32_t {aka int}’ from ‘int64_t {aka long long int}’ may alter its value [-Wconversion]
+C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\MS5611.cpp(417,12): warning : conversion to ‘float’ from ‘int32_t {aka int}’ may alter its value [-Wconversion]
+C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\MS5611.cpp(423,11): warning : conversion to ‘float’ from ‘double’ may alter its value [-Wfloat-conversion]
+C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\MS5611.cpp(427,10): warning : conversion to ‘float’ alters ‘double’ constant value [-Wfloat-conversion]
+C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\MS5611.cpp(429,41): warning : conversion to ‘double’ from ‘long long unsigned int’ may alter its value [-Wconversion]
+C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\MS5611.cpp(429,41): warning : conversion to ‘float’ from ‘double’ may alter its value [-Wfloat-conversion]
+C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\MS5611.cpp(432,49): warning : conversion to ‘float’ from ‘double’ may alter its value [-Wfloat-conversion]
+C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\MS5611.cpp(454,54): warning : conversion to ‘float’ from ‘double’ may alter its value [-Wfloat-conversion]
   Linking objects
   pi_copterVS.vcxproj -> C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\bin\ARM\Debug\pi_copterVS.out

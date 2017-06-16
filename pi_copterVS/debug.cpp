@@ -36,9 +36,29 @@ void DebugClass::graphic(const int n, const float x, const float y) {
 		 Out.println();
 		 */
 	 }
+	 uint64_t d_old_t = 0;
+
+
+	 int d_delay = 20;
+	 double d_dt = (double)d_delay *0.001;
+
 	 void DebugClass::load(const uint8_t i, const float x, const float y) {
-		 ar[i][0] = x;
-		 ar[i][1] = y;
+		 if (d_old_t == 0) {
+			 d_old_t = micros();
+			 return;
+		 }
+		 uint64_t t = micros();
+		 double dt = (double)(t - d_old_t);
+		 d_old_t = t;
+		 dt *= 0.000001;
+
+
+		 double F = dt / d_dt;
+		 if (F > 1)
+			 F = 1;
+
+		 ar[i][0] += (x-ar[i][0])*F;
+		 ar[i][1] += (y-ar[i][1])*F;
 	 }
 	// int cnt = 0;
 	 uint32_t old_time = 0;
@@ -46,7 +66,7 @@ void DebugClass::graphic(const int n, const float x, const float y) {
 		 if (n_debug > 9)
 			 return;
 		 uint32_t t = millis();
-		 if (t - old_time < 20)//20)
+		 if (t - old_time < d_delay)//20)
 			 return;
 		 old_time = t;
 

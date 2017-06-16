@@ -166,7 +166,6 @@ int setup() {////--------------------------------------------- SETUP -----------
 	Telemetry.testBatteryVoltage();
 	printf("telemetry init OK \n");
 	Pwm.beep_code(BEEPS_ON);
-	printf("gps init...\n");
 	GPS.init();
 	return 0;
 
@@ -251,7 +250,8 @@ int printHelp() {
 }
 
 int main(int argc, char *argv[]) {
-	printf("ver 2.170615 \n");
+	
+	printf("ver 2.170616_ \n");
 	Debug.n_p1 = 3;
 	Debug.n_p2 = 1.6f;
 	Debug.n_debug = 0;

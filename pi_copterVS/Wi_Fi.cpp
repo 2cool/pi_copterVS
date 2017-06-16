@@ -58,6 +58,7 @@ bool wite_connection(){
 
 void server(){
 	//delay(5000);
+	logfile.write("HI\n", 3);
      if (wite_connection())
 		return;
 	  while(run){
@@ -65,20 +66,33 @@ void server(){
 		// bzero(buffer,256);
 		  usleep(33000);
 		 n = read(newsockfd,inbuffer, TELEMETRY_BUF_SIZE);
-		// if (Autopilot.motors_is_on())
-			// logfile.write((char*)inbuffer, n);
+
+
+
+		 if (Autopilot.motors_is_on()) {
+			 logfile.write((char*)inbuffer, n);
+			 logfile.flush();
+		 }
 		if (n>0){
 			if (connected == 0)
 				printf("connected \n");
 			connected++;
 			com->new_data(inbuffer,n);
+			
 		//	printf("K");	
 			int buf_len=tel->read_buf(outbuffer);
 		//	printf("T\n");
-			
+
+			if (Autopilot.motors_is_on()) {
+				logfile.write((char*)outbuffer, buf_len);
+				logfile.flush();
+			}
+
+
 			n = write(newsockfd,outbuffer,buf_len);
-		//	if (Autopilot.motors_is_on())
-			//	logfile.write((char*)outbuffer, buf_len);
+
+
+			
 		}else{
 			if (connected) {
 				
@@ -112,8 +126,14 @@ WiFiClass::~WiFiClass(){
 
 int WiFiClass::init()
 {
+	timespec time_now;
+	clock_gettime(CLOCK_REALTIME, &time_now);
+	ostringstream convert;
+	convert << "/home/igor/log" << time_now.tv_sec << ".log";
+	string fname = convert.str();
 
-	logfile.open("/home/igor/log4444.log", fstream::in | fstream::out | fstream::trunc);
+	
+	logfile.open(fname.c_str(), fstream::in | fstream::out | fstream::trunc);
 
 
 

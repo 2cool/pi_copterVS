@@ -483,6 +483,10 @@ bool AutopilotClass::motors_do_on(const bool start, const string msg){//////////
 	
 	if (start){
 		printf("on ");
+		if (millis() < 30000) {
+			printf("\n!!!calibrating!!! to end:%i sec.\n", 30-millis()/1000);
+			return false;
+		}
 		if (Telemetry.power_is_on() == false) {
 			printf("!!! power is off !!!\n");
 			Pwm.beep_code(BEEPS_ON+(1<<1));
@@ -521,7 +525,7 @@ bool AutopilotClass::motors_do_on(const bool start, const string msg){//////////
 			Mpu.max_g_cnt = 0;
 			holdAltitude(Debug.n_p1);
 			holdLocation(GPS.loc.lat_, GPS.loc.lon_);
-			aYaw_ = Mpu.yaw;
+			aYaw_ = -Mpu.yaw;
 
 #ifdef DEBUG_MODE
 			Out.print("\nhome loc:");
