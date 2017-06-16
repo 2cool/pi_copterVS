@@ -56,7 +56,7 @@ THE SOFTWARE.
 #include <sys/stat.h>
 #include <linux/i2c-dev.h>
 #include "I2Cdev.h"
-
+#include "debug.h"
 
 /** Default timeout value for read operations.
  * Set this to 0 to disable timeout detection.
@@ -179,7 +179,7 @@ int8_t readWord(uint8_t devAddr, uint8_t regAddr, uint16_t *data) {
 int8_t readBytes(uint8_t devAddr, uint8_t regAddr, uint8_t length, uint8_t *data) {
     int8_t count = 0;
 #ifdef DEBUG
-    printf("read %#x %#x %u\n",devAddr,regAddr,length);
+    fprintf(Debug.out_stream,"read %#x %#x %u\n",devAddr,regAddr,length);
 #endif
     int fd = open("/dev/i2c-1", O_RDWR);
 
@@ -223,7 +223,7 @@ int8_t readBytes(uint8_t devAddr, uint8_t regAddr, uint8_t length, uint8_t *data
 int8_t readWords(uint8_t devAddr, uint8_t regAddr, uint8_t length, uint16_t *data) {
     int8_t count = 0;
 
-    printf("ReadWords() not implemented\n");
+    fprintf(Debug.out_stream,"ReadWords() not implemented\n");
     // Use readBytes() and potential byteswap
     *data = 0; // keep the compiler quiet
 
@@ -349,7 +349,7 @@ int writeBytes(uint8_t devAddr, uint8_t regAddr, uint8_t length, uint8_t* data) 
     int fd;
 
 #ifdef DEBUG
-    printf("write %#x %#x\n",devAddr,regAddr);
+    fprintf(Debug.out_stream,"write %#x %#x\n",devAddr,regAddr);
 #endif
     if (length > 127) {
         fprintf(stderr, "Byte write count (%d) > 127\n", length);

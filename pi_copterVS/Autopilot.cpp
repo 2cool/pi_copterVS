@@ -109,7 +109,7 @@ void AutopilotClass::add_2_need_altitude(float speed, const float dt){
 		if (flyAtAltitude < lowest_height)
 			flyAtAltitude = lowest_height;
 
-		//printf("f@alt %f\n", flyAtAltitude);
+		//fprintf(Debug.out_stream,"f@alt %f\n", flyAtAltitude);
 	}
 }
 //-------------------------------------------------------------------------
@@ -226,7 +226,7 @@ string AutopilotClass::get_set(){
 }
 
 void AutopilotClass::set(const float ar[]){
-	printf("Autopilot set\n");
+	fprintf(Debug.out_stream,"Autopilot set\n");
 	int error = 1;
 
 	if (ar[SETTINGS_ARRAY_SIZE] == SETTINGS_IS_OK){
@@ -246,16 +246,16 @@ void AutopilotClass::set(const float ar[]){
 
 		if (error == 0){
 			int ii = 0;
-			printf("Safe set:\n");
+			fprintf(Debug.out_stream,"Safe set:\n");
 
 			for (ii = 0; ii < i; ii++){
-				printf("%f,",ar[ii]);
+				fprintf(Debug.out_stream,"%f,",ar[ii]);
 			}
-			printf("%f\n",ar[ii]);
+			fprintf(Debug.out_stream,"%f\n",ar[ii]);
 		}
 	}
 	if (error>0){
-		printf("ERROR\n");
+		fprintf(Debug.out_stream,"ERROR\n");
 	}
 }
 
@@ -277,7 +277,7 @@ bool AutopilotClass::holdAltitude(float alt){
 		Stabilization.init_Z();
 	}
 	//setbuf(stdout, NULL);
-	printf("FlyAt: %f \n",flyAtAltitude);
+	fprintf(Debug.out_stream,"FlyAt: %f \n",flyAtAltitude);
 
 	return true;
 }
@@ -410,7 +410,7 @@ bool AutopilotClass::going2HomeON(const bool hower){
 		control_bits |= GO2HOME;
 		f_go2homeTimer = 0;
 		//Out.println("Hanging on the site!");
-		printf("go2home\n");
+		fprintf(Debug.out_stream,"go2home\n");
 		go2homeIndex=JUMP;
 	}
 	return res;
@@ -442,7 +442,7 @@ bool AutopilotClass::holdLocation(const long lat, const long lon){
 
 		
 		GPS.loc.setNeedLoc(lat,lon);
-		printf("Hower at: %i,%i\n",GPS.loc.lat_, GPS.loc.lon_);
+		fprintf(Debug.out_stream,"Hower at: %i,%i\n",GPS.loc.lat_, GPS.loc.lon_);
 		oldtime = millis();
 		
 		//float cosBearing = cos(GPS.bearing);
@@ -479,16 +479,16 @@ bool AutopilotClass::holdLocationStartStop(){///////////////////////////////////
 
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 bool AutopilotClass::motors_do_on(const bool start, const string msg){////////////////////////  M O T O R S  D O  ON  /////////////////////////////////////////////////////////////////////////
-	printf("%s - ",msg.c_str());
+	fprintf(Debug.out_stream,"%s - ",msg.c_str());
 	
 	if (start){
-		printf("on ");
+		fprintf(Debug.out_stream,"on ");
 		if (millis() < 30000) {
-			printf("\n!!!calibrating!!! to end:%i sec.\n", 30-millis()/1000);
+			fprintf(Debug.out_stream,"\n!!!calibrating!!! to end:%i sec.\n", 30-millis()/1000);
 			return false;
 		}
 		if (Telemetry.power_is_on() == false) {
-			printf("!!! power is off !!!\n");
+			fprintf(Debug.out_stream,"!!! power is off !!!\n");
 			Pwm.beep_code(BEEPS_ON+(1<<1));
 		}
 		LED.error_code = 0;
@@ -497,13 +497,13 @@ bool AutopilotClass::motors_do_on(const bool start, const string msg){//////////
 
 			if (Telemetry.low_voltage){
 				Telemetry.addMessage(e_LOW_VOLTAGE);
-				printf(" LOW VOLTAGE\n");
+				fprintf(Debug.out_stream," LOW VOLTAGE\n");
 				Pwm.beep_code(BEEPS_ON + (2 << 1));
 				return false;
 			}
 
 			if (GPS.loc.accuracy_hor_pos > MIN_ACUR_HOR_POS_2_START ){
-				printf(" GPS error\n");
+				fprintf(Debug.out_stream," GPS error\n");
 				Pwm.beep_code(BEEPS_ON + (3 << 1));
 				Telemetry.addMessage(e_GPS_ERROR);
 				LED.error_time = millis();
@@ -515,7 +515,7 @@ bool AutopilotClass::motors_do_on(const bool start, const string msg){//////////
 			
 			control_bits = MOTORS_ON;
 
-			printf("OK\n");
+			fprintf(Debug.out_stream,"OK\n");
 
 			GPS.loc.setHomeLoc();
 
@@ -528,12 +528,12 @@ bool AutopilotClass::motors_do_on(const bool start, const string msg){//////////
 			aYaw_ = -Mpu.yaw;
 
 #ifdef DEBUG_MODE
-			Out.print("\nhome loc:");
-			Out.print(GPS.loc.lat_);
-			Out.print(" ");
-			Out.print(GPS.loc.lon_);
-			Out.print(" ");
-			Out.print(GPS.loc.altitude);
+			Out.fprintf(Debug.out_stream,"\nhome loc:");
+			Out.fprintf(Debug.out_stream,GPS.loc.lat_);
+			Out.fprintf(Debug.out_stream," ");
+			Out.fprintf(Debug.out_stream,GPS.loc.lon_);
+			Out.fprintf(Debug.out_stream," ");
+			Out.fprintf(Debug.out_stream,GPS.loc.altitude);
 			Out.println("M");
 			Out.println("home alt set");
 			Out.println(flyAtAltitude);
@@ -548,26 +548,26 @@ bool AutopilotClass::motors_do_on(const bool start, const string msg){//////////
 		}
 		else{
 			if (Hmc.calibrated == false){
-				printf("compas, ");
+				fprintf(Debug.out_stream,"compas, ");
 				Pwm.beep_code(BEEPS_ON + (4 << 1));
 				LED.error_time = millis();
 				LED.error_code &= 255 ^ 2;
 			}
 			if (Mpu.gyro_calibratioan == false){
-				printf("gyro");
+				fprintf(Debug.out_stream,"gyro");
 				Pwm.beep_code(BEEPS_ON + (5 << 1));
 				LED.error_time = millis();
 				LED.error_code &= 255 ^ 4;
 			}
-			printf(" calibr FALSE\n");
+			fprintf(Debug.out_stream," calibr FALSE\n");
 		}
 	}//------------------------------OFF----------------
 	else {
-		printf("off ");
+		fprintf(Debug.out_stream,"off ");
 		Telemetry.addMessage(i_OFF_MOTORS);
 		off_throttle(true, msg);
 
-		printf("OK\n");
+		fprintf(Debug.out_stream,"OK\n");
 	}
 	return true;
 }
@@ -589,7 +589,7 @@ bool AutopilotClass::off_throttle(const bool force, const string msg){//////////
 	
 	if ( force)
 	{
-		printf("force motors_off %s\n", msg.c_str());
+		fprintf(Debug.out_stream,"force motors_off %s\n", msg.c_str());
 		Balance.set_off_th_();
 		Telemetry.addMessage(msg);
 		control_bits = 0;
@@ -599,14 +599,14 @@ bool AutopilotClass::off_throttle(const bool force, const string msg){//////////
 	//	if (control_bits_ & (255 ^ (COMPASS_ON | HORIZONT_ON)))
 	//		return true;
 
-		if (MS5611.altitude()  < 2){
-			motors_do_on(false,msg);
-		}
-		else{
+		//if (MS5611.altitude()  < 2){
+		//	motors_do_on(false,msg);
+		//}
+		//else{
 			control_falling(msg);
 			
 			//Out.println(throttle);
-		}
+		//}
 	}
 	return false;
 
@@ -614,7 +614,7 @@ bool AutopilotClass::off_throttle(const bool force, const string msg){//////////
 
 void AutopilotClass::connectionLost_(){ ///////////////// LOST
 
-	printf("connection lost\n");
+	fprintf(Debug.out_stream,"connection lost\n");
 	//Out.println("CONNECTION LOST");
 	
 
@@ -641,7 +641,7 @@ return;
 }
 void AutopilotClass::calibration() {/////////////////////////////////////////////////////////////////////////////////////////////////
 
-	printf("Set Calibr NOT USET.\n");
+	fprintf(Debug.out_stream,"Set Calibr NOT USET.\n");
 	/*
 	if (abs(cPitch + Commander.pitch) > 0.1 || abs(cRoll + Commander.roll) > 0.1)
 		return;
@@ -709,7 +709,7 @@ void AutopilotClass::horizont_tr() {
 
 bool AutopilotClass::selfTest(){/////////////////////////////////////////////////////////////////////////////////////////////////
 	//wdt_enable(WDTO_2S);
-	printf("Self Test running\n");
+	fprintf(Debug.out_stream,"Self Test running\n");
 	int ok = 0;
 	if (Mpu.selfTest())
 		ok += 1;
@@ -762,7 +762,7 @@ bool AutopilotClass::start_stop_program(const bool stopHere){
 			res &= holdLocation(GPS.loc.lat_, GPS.loc.lon_);
 			if (res){
 				control_bits |= PROGRAM;
-				printf("prog started\n");
+				fprintf(Debug.out_stream,"prog started\n");
 				return true;
 			}
 		}
@@ -776,13 +776,13 @@ bool AutopilotClass::set_control_bits(uint32_t bits) {
 	if (bits==0)
 		return true;
 	//	uint8_t mask = control_bits_^bits;
-	//printf("comm=%i\n", bits);
+	//fprintf(Debug.out_stream,"comm=%i\n", bits);
 	if (MOTORS_ON&bits)  {
 		Hmc.compas_motors_calibr = false;
 		bool on = motors_is_on() == false;
 		on = motors_do_on(on, m_START_STOP);
 		if (on == false) {
-			printf("motors on denied!\n");
+			fprintf(Debug.out_stream,"motors on denied!\n");
 		}
 	}
 

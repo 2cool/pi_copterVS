@@ -32,7 +32,7 @@
 #define FALSE_TIME_TO_BATERY_OFF 120000.0f
 
 void TelemetryClass::addMessage(const string msg){
-	printf("%s\n", msg.c_str());
+	fprintf(Debug.out_stream,"%s\n", msg.c_str());
 	if (message.length() + msg.length() >= TELEMETRY_BUF_SIZE)
 		return;
 
@@ -42,7 +42,7 @@ void TelemetryClass::addMessage(const string msg){
 }
 
 void TelemetryClass::getSettings(int n){
-	printf("up set\n");
+	fprintf(Debug.out_stream,"up set\n");
 	if (n > 4 || n < 0)
 		return;
 
@@ -119,7 +119,7 @@ void TelemetryClass::loop()
 		testBatteryVoltage();
 
 		if (Autopilot.progState() && check_time_left_if_go_to_home() < 60 && ++no_time_cnt>3){ // на тестах ошибся на 5 минут.  
-			printf("too far from HOME!\n");
+			fprintf(Debug.out_stream,"too far from HOME!\n");
 			addMessage(e_BATERY_OFF_GO_2_HOME);
 			Autopilot.going2HomeStartStop(false);
 		}	
@@ -223,13 +223,13 @@ void TelemetryClass::update_voltage(){
 	if (Telemetry.b[2] == 0) {
 		if (power_on_time > 0) {
 			power_on_time = 0;
-			printf("power off\n");
+			fprintf(Debug.out_stream,"power off\n");
 		}
 	}
 	else {
 		if (power_on_time == 0) {
 			power_on_time = millis();
-			printf("!!! power on !!!\n");
+			fprintf(Debug.out_stream,"!!! power on !!!\n");
 		}
 	}
 
@@ -338,9 +338,9 @@ void TelemetryClass::update_buf() {
 	//delay(1000);
 	int i = 0;
 	uint32_t mod = Autopilot.get_control_bits();
-//	printf("out <- %i\n", mod);
+//	fprintf(Debug.out_stream,"out <- %i\n", mod);
 	loadBUF32(i, mod);
-	//printf("message=", message.c_str());
+	//fprintf(Debug.out_stream,"message=", message.c_str());
 	const bool err = (GPS.loc.accuracy_hor_pos >= 99);
 	loadBUF(i, 1000 + (Balance.get_throttle() * 1000));
 	loadBUF32(i, GPS.loc.lat_);
@@ -350,7 +350,7 @@ void TelemetryClass::update_buf() {
 	buf[i++] = (byte)(err)?99: GPS.loc.accuracy_ver_pos;
 
 	loadBUF(i, 10.0f*Autopilot.corectedAltitude4tel());// -Autopilot.startAltitude));
-	//Out.print(t_old_alt); Out.print(" "); Out.println(MS5611.altitude);// -Autopilot.startAltitude);
+	//Out.fprintf(Debug.out_stream,t_old_alt); Out.fprintf(Debug.out_stream," "); Out.println(MS5611.altitude);// -Autopilot.startAltitude);
 	loadBUF8(i, -Mpu.get_pitch());
 	loadBUF8(i, Mpu.get_roll());
 	loadBUF8(i, Balance.c_pitch);

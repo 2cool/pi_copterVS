@@ -78,7 +78,7 @@ const char * dtostre(float f, string ch[], int n, int fl=0){
 	}
 */
 
-
+/*
 class Serial_class{
 	public:
 	void setTimeout(const int i){}
@@ -87,10 +87,10 @@ class Serial_class{
 	bool find(char *c){return false;}
 	bool available(){return false;}
 	byte read(){return 0;}
-	unsigned int print(char s[]);
-	unsigned int print(char c);
-	unsigned int print(string &s);
-	unsigned int print(string s);
+	unsigned int fprintf(Debug.out_stream,char s[]);
+	unsigned int fprintf(Debug.out_stream,char c);
+	unsigned int fprintf(Debug.out_stream,string &s);
+	unsigned int fprintf(Debug.out_stream,string s);
 	unsigned int println(char s[]);
 	unsigned int println(char c);
 	//unsigned int println(string &s);
@@ -98,7 +98,7 @@ class Serial_class{
 	unsigned int println(void);
 	
 };
-
+*/
 
 
 class EEPROM_Class
@@ -121,7 +121,7 @@ class EEPROM_Class
 
 extern EEPROM_Class EEPROM;
 
-extern Serial_class Serial;
+
 
 #endif
 

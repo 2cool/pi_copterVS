@@ -100,7 +100,7 @@
 
 #define PRESSURE_AT_0 101325
 
-#define Out Serial
+
 //#define ErrorLog Serial
 
 

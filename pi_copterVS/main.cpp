@@ -88,7 +88,7 @@ void buzz_until_not_finded() {
 
 	const bool power_on = true;// analogRead(A4) > 500;
 	Pwm.on(0, power_on ? pwm_OFF_THROTTLE : pwm_MAX_THROTTLE);
-	printf(power_on ? "	- COPTER IS LOST -\n" : "wait 4 power\n");
+	fprintf(Debug.out_stream,power_on ? "	- COPTER IS LOST -\n" : "wait 4 power\n");
 
 
 	/*
@@ -144,27 +144,27 @@ void buzz_until_not_finded() {
 #endif
 }
 
-int setup() {////--------------------------------------------- SETUP ------------------------------
+int setup(int cnt) {////--------------------------------------------- SETUP ------------------------------
 	
 	Pwm.on(0,  pwm_MAX_THROTTLE);
 
 	EEPROM.read_set();
 	LED.init();
-	printf("___setup___\n");
+	fprintf(Debug.out_stream,"___setup___\n");
 	
 
 #ifdef WORK_WITH_WIFI
-	printf("wifi init...\n");
-	if (WiFi.init())
+	fprintf(Debug.out_stream,"wifi init...\n");
+	if (WiFi.init(cnt))
 		return -1;
 #endif
-	printf("commander init...\n");
+	fprintf(Debug.out_stream,"commander init...\n");
 	Commander.init();
-	printf("Autopilot init...\n");
+	fprintf(Debug.out_stream,"Autopilot init...\n");
 	Autopilot.init();
 	Telemetry.init_();
 	Telemetry.testBatteryVoltage();
-	printf("telemetry init OK \n");
+	fprintf(Debug.out_stream,"telemetry init OK \n");
 	Pwm.beep_code(BEEPS_ON);
 	GPS.init();
 	return 0;
@@ -183,7 +183,7 @@ void print_time() {
 		if (d > maxTT) {
 			\
 				maxTT = d; \
-				printf("%i\n",maxTT); \
+				fprintf(Debug.out_stream,"%i\n",maxTT); \
 		}\
 }
 #ifndef WORK_WITH_WIFI
@@ -245,16 +245,21 @@ void handler(int sig) { // can be called asynchronously
 
 int printHelp() {
 	printf("<-help> for this help\n");
-	printf(" <fly at start at hight in sm> <lower hight in sm>\n");
+	printf(" <fly at start at hight in sm> <lower hight in sm> <f=write stdout to file> <y=log com and tel>\n");
+	printf("example to write in log file : pi_copter 300 100 f y\n");
+	printf("example to write in stdout   : pi_copter 300 100 s\n");
 	return -1;
 }
 
+
 int main(int argc, char *argv[]) {
 	
-	printf("ver 2.170616_ \n");
+	
 	Debug.n_p1 = 3;
 	Debug.n_p2 = 1.6f;
 	Debug.n_debug = 0;
+	int counter = 0;
+
 	if (argc >= 2) {
 		int tt = string(argv[1]).compare("-help");
 		if (tt==0) {
@@ -263,29 +268,59 @@ int main(int argc, char *argv[]) {
 			return printHelp();
 
 		}
-		int t= atoi(argv[1]);
-		//if (t>=100 && t<=500)
-		Debug.n_p1 = 0.01f*(float)t;
-		if (argc >= 3) {
+		
+		if (argc >= 5) {
+			int t = atoi(argv[1]);
+			//if (t>=100 && t<=500)
+			Debug.n_p1 = 0.01f*(float)t;
 			t=atoi(argv[2]);
-			//if (t >= 50 && t <= 160)
-				Debug.n_p2 = 0.01f*(float)t;
+			
+			Debug.n_p2 = 0.01f*(float)t;
+
+
+			
+			FILE *set = fopen("/home/igor/logs/logCounter.txt", "r");
+			if (set) {
+				fscanf(set, "%i", &counter);
+
+				fclose(set);
+				remove("/home/igor/logs/logCounter.txt");
+			}
+
+			set = fopen("/home/igor/logs/logCounter.txt", "w+");
+			fprintf(set, "%i\n", counter + 1);
+			fclose(set);
+			if (argv[3][0] == 'f' || argv[3][0] == 'F') {
+				
+
+				ostringstream convert;
+				convert << "/home/igor/logs/log_out" << counter << ".txt";
+				string fname = convert.str();
+
+				Debug.out_stream = fopen(fname.c_str(), "w+");
+			}else	
+				Debug.out_stream = stdout;
+
+			Debug.writeTelemetry = (argv[4][0] == 'y' || argv[4][0] == 'Y');
+
 		}
 		
 	}
 	else
 		return printHelp();
 
+	fprintf(Debug.out_stream, "ver 2.170617_1 \n");
 
 	if (signal(SIGINT, handler) == SIG_ERR) {
 		return EXIT_FAILURE;
 	}
 
-	if (setup())
+	if (setup(counter))
 		return -1;
 	old_time4loop =micros();
 	float dfr = 100;
-	while (flag == 0) {
+	Debug.run_main = true;
+	while (Debug.run_main && flag == 0) {
 
 		if (loop()) {
 			//usleep(5400);
@@ -297,15 +332,21 @@ int main(int argc, char *argv[]) {
 			int32_t time_past = (int32_t)(t - old_time4loop);
 			old_time4loop = t;
 			//if (time_past > 15000)
-			//	printf("too long %i\n",time_past);
+			//	fprintf(Debug.out_stream,"too long %i\n",time_past);
 
 			//Debug.load(0, time_past, 0);
 			//Debug.dump();
 		}
 
 	}
-	printf("\n Signal caught! and exit\n");
+	WiFi.stopServer();
+	if (Debug.run_main==false)
+		fprintf(Debug.out_stream, "\n exit\n");
+	if (flag!=0)
+		fprintf(Debug.out_stream, "\n main Signal caught!\n");
 	EEPROM.write_set();
+	fclose(Debug.out_stream);
+	
 
 	return 0;
 

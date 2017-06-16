@@ -97,7 +97,7 @@ static const float f_constrain(const float v, const float min, const float max){
 void BalanceClass::init()
 {
 	f_[0] = f_[1] = f_[2] = f_[3] = 0;
-	printf("BALANCE INIT\n");
+	fprintf(Debug.out_stream,"BALANCE INIT\n");
 	
 	c_pitch = c_roll = 0;
 	
@@ -136,7 +136,7 @@ void BalanceClass::init()
 	Hmc.loop();
 	Mpu.initYaw(Hmc.heading);
 #ifdef DEBUG_MODE
-	Out.print("Heading :"); Out.println(Hmc.headingGrad);
+	Out.fprintf(Debug.out_stream,"Heading :"); Out.println(Hmc.headingGrad);
 #endif
 
 	
@@ -208,21 +208,21 @@ void BalanceClass::set(const float *ar){
 
 	//	error += Commander._set(ar[i], stop_throttle);
 
-		printf("balance set:\n");
+		fprintf(Debug.out_stream,"balance set:\n");
 		
 		if (error == 0){
 			//for (ii = 0; ii < i; ii++){
-			//	Out.print(ar[ii]); Out.print(",");
+			//	Out.fprintf(Debug.out_stream,ar[ii]); Out.fprintf(Debug.out_stream,",");
 			//}
 			//Out.println(ar[ii]);
-			printf("OK\n");
+			fprintf(Debug.out_stream,"OK\n");
 		}
 		else{
-			printf("ERROR to big or small. P=%i",error);
+			fprintf(Debug.out_stream,"ERROR to big or small. P=%i",error);
 		}
 	}
 	else{
-		printf("ERROR\n");
+		fprintf(Debug.out_stream,"ERROR\n");
 	}
 }
 
@@ -240,12 +240,12 @@ int motors_off_i = 0;
 void BalanceClass::escCalibration() {
 	if (motors_off_i == 0 && Telemetry.power_is_on() == false) {
 		throttle = f_[0] = f_[1] = f_[2] = f_[3] = 1;
-		printf("!!!max power!!!\n");
+		fprintf(Debug.out_stream,"!!!max power!!!\n");
 		motors_off_i++;
 	}else
 		if (motors_off_i == 1 && Telemetry.power_is_on()) {
 			throttle = f_[0] = f_[1] = f_[2] = f_[3] = 0;
-			printf("!!!off power!!!\n");
+			fprintf(Debug.out_stream,"!!!off power!!!\n");
 			motors_off_i++;
 		}
 }
@@ -372,15 +372,15 @@ bool BalanceClass::loop()
 			float yaw_stab_output = f_constrain(yaw_stabKP*wrap_180(-Autopilot.get_yaw() - Mpu.yaw), -MAX_YAW_SPEED, MAX_YAW_SPEED);
 			//ErrorLog.println(wrap_180(-Autopilot.get_Yaw() - Mpu.yaw));
 
-		//	Out.print(-Autopilot.get_Yaw()); Out.print(" "); Out.println(Mpu.yaw);
+		//	Out.fprintf(Debug.out_stream,-Autopilot.get_Yaw()); Out.fprintf(Debug.out_stream," "); Out.println(Mpu.yaw);
 			//Out.println(wrap_180(Autopilot.get_Yaw() - Mpu.yaw));
-			//	Out.print("\t"); 
+			//	Out.fprintf(Debug.out_stream,"\t"); 
 			//	Out.println(yaw_stab_output);
 
 			// is pilot asking for yaw change - if so feed directly to rate pid (overwriting yaw stab output)
 
 
-			//Out.print(pitch_stab_output); Out.print("\t"); Out.println(roll_stab_output);
+			//Out.fprintf(Debug.out_stream,pitch_stab_output); Out.fprintf(Debug.out_stream,"\t"); Out.println(roll_stab_output);
 
 
 			// rate PIDS
@@ -480,13 +480,13 @@ bool BalanceClass::loop()
 		{
 
 		case 0:
-			Out.print(f_[0]); Out.print("\t");
+			Out.fprintf(Debug.out_stream,f_[0]); Out.fprintf(Debug.out_stream,"\t");
 			break;
 		case 1:
 			Out.println(f_[1]);
 			break;
 		case 2:
-			Out.print(f_[2]); Out.print("\t");
+			Out.fprintf(Debug.out_stream,f_[2]); Out.fprintf(Debug.out_stream,"\t");
 			break;
 
 		default:

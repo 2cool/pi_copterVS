@@ -53,77 +53,77 @@ int MpuClass::ms_open() {
 	}
 
 	// initialize device
-	printf("Initializing MPU...\n");
+	fprintf(Debug.out_stream,"Initializing MPU...\n");
 	if (mpu_init(NULL) != 0) {
-		printf("MPU init failed!\n");
+		fprintf(Debug.out_stream,"MPU init failed!\n");
 		return -1;
 	}
-	printf("Setting MPU sensors...\n");
+	fprintf(Debug.out_stream,"Setting MPU sensors...\n");
 	if (mpu_set_sensors(INV_XYZ_GYRO | INV_XYZ_ACCEL) != 0) {
-		printf("Failed to set sensors!\n");
+		fprintf(Debug.out_stream,"Failed to set sensors!\n");
 		return -1;
 	}
-	printf("Setting GYRO sensitivity...\n");
+	fprintf(Debug.out_stream,"Setting GYRO sensitivity...\n");
 	if (mpu_set_gyro_fsr(2000) != 0) {
-		printf("Failed to set gyro sensitivity!\n");
+		fprintf(Debug.out_stream,"Failed to set gyro sensitivity!\n");
 		return -1;
 	}
-	printf("Setting ACCEL sensitivity...\n");
+	fprintf(Debug.out_stream,"Setting ACCEL sensitivity...\n");
 	if (mpu_set_accel_fsr(2) != 0) {
-		printf("Failed to set accel sensitivity!\n");
+		fprintf(Debug.out_stream,"Failed to set accel sensitivity!\n");
 		return -1;
 	}
 	// verify connection
-	printf("Powering up MPU...\n");
+	fprintf(Debug.out_stream,"Powering up MPU...\n");
 	mpu_get_power_state(&devStatus);
-	printf(devStatus ? "MPU6050 connection successful\n" : "MPU6050 connection failed %u\n", devStatus);
+	fprintf(Debug.out_stream,devStatus ? "MPU6050 connection successful\n" : "MPU6050 connection failed %u\n", devStatus);
 
 	//fifo config
-	printf("Setting MPU fifo...\n");
+	fprintf(Debug.out_stream,"Setting MPU fifo...\n");
 	if (mpu_configure_fifo(INV_XYZ_GYRO | INV_XYZ_ACCEL) != 0) {
-		printf("Failed to initialize MPU fifo!\n");
+		fprintf(Debug.out_stream,"Failed to initialize MPU fifo!\n");
 		return -1;
 	}
 
 	// load and configure the DMP
-	printf("Loading DMP firmware...\n");
+	fprintf(Debug.out_stream,"Loading DMP firmware...\n");
 	if (dmp_load_motion_driver_firmware() != 0) {
-		printf("Failed to enable DMP!\n");
+		fprintf(Debug.out_stream,"Failed to enable DMP!\n");
 		return -1;
 	}
 
-	printf("Activating DMP...\n");
+	fprintf(Debug.out_stream,"Activating DMP...\n");
 	if (mpu_set_dmp_state(1) != 0) {
-		printf("Failed to enable DMP!\n");
+		fprintf(Debug.out_stream,"Failed to enable DMP!\n");
 		return -1;
 	}
 
 	//dmp_set_orientation()
 	//if (dmp_enable_feature(DMP_FEATURE_LP_QUAT|DMP_FEATURE_SEND_RAW_GYRO)!=0) {
-	printf("Configuring DMP...\n");
+	fprintf(Debug.out_stream,"Configuring DMP...\n");
 	if (dmp_enable_feature(DMP_FEATURE_6X_LP_QUAT | DMP_FEATURE_SEND_RAW_ACCEL | DMP_FEATURE_SEND_CAL_GYRO | DMP_FEATURE_GYRO_CAL) != 0) {
-		printf("Failed to enable DMP features!\n");
+		fprintf(Debug.out_stream,"Failed to enable DMP features!\n");
 		return -1;
 	}
 
 
-	printf("Setting DMP fifo rate...\n");
+	fprintf(Debug.out_stream,"Setting DMP fifo rate...\n");
 	if (dmp_set_fifo_rate(rate) != 0) {
-		printf("Failed to set dmp fifo rate!\n");
+		fprintf(Debug.out_stream,"Failed to set dmp fifo rate!\n");
 		return -1;
 	}
-	printf("Resetting fifo queue...\n");
+	fprintf(Debug.out_stream,"Resetting fifo queue...\n");
 	if (mpu_reset_fifo() != 0) {
-		printf("Failed to reset fifo!\n");
+		fprintf(Debug.out_stream,"Failed to reset fifo!\n");
 		return -1;
 	}
 
-	printf("Checking... ");
+	fprintf(Debug.out_stream,"Checking... ");
 	do {
 		delay_ms(1000 / rate);  //dmp will habve 4 (5-1) packets based on the fifo_rate
 		r = dmp_read_fifo(g, a, _q, &sensors, &fifoCount);
 	} while (r != 0 || fifoCount<5); //packtets!!!
-	printf("Done.\n");
+	fprintf(Debug.out_stream,"Done.\n");
 
 	initialized = 1;
 	return 0;
@@ -154,7 +154,7 @@ void MpuClass::init()
 	roll_max_angle = pitch_max_angle = MAX_ANGLE;
 	//COMP_FILTR = 0;// 0.003;
 
-	printf("Initializing MPU6050\n");
+	fprintf(Debug.out_stream,"Initializing MPU6050\n");
 
 #ifndef FALSE_MPU
 
@@ -163,14 +163,14 @@ void MpuClass::init()
 	ms_open();
 /*
 	accelgyro.initialize();
-	printf("Testing device connections...\n");
+	fprintf(Debug.out_stream,"Testing device connections...\n");
 	if (accelgyro.testConnection())
 	{
-		printf("MPU6050 connection successful\n");
+		fprintf(Debug.out_stream,"MPU6050 connection successful\n");
 	}
 	else
 	{
-		printf("MPU6050 connection failed\n");
+		fprintf(Debug.out_stream,"MPU6050 connection failed\n");
 		delay(10000);
 	}
 
@@ -203,7 +203,7 @@ void MpuClass::init()
 #endif
 	}
 	else {
-		printf("MPU NOT CALIBRATED !!!\n");
+		fprintf(Debug.out_stream,"MPU NOT CALIBRATED !!!\n");
 	}
 
 
@@ -251,21 +251,21 @@ void MpuClass::set(const float  *ar){
 		if ((error += Commander._set(new_cS, t)) == 0)
 			cS = t;
 
-		printf("mpu set:\n");
+		fprintf(Debug.out_stream,"mpu set:\n");
 		//int ii;
 		if (error == 0){
 			//for (ii = 0; ii < i; ii++){
-			//	Out.print(ar[ii]); Out.print(",");
+			//	Out.fprintf(Debug.out_stream,ar[ii]); Out.fprintf(Debug.out_stream,",");
 			//}
 			//Out.println(ar[ii]);
-			printf("OK\n");
+			fprintf(Debug.out_stream,"OK\n");
 		}
 		else{
-			printf("ERROR to big or small. P=%i\n",error);
+			fprintf(Debug.out_stream,"ERROR to big or small. P=%i\n",error);
 		}
 	}
 	else{
-		printf("ERROR\n");
+		fprintf(Debug.out_stream,"ERROR\n");
 	}
 }
 
@@ -525,6 +525,7 @@ bool MpuClass::loop(){//-------------------------------------------------L O O P
 
 	if ((abs(a[0]) > MAX_G || abs(a[1]) > MAX_G || abs(a[2]) > MAX_G) && ++max_g_cnt>20) {
 		Autopilot.off_throttle(true, e_MAX_ACCELERATION);
+		Debug.run_main = false;
 		max_g_cnt = 0;
 	}
 	
@@ -632,7 +633,7 @@ bool MpuClass::selfTest(){
 			za = zt;
 			accelgyro.getRotation(&xt, &yt, &zt);
 
-			printf("%i %i %i\n", xt, yt, zt);
+			fprintf(Debug.out_stream,"%i %i %i\n", xt, yt, zt);
 	
 			errors += (xt == xr || yt == yr || zt == zr || abs(xt) > 10 || abs(yt) > 10 || abs(zt) > 10);
 			xr = xt;
@@ -643,7 +644,7 @@ bool MpuClass::selfTest(){
 
 		ok = errors <= 7;
 		if (ok == false){
-			printf("ERROR\n");
+			fprintf(Debug.out_stream,"ERROR\n");
 			accelgyro.setXAccelOffset(1354);
 			accelgyro.setYAccelOffset(451);
 			accelgyro.setZAccelOffset(1886);

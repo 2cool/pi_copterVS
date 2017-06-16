@@ -21,7 +21,7 @@
 #include <sys/stat.h>
 #include <linux/types.h>
 
-
+#include "debug.h"
 #include "define.h"
 #include "Pwm.h"
 #include "mpu.h"
@@ -81,28 +81,28 @@ int fd;
 int PwmClass::on(const uint16_t COUNTER, const uint16_t throthle)
 {
 
-	printf("arduino connection test\n");
+	fprintf(Debug.out_stream,"arduino connection test\n");
 	if ((fd = open("/dev/i2c-1", O_RDWR)) < 0) {
-		printf("Failed to open the bus.\n");
+		fprintf(Debug.out_stream,"Failed to open the bus.\n");
 		return -1;
 	}
 	if (ioctl(fd, I2C_SLAVE, ARDUINO_ADDR) < 0) {
-		printf("Failed to acquire bus access and/or talk to slave.\n");
+		fprintf(Debug.out_stream,"Failed to acquire bus access and/or talk to slave.\n");
 		return -1;
 	}
 /*
 	if (write(fd, pwm_out_buffer, 12) != 12) {
-		printf("write reg 8 bit Failed to write to the i2c bus.\n");
+		fprintf(Debug.out_stream,"write reg 8 bit Failed to write to the i2c bus.\n");
 		return -1;
 	}
 
 
 	usleep(10000);
 	if (read(fd, pwm_in_buffer, 3) != 3) {
-		printf("read reg 8 bit Failed to read to the i2c bus.\n");
+		fprintf(Debug.out_stream,"read reg 8 bit Failed to read to the i2c bus.\n");
 		return -1;
 	}else
-		printf("%i,%i,%i\n", (int)pwm_in_buffer[0], (int)pwm_in_buffer[1], (int)pwm_in_buffer[2]);
+		fprintf(Debug.out_stream,"%i,%i,%i\n", (int)pwm_in_buffer[0], (int)pwm_in_buffer[1], (int)pwm_in_buffer[2]);
 
 		*/
 
@@ -191,7 +191,7 @@ bool PwmClass::gimagl_pitch( float angle){
 	if (old_g_pitch != angle && angle >= -90 && angle <= 10) {
 		angle = -angle;
 		old_g_pitch = angle;
-		//Serial.print("camAng="); Serial.println(angle);
+		//Serial.fprintf(Debug.out_stream,"camAng="); Serial.println(angle);
 		angle = angle*(1.0f / 180.0f)*(63) + (63) + 127;
 
 		char buf[2];

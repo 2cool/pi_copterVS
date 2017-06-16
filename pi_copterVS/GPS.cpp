@@ -21,11 +21,11 @@ void GPSClass::init()
 #endif
 	
 	if (loc.init() == -1) {
-		printf("GPS ERROR\n");
+		fprintf(Debug.out_stream,"GPS ERROR\n");
 		return;
 	}
 	errors = 0;
-	printf("GPS INIT\n");
+	fprintf(Debug.out_stream,"GPS INIT\n");
 }
 
 
@@ -126,8 +126,8 @@ void GPSClass::loop(){
 		/*
 		fullX += distX;
 		fullY += distY;
-		Out.print(fullX);
-		Out.print(" ");
+		Out.fprintf(Debug.out_stream,fullX);
+		Out.fprintf(Debug.out_stream," ");
 		Out.println(fullY);
 		*/
 
@@ -150,7 +150,7 @@ void GPSClass::loop(){
 	if (micros() - last_gps_time1 >= 33000) {
 		last_gps_time1 = micros();
 		if (loc.processGPS()) {
-			//printf("pgs %i\n", micros() - ttt);
+			//fprintf(Debug.out_stream,"pgs %i\n", micros() - ttt);
 			if (loc.accuracy_hor_pos < (MIN_ACUR_HOR_POS_TO_FLY)) {
 				errors = 0;
 
@@ -167,7 +167,7 @@ void GPSClass::loop(){
 		//loc.accuracy_hor_pos = errors__/100;
 		//loc.accuracy_ver_pos = errors__ % 100;
 		if ((last_gps_time1 > loc.last_gps_data_time) && (last_gps_time1 - loc.last_gps_data_time) > 1000000){//NO_GPS_TIME_TO_FALL) {
-			printf("gps update error  %i\n",millis()/1000);
+			fprintf(Debug.out_stream,"gps update error  %i\n",millis()/1000);
 			//init();
 			loc.last_gps_data_time = micros();
 			errors__++;
@@ -178,7 +178,7 @@ void GPSClass::loop(){
 	uint64_t dt=micros() - ttt;
 	if (dt > max_time) {
 		max_time = dt;
-	//	printf("max=%i\n", max_time);
+	//	fprintf(Debug.out_stream,"max=%i\n", max_time);
 	}
 }
 

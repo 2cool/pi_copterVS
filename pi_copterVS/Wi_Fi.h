@@ -22,11 +22,12 @@ class WiFiClass
 	bool command_resived;
 	//thread t;
  public:
+	 bool stopServer();
 	~WiFiClass();
 	bool connectedF();
 	 bool newConnection_;
 	bool is_connected(void){return connected>0;}
-	int init();
+	int init(int cnt);
 
 };
 

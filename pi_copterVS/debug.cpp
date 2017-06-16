@@ -25,16 +25,7 @@ void DebugClass::graphic(const int n, const float x, const float y) {
 
 
 		 printf("%i,%i,%i,%i\n", (unsigned int)f1, (unsigned int)f2, (unsigned int)f3, (unsigned int)f4);
-		/* Out.println();
-		 Out.print(f1);
-		 Out.print(",");
-		 Out.print(f2);
-		 Out.print(",");
-		 Out.print(f3);
-		 Out.print(",");
-		 Out.print(f4);
-		 Out.println();
-		 */
+
 	 }
 	 uint64_t d_old_t = 0;
 

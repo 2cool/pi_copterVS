@@ -25,21 +25,34 @@ ofstream logfile;
 
 
 int wifi_connections=0;
-	int sockfd, newsockfd, portno;
-     socklen_t clilen;
-     uint8_t inbuffer[TELEMETRY_BUF_SIZE];
-	 uint8_t outbuffer[TELEMETRY_BUF_SIZE];
-     struct sockaddr_in serv_addr, cli_addr;
-     int n;
-     int connected=0;
-     bool run=true;
+int sockfd, newsockfd, portno;
+socklen_t clilen;
+uint8_t inbuffer[TELEMETRY_BUF_SIZE];
+uint8_t outbuffer[TELEMETRY_BUF_SIZE];
+struct sockaddr_in serv_addr, cli_addr;
+int n;
+int connected=0;
 
+
+
+string log_fname;
+	 
 void mclose(){
-	logfile.close();
+	fprintf(Debug.out_stream, "server stoped\n");
+	if (Debug.writeTelemetry)
+		logfile.close();
+	std::ifstream in(log_fname, std::ifstream::ate | std::ifstream::binary);
+	int filesize = in.tellg();
+	//printf("file size %i\n", filesize);
+	if (filesize <=3) {
+		remove(log_fname.c_str());
+	}
+
+
     wifi_connections--;
 	close(newsockfd);
     close(sockfd);
-	printf("FIFI closed\n");
+	fprintf(Debug.out_stream,"WIFI closed\n");
 }
 CommanderClass *com;
 TelemetryClass *tel;
@@ -47,7 +60,7 @@ TelemetryClass *tel;
 bool wite_connection(){
 	 newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
      if (newsockfd < 0) {
-          printf("ERROR on accept\n");
+          fprintf(Debug.out_stream,"ERROR on accept\n");
           wifi_connections--;  
           return true;
 	  }
@@ -56,34 +69,49 @@ bool wite_connection(){
 	  return false;
 }
 
+bool run = true;
+bool WiFiClass::stopServer() { 
+	run = false; 
+	mclose();
+
+}
+uint32_t wifiold_t = 0;
 void server(){
 	//delay(5000);
-	logfile.write("HI\n", 3);
+	if (Debug.writeTelemetry)
+		logfile.write("HI\n", 3);
      if (wite_connection())
 		return;
 	  while(run){
 
 		// bzero(buffer,256);
-		  usleep(33000);
+		  const uint32_t t = millis();
+		  const uint32_t dt = t - wifiold_t;
+		  wifiold_t = t;
+		  if (dt < 33)
+			  usleep(33 - dt);
+		  
 		 n = read(newsockfd,inbuffer, TELEMETRY_BUF_SIZE);
 
 
 
-		 if (Autopilot.motors_is_on()) {
+		 if (Debug.writeTelemetry && Autopilot.motors_is_on()) {
+			 logfile.write((char*)&n, 4);
 			 logfile.write((char*)inbuffer, n);
 			 logfile.flush();
 		 }
 		if (n>0){
 			if (connected == 0)
-				printf("connected \n");
+				fprintf(Debug.out_stream,"connected \n");
 			connected++;
 			com->new_data(inbuffer,n);
 			
-		//	printf("K");	
+		//	fprintf(Debug.out_stream,"K");	
 			int buf_len=tel->read_buf(outbuffer);
-		//	printf("T\n");
+		//	fprintf(Debug.out_stream,"T\n");
 
-			if (Autopilot.motors_is_on()) {
+			if (Debug.writeTelemetry && Autopilot.motors_is_on()) {
+				logfile.write((char*)&buf_len, 4);
 				logfile.write((char*)outbuffer, buf_len);
 				logfile.flush();
 			}
@@ -96,7 +124,7 @@ void server(){
 		}else{
 			if (connected) {
 				
-				printf("ERROR reading from socket\n");
+				fprintf(Debug.out_stream,"ERROR reading from socket\n");
 				connected = 0;
 			}
 			if (wite_connection())
@@ -104,7 +132,7 @@ void server(){
 		}
 	}	
 	
-	mclose();
+	
 }
 
 	
@@ -116,7 +144,7 @@ bool WiFiClass::connectedF() { return connected > 0; }
 
 WiFiClass::~WiFiClass(){
 	run = false;
-	printf("WIFICLass distructor\n");
+	fprintf(Debug.out_stream,"WIFICLass distructor\n");
 	//delay(1000);
 	//mclose();
 }
@@ -124,17 +152,16 @@ WiFiClass::~WiFiClass(){
 
 
 
-int WiFiClass::init()
+int WiFiClass::init(int counter)
 {
-	timespec time_now;
-	clock_gettime(CLOCK_REALTIME, &time_now);
-	ostringstream convert;
-	convert << "/home/igor/log" << time_now.tv_sec << ".log";
-	string fname = convert.str();
+	if (Debug.writeTelemetry) {
+		ostringstream convert;
+		convert << "/home/igor/logs/log" << counter << ".log";
+		log_fname = convert.str();
 
-	
-	logfile.open(fname.c_str(), fstream::in | fstream::out | fstream::trunc);
 
+		logfile.open(log_fname.c_str(), fstream::in | fstream::out | fstream::trunc);
+	}
 
 
 
@@ -159,7 +186,7 @@ int WiFiClass::init()
 	connected=0;
      sockfd = socket(AF_INET, SOCK_STREAM, 0);
      if (sockfd < 0) {
-        printf("ERROR opening socket/n");
+        fprintf(Debug.out_stream,"ERROR opening socket/n");
         wifi_connections--;
         return -1;
 	}
@@ -169,7 +196,7 @@ int WiFiClass::init()
      serv_addr.sin_addr.s_addr = INADDR_ANY;
      serv_addr.sin_port = htons(portno);
      if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
-          printf("ERROR on binding/n");
+          fprintf(Debug.out_stream,"ERROR on binding/n");
           wifi_connections--;
           return -1;
 	}
@@ -179,7 +206,7 @@ int WiFiClass::init()
      thread t(server);
      t.detach();
      //server();
-	  printf("server started...\n");
+	  fprintf(Debug.out_stream,"server started...\n");
 	  return 0;
 	
 	

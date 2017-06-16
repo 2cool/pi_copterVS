@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #include "MPU6050.h"
+#include "debug.h"
 #define DEFAULT_DEV "/dev/i2c-1"
 
 
@@ -48,9 +49,9 @@ int MPU6050::initialize() {
     setSleepEnabled(false); // thanks to Jack Elston for pointing this one out!
     if (testConnection())
     {
-		printf("MPU6050 connection successful\n");
+		fprintf(Debug.out_stream,"MPU6050 connection successful\n");
 	}else{
-		printf("MPU6050 connection failed\n");
+		fprintf(Debug.out_stream,"MPU6050 connection failed\n");
 		return -1;
 	}
 	//setDLPFMode(MPU6050_DLPF_BW_188);

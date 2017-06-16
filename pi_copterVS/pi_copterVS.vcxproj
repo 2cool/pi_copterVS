@@ -68,7 +68,6 @@
     <ClCompile Include="debug.cpp" />
     <ClCompile Include="Direction.cpp" />
     <ClCompile Include="Filter.cpp" />
-    <ClCompile Include="FilterTwoPole.cpp" />
     <ClCompile Include="FIND.cpp" />
     <ClCompile Include="GeoDot.cpp" />
     <ClCompile Include="GPS.cpp" />
@@ -102,7 +101,6 @@
     <ClInclude Include="dmpKey.h" />
     <ClInclude Include="dmpmap.h" />
     <ClInclude Include="Filter.h" />
-    <ClInclude Include="FilterTwoPole.h" />
     <ClInclude Include="FIND.h" />
     <ClInclude Include="GeoDot.h" />
     <ClInclude Include="GPS.h" />

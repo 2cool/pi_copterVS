@@ -41,7 +41,7 @@ int set_interface_attribs(int fd_loc, int speed, int parity)
 	memset(&tty, 0, sizeof tty);
 	if (tcgetattr(fd_loc, &tty) != 0)
 	{
-		printf("error %d from tcgetattr", errno);
+		fprintf(Debug.out_stream,"error %d from tcgetattr", errno);
 		return -1;
 	}
 
@@ -70,7 +70,7 @@ int set_interface_attribs(int fd_loc, int speed, int parity)
 
 	if (tcsetattr(fd_loc, TCSANOW, &tty) != 0)
 	{
-		printf("error %d from tcsetattr", errno);
+		fprintf(Debug.out_stream,"error %d from tcsetattr", errno);
 		return -1;
 	}
 	return 0;
@@ -82,7 +82,7 @@ void set_blocking(int fd_loc, int should_block)
 	memset(&tty, 0, sizeof tty);
 	if (tcgetattr(fd_loc, &tty) != 0)
 	{
-		printf("error %d from tggetattr", errno);
+		fprintf(Debug.out_stream,"error %d from tggetattr", errno);
 		return;
 	}
 
@@ -90,7 +90,7 @@ void set_blocking(int fd_loc, int should_block)
 	tty.c_cc[VTIME] = 5;            // 0.5 seconds read timeout
 
 	if (tcsetattr(fd_loc, TCSANOW, &tty) != 0)
-		printf("error %d setting term attributes", errno);
+		fprintf(Debug.out_stream,"error %d setting term attributes", errno);
 }
 
 
@@ -167,7 +167,7 @@ void LocationClass::update(){
 
 	//Debug.load(0, x, y);
 	//Debug.dump();
-	//Out.print("3UPD "); Out.print(x); Out.print(" "); Out.println(y);
+	//Out.fprintf(Debug.out_stream,"3UPD "); Out.fprintf(Debug.out_stream,x); Out.fprintf(Debug.out_stream," "); Out.println(y);
 }
 #define MAX_DIST2UPDATE 1000000
 void LocationClass::updateXY(){
@@ -181,7 +181,7 @@ void LocationClass::updateXY(){
 	}
 
 	xy();
-	//Out.print("N  "); Out.print(x2home); Out.print(" "); Out.println(y2home);
+	//Out.fprintf(Debug.out_stream,"N  "); Out.fprintf(Debug.out_stream,x2home); Out.fprintf(Debug.out_stream," "); Out.println(y2home);
 }
 
 
@@ -209,7 +209,7 @@ bool LocationClass::processGPS_1() {
 	static int fpos = 0;
 	while (available_loc) {
 
-		//printf("%#.2X,", c);
+		//fprintf(Debug.out_stream,"%#.2X,", c);
 		if (fpos < 2) {
 			if (buf_loc[buf_ind_loc] == UBX_HEADER[fpos])
 				fpos++;
@@ -241,7 +241,7 @@ bool LocationClass::processGPS_1() {
 						old_iTOW = posllh.iTOW - 100;
 					dt = DELTA_ANGLE_C*(float)(posllh.iTOW - old_iTOW);
 					if (dt > 0.11 || dt < 0.09)
-						printf("\ngps dt error: %f, time= %i\n", dt, millis() / 1000);
+						fprintf(Debug.out_stream,"\ngps dt error: %f, time= %i\n", dt, millis() / 1000);
 					dt = constrain(dt, 0.1f, 0.2);
 					rdt = 1.0f / dt;
 					old_iTOW = posllh.iTOW;
@@ -256,7 +256,7 @@ bool LocationClass::processGPS_1() {
 					buf_ind_loc++;
 					available_loc--;
 					
-				//	printf("\t\tOK\n");
+				//	fprintf(Debug.out_stream,"\t\tOK\n");
 					return true;
 				}
 
@@ -269,7 +269,7 @@ bool LocationClass::processGPS_1() {
 		buf_ind_loc++;
 		//ioctl(fd_loc, FIONREAD, &available_loc);
 	}
-	//printf("________error\n");
+	//fprintf(Debug.out_stream,"________error\n");
 	return false;
 }
 
@@ -325,7 +325,7 @@ int LocationClass::init(){
 	fd_loc = open("/dev/ttyS3", O_RDWR | O_NOCTTY | O_SYNC);
 	if (fd_loc < 0)
 	{
-		printf("error %d opening /dev/ttyS3: %s", errno, strerror(errno));
+		fprintf(Debug.out_stream,"error %d opening /dev/ttyS3: %s", errno, strerror(errno));
 		return -1;
 	}
 
@@ -353,7 +353,7 @@ int LocationClass::init(){
 	speedX = speedY = 0;
 	last_gps_data_time = micros();
 	
-	printf("loc init\n");
+	fprintf(Debug.out_stream,"loc init\n");
 }
 
 void LocationClass::setHomeLoc(){

@@ -78,7 +78,7 @@ void ProgClass::loop(){
 		go_next = distFlag = altFlag = false;
 		if (load_next() == false){
 			//if (Autopilot.lost_conection_time == 0){
-				printf("PROG END\n");
+				fprintf(Debug.out_stream,"PROG END\n");
 				Autopilot.start_stop_program(false);
 			//}
 		}
@@ -110,7 +110,7 @@ bool ProgClass::program_is_OK(){
 				time *= 1.25f;
 				if (timer > 0){
 					if (timer < time){
-						printf("time error in step: %i\n",step);
+						fprintf(Debug.out_stream,"time error in step: %i\n",step);
 						return false;
 					}
 					else
@@ -118,7 +118,7 @@ bool ProgClass::program_is_OK(){
 				}
 				fullTime += time;
 				if (fullTime>MAX_TIME_LONG_FLIGHT){
-					printf("to long fly for prog!\n");
+					fprintf(Debug.out_stream,"to long fly for prog!\n");
 					return false;
 				}
 			old_lat = lat;
@@ -138,11 +138,11 @@ bool ProgClass::program_is_OK(){
 
 
 		if (dist >= 20 || alt  >= 20){
-			printf("end poitn to far from star!!!\n");
+			fprintf(Debug.out_stream,"end poitn to far from star!!!\n");
 			return false;
 		}
 
-		printf("time for flyghy: %i",(int)fullTime);
+		fprintf(Debug.out_stream,"time for flyghy: %i",(int)fullTime);
 		return true;
 	}
 else
@@ -170,7 +170,7 @@ bool ProgClass::start(){
 	}
 	else{
 		clear();
-		printf("no program\n");
+		fprintf(Debug.out_stream,"no program\n");
 	}
 	return false;
 
@@ -205,8 +205,8 @@ float pDistance(float x, float y, float x1, float y1, float x2, float y2) {
 		xx = x1 + param * C;
 		yy = y1 + param * D;
 
-		printf("x=%f\n",xx);
-		printf("y=%f\n",yy);
+		fprintf(Debug.out_stream,"x=%f\n",xx);
+		fprintf(Debug.out_stream,"y=%f\n",yy);
 	}
 
 	float dx = x - xx;
@@ -474,19 +474,19 @@ bool ProgClass::add(byte*buf)
 	
 	if (steps_count != buf[i++]){
 		clear();
-		printf("PROG INDEX ERROR\n");
+		fprintf(Debug.out_stream,"PROG INDEX ERROR\n");
 		return false;
 	}
 	if (i + 17 > PROG_MEMORY_SIZE){
 		clear();
-		printf("PROG_MEMORY_OVERFLOW\n");
+		fprintf(Debug.out_stream,"PROG_MEMORY_OVERFLOW\n");
 		return false;
 	}
-//	Out.print("mask:"); Out.println(buf[0]);
+//	Out.fprintf(Debug.out_stream,"mask:"); Out.println(buf[0]);
 	
 	if (buf[0] & TIMER){
 		prog[pi++] = buf[i++];
-	//	Out.print("timer="); Out.println(timer);
+	//	Out.fprintf(Debug.out_stream,"timer="); Out.println(timer);
 	}
 
 	if (buf[0] & SPEED_XY){
@@ -530,21 +530,21 @@ bool ProgClass::add(byte*buf)
 
 	if (buf[0] & LED_CONTROL){
 		prog[pi++] = buf[i++];
-		printf("led prog=%i\n",buf[i-1]);
+		fprintf(Debug.out_stream,"led prog=%i\n",buf[i-1]);
 	}
 
 	if (steps_count == 0){
 		byte*lb = (byte*)&prog_steps_count_must_be;
 		lb[0] = buf[i++];
 		lb[1] = buf[i++];
-		//Out.print("prog steps="); Out.println(prog_steps_count_must_be);
+		//Out.fprintf(Debug.out_stream,"prog steps="); Out.println(prog_steps_count_must_be);
 	}
 	
 	
 
 	prog_data_size = pi;
 	steps_count++;
-	printf("%i dot added! %i\n", steps_count, prog_data_size); 
+	fprintf(Debug.out_stream,"%i dot added! %i\n", steps_count, prog_data_size); 
 	return true;
 }
 

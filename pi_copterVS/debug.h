@@ -24,6 +24,9 @@ class DebugClass
  public:
 	 int n_debug;
 	 float n_p1, n_p2;
+	 FILE * out_stream;
+	 bool writeTelemetry;
+	 bool run_main;
 	 void init();
 	 void dump(const long f1, long f2, long f3, long f4);
 	 void dump(const float f1, float f2, float f3, float f4);

@@ -41,47 +41,6 @@ void delay(unsigned long t){
 
 
 
-	unsigned int Serial_class::print(char s[]){
-		printf("%s",s);
-		return 0;
-	}
-	unsigned int Serial_class::print(char c){
-		printf("%i",c);
-		return 0;
-	}
-	unsigned int Serial_class::print(string &s){
-		printf("%s",s.c_str());
-		return 0;
-		
-	}
-	unsigned int Serial_class::print(string s){
-		printf("%s",s.c_str());
-		return 0;
-		
-	}
-	unsigned int Serial_class::println(char s[]){
-		printf("%s\n",s);
-		return 0;
-	}
-	unsigned int Serial_class::println(char c){
-		printf("%i\n",c);
-		return 0;
-	}
-/*	unsigned int Serial_class::println(string &s){
-		printf("%s\n",s.c_str());
-		return 0;
-		
-	}*/
-	unsigned int Serial_class::println(string s){
-		printf("%s\n",s.c_str());
-		return 0;
-		
-	}		
-	unsigned int Serial_class::println(){
-		printf("\n");
-		return 0;
-		
-	}
 	#define EEPROM_SIZE 4096
 	char EEPROM_MEM[EEPROM_SIZE];
 
@@ -135,4 +94,4 @@ void delay(unsigned long t){
 	
 EEPROM_Class EEPROM;	
 	
-Serial_class Serial;
+

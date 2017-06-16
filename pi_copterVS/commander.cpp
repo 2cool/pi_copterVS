@@ -87,9 +87,10 @@ float * load(const string  buf, const uint8_t  * filds){
 		if (val != 0 || buf.substr(filds[i], filds[i + 1]- filds[i] - 1).find("0.0")==0)
 			ar_t333[i] = val;
 		else{
-			Out.println(buf.substr(filds[i], filds[i + 1]- filds[i] - 1));
+			//Out.println(buf.substr(filds[i], filds[i + 1]- filds[i] - 1));
+			fprintf(Debug.out_stream, "%s\n",buf.substr(filds[i], filds[i + 1] - filds[i] - 1));
 			ar_t333[10] = SETTINGS_ERROR;
-			printf("%i\n",i);
+			fprintf(Debug.out_stream,"%i\n",i);
 			return ar_t333;
 		}
 	}
@@ -120,7 +121,7 @@ uint8_t CommanderClass::_set(const float  val, float &set, bool secure){
 
 bool CommanderClass::Settings(string buf){
 
-	printf("settings\n");
+	fprintf(Debug.out_stream,"settings\n");
 	uint8_t filds[11];
 	uint8_t fi = 0;
 	uint8_t i = 0;
@@ -182,7 +183,7 @@ B,COUNTER,S_S,		start stop
 bool CommanderClass::ButtonMessage(string msg){
 
 #ifdef DEBUG_MODE
-	Out.print("<- "); Out.println(msg);
+	Out.fprintf(Debug.out_stream,"<- "); Out.println(msg);
 #endif
 
 	bool command_correct = false;
@@ -218,7 +219,7 @@ bool CommanderClass::ButtonMessage(string msg){
 	}
 
 	if (command_correct == false)
-		printf("WORNG MESSAGE\n");
+		fprintf(Debug.out_stream,"WORNG MESSAGE\n");
 
 	return command_correct;
 
@@ -235,7 +236,7 @@ void CommanderClass::new_data(byte *buffer, int n) {
 			usleep(10000);
 
 		memcpy(buf, buffer, n);
-		//printf("in-> %i\n", buffer[0]);
+		//fprintf(Debug.out_stream,"in-> %i\n", buffer[0]);
 		Autopilot.last_time_data_recived = millis();
 		data_size = n;
 	}
@@ -317,10 +318,16 @@ bool CommanderClass::input(){
 					else if (msg.find("UPS") == 0) {
 						Telemetry.getSettings(buf[i++]);
 					}
+					else if (msg.find(m_RESET) == 0) {
+						if (Autopilot.motors_is_on() == false) {
+							fprintf(Debug.out_stream, "RST \n");
+							Debug.run_main = false;
+						}
+					}
 				}
 			}
 			else {
-				printf("COMMANDER ERROR\n");
+				fprintf(Debug.out_stream,"COMMANDER ERROR\n");
 			}
 			data_size = 0;
 			return true;

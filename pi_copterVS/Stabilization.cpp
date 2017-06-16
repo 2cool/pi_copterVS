@@ -54,7 +54,7 @@ void StabilizationClass::init(){
 
 	sX=sY=sZ = 0;
 	speedZ = speedX = speedY = 0;
-	printf("stab init\n");
+	fprintf(Debug.out_stream,"stab init\n");
 
 }
 //bool flx = false, fly = false;
@@ -277,15 +277,15 @@ void StabilizationClass::setZ(const float  *ar){
 
 
 		resset_z();
-		printf("Stabilization Z set:\n");
+		fprintf(Debug.out_stream,"Stabilization Z set:\n");
 
 		for (uint8_t ii = 0; ii < i; ii++){
-			printf("%f,",ar[ii]);
+			fprintf(Debug.out_stream,"%f,",ar[ii]);
 		}
-		printf("%f\n",ar[i]);
+		fprintf(Debug.out_stream,"%f\n",ar[i]);
 	}
 	if (error>0){
-		printf("Stab Z set Error\n");
+		fprintf(Debug.out_stream,"Stab Z set Error\n");
 	}
 }
 
@@ -331,15 +331,15 @@ void StabilizationClass::setXY(const float  *ar){
 
 
 		resset_xy();
-		printf("Stabilization XY set:\n");
+		fprintf(Debug.out_stream,"Stabilization XY set:\n");
 		for (uint8_t ii = 0; ii < i; ii++){
-			printf("%f,",ar[ii]);
+			fprintf(Debug.out_stream,"%f,",ar[ii]);
 		}
-		printf("%f\n",ar[i]);
+		fprintf(Debug.out_stream,"%f\n",ar[i]);
 	}
 	if (error>0)
 	{
-		printf("Stab XY set Error\n");
+		fprintf(Debug.out_stream,"Stab XY set Error\n");
 	}
 }
 
