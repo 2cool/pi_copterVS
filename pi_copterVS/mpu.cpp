@@ -69,7 +69,7 @@ int MpuClass::ms_open() {
 		return -1;
 	}
 	fprintf(Debug.out_stream,"Setting ACCEL sensitivity...\n");
-	if (mpu_set_accel_fsr(2) != 0) {
+	if (mpu_set_accel_fsr(4) != 0) {
 		fprintf(Debug.out_stream,"Failed to set accel sensitivity!\n");
 		return -1;
 	}
@@ -277,8 +277,13 @@ int16_t MpuClass::getGX(){
 
 const float n003 = 0.030517578f;
 const float n006 =  0.061035156f;
+//4g
+const float n122 = 1.220740379e-4;
+//2g
+//const float n604 = 0.00006103515625f;
 
-const float n604 = 0.00006103515625f;
+
+
 const float to_98g = 0.0005981445312f;
 
 #ifdef FALSE_MPU
@@ -503,6 +508,8 @@ void MpuClass::set_max_angle(float cx,float cy) {
 float ac_accX = 0, ac_accY = 0, ac_accZ = -0.3664f;
 
 
+uint64_t maxG_firs_time = 0;
+
 bool MpuClass::loop(){//-------------------------------------------------L O O P-------------------------------------------------------------
 
 	uint64_t mputime = micros();
@@ -522,12 +529,26 @@ bool MpuClass::loop(){//-------------------------------------------------L O O P
 	gravity.y = 2 * (q.w*q.x + q.y*q.z);
 	gravity.z = q.w*q.w - q.x*q.x - q.y*q.y + q.z*q.z;
 
-
-	if ((abs(a[0]) > MAX_G || abs(a[1]) > MAX_G || abs(a[2]) > MAX_G) && ++max_g_cnt>20) {
-		Autopilot.off_throttle(true, e_MAX_ACCELERATION);
-		Debug.run_main = false;
-		max_g_cnt = 0;
+	if ((abs(a[0]) > MAX_G || abs(a[1]) > MAX_G || abs(a[2]) > MAX_G)) {
+		max_g_cnt++;
+		//printf("%i  %i\n", max_g_cnt, micros() - maxG_firs_time);
+		if (maxG_firs_time == 0)
+			maxG_firs_time = mputime;
 	}
+	if (maxG_firs_time > 0) {
+		if ((mputime - maxG_firs_time) < 500000) {
+			if (max_g_cnt >= 15) {
+				Autopilot.off_throttle(true, e_MAX_ACCELERATION);
+				Debug.run_main = false;
+			}
+		}
+		else {
+			//printf("clear %i  %i\n", max_g_cnt, micros() - maxG_firs_time);
+			maxG_firs_time = 0;
+			max_g_cnt = 0;
+		}
+	}
+
 	
 
 	gyroPitch = -n006*(float)g[1];  //in grad
@@ -551,9 +572,9 @@ bool MpuClass::loop(){//-------------------------------------------------L O O P
 	pitch = atan(gravity.x / sqrt(gravity.y*gravity.y + gravity.z*gravity.z));
 	roll = atan(gravity.y / sqrt(gravity.x*gravity.x + gravity.z*gravity.z));
 
-	float x = n604*(float)a[0];
-	float y = -n604*(float)a[1];  //
-	float z = n604*(float)a[2];
+	float x = n122*(float)a[0];
+	float y = -n122*(float)a[1];  //
+	float z = n122*(float)a[2];
 	
 	sin_cos(pitch, sinPitch, cosPitch);
 	sin_cos(roll, sinRoll, cosRoll);
@@ -587,9 +608,9 @@ bool MpuClass::loop(){//-------------------------------------------------L O O P
 	//float rk = roll / c_roll;
 
 
-	
-	//Debug.load(0, accZ/10, 0);
-	//Debug.load(0, accX * 10, accY * 10);
+	//Debug.load(2, a[1], gravity.x);
+	//Debug.load(1, a[1], gravity.y);
+	//Debug.load(0, a[2], gravity.z);
 //	Debug.load(2, gyro_yaw / 180, head / 180);
 /*	Debug.load(1, pitch / 40, ttPitch / 40);
 	Debug.load(2, yaw / 180, ttYaw / 180);

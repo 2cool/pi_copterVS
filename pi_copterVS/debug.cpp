@@ -45,8 +45,7 @@ void DebugClass::graphic(const int n, const float x, const float y) {
 
 
 		 double F = dt / d_dt;
-		 if (F > 1)
-			 F = 1;
+		 F = constrain(F,0.1, 1);
 
 		 ar[i][0] += (x-ar[i][0])*F;
 		 ar[i][1] += (y-ar[i][1])*F;

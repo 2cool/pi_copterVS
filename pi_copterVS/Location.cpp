@@ -226,6 +226,7 @@ bool LocationClass::processGPS_1() {
 			else if (fpos == (payloadSize + 3)) {
 				if (buf_loc[buf_ind_loc] != checksum[0]) {
 					fpos = 0;
+					
 				}
 			}
 			else if (fpos == (payloadSize + 4)) {
@@ -240,7 +241,7 @@ bool LocationClass::processGPS_1() {
 					if (old_iTOW == 0)
 						old_iTOW = posllh.iTOW - 100;
 					dt = DELTA_ANGLE_C*(float)(posllh.iTOW - old_iTOW);
-					if (dt > 0.11 || dt < 0.09)
+					if (dt > 0.18 || dt < 0.06)
 						fprintf(Debug.out_stream,"\ngps dt error: %f, time= %i\n", dt, millis() / 1000);
 					dt = constrain(dt, 0.1f, 0.2);
 					rdt = 1.0f / dt;

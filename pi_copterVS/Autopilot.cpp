@@ -526,6 +526,7 @@ bool AutopilotClass::motors_do_on(const bool start, const string msg){//////////
 			holdAltitude(Debug.n_p1);
 			holdLocation(GPS.loc.lat_, GPS.loc.lon_);
 			aYaw_ = -Mpu.yaw;
+			fflush(Debug.out_stream);
 
 #ifdef DEBUG_MODE
 			Out.fprintf(Debug.out_stream,"\nhome loc:");
@@ -589,7 +590,9 @@ bool AutopilotClass::off_throttle(const bool force, const string msg){//////////
 	
 	if ( force)
 	{
-		fprintf(Debug.out_stream,"force motors_off %s\n", msg.c_str());
+
+
+		fprintf(Debug.out_stream,"force motors_off %s, alt: %i, time %i\n", msg.c_str(), (int)MS5611.altitude(),millis()/1000);
 		Balance.set_off_th_();
 		Telemetry.addMessage(msg);
 		control_bits = 0;
