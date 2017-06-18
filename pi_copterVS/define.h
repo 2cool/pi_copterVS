@@ -18,6 +18,7 @@
 //#define GPSPRINT
 //#define MPU_PRINTTIME_CICLE
 
+#define TEST_GPS_CCURACY
 
 #define XY_SAFE_AREA 200
 #define Z_SAFE_AREA 60

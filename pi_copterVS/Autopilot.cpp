@@ -501,8 +501,8 @@ bool AutopilotClass::motors_do_on(const bool start, const string msg){//////////
 				Pwm.beep_code(BEEPS_ON + (2 << 1));
 				return false;
 			}
-
-			if (GPS.loc.accuracy_hor_pos > MIN_ACUR_HOR_POS_2_START ){
+#ifdef TEST_GPS_CCURACY
+			if (Hmc.compas_motors_calibr==false && GPS.loc.accuracy_hor_pos > MIN_ACUR_HOR_POS_2_START ){
 				fprintf(Debug.out_stream," GPS error\n");
 				Pwm.beep_code(BEEPS_ON + (3 << 1));
 				Telemetry.addMessage(e_GPS_ERROR);
@@ -510,7 +510,7 @@ bool AutopilotClass::motors_do_on(const bool start, const string msg){//////////
 				LED.error_code &= 255^1;
 				return false;
 			}
-				
+#endif
 			Telemetry.update_voltage();
 			
 			control_bits = MOTORS_ON;

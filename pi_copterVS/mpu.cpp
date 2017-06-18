@@ -29,8 +29,7 @@ inline void sin_cos(const float a, float &s, float &c) {
 //2g
 //	0.00006103515625
 //4g
-//#define K4ACCELERATION 0.0001220703125
-#define K4ACCELERATION 0.00006103515625
+
 //3G
 
 static const float f_constrain(const float v, const float min, const float max){
@@ -485,11 +484,11 @@ void MpuClass::set_max_angle(float cx,float cy) {
 		c_tiltPower = constrain(c_tiltPower, 0.5, 1);
 
 		float pk = abs(c_pitch-pitch);
-		pk = constrain(pk, 0, MAX_ANGLE);
+		pk = constrain(pk, 15, MAX_ANGLE);
 		pitch_max_angle -= pk;
 
 		float rk = abs(c_roll - roll);
-		rk = constrain(rk, 0, MAX_ANGLE);
+		rk = constrain(rk, 15, MAX_ANGLE);
 		roll_max_angle -= rk;
 #endif
 

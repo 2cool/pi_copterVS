@@ -135,8 +135,25 @@ void StabilizationClass::XY(float &pitch, float&roll){
 		if (sY < 0)
 			stabY *= -1.0f;
 	}
+
+	//experimental
+	//0.6=log(max_angle/5)/log(max_speed)
+	float k = 5;
+	if (abs(stabX) > 1) {
+		k = (float)(5.0*pow(abs(stabX), 0.6)) / abs(stabX);
+	}
+	pids[ACCX_SPEED].kP(k);
+	pids[ACCX_SPEED].kI(k*0.2);
+
 	const float glob_pitch = -pids[ACCX_SPEED].get_pid(stabX + speedX, Mpu.dt);
-	
+
+	k = 5;
+	if (abs(stabY) > 1) {
+		const float k = (float)(5.0*pow(abs(stabY), 0.6)) / abs(stabY);
+		
+	}
+	pids[ACCY_SPEED].kP(k);
+	pids[ACCY_SPEED].kI(k*0.2);
 	const float glob_roll = pids[ACCY_SPEED].get_pid(stabY + speedY, Mpu.dt);
 
 	//----------------------------------------------------------------преобр. в относительную систему координат

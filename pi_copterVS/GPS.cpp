@@ -151,6 +151,7 @@ void GPSClass::loop(){
 		last_gps_time1 = micros();
 		if (loc.processGPS()) {
 			//fprintf(Debug.out_stream,"pgs %i\n", micros() - ttt);
+#ifdef TEST_GPS_CCURACY
 			if (loc.accuracy_hor_pos < (MIN_ACUR_HOR_POS_TO_FLY)) {
 				errors = 0;
 
@@ -158,11 +159,12 @@ void GPSClass::loop(){
 			}
 			else {
 				errors++;
-				if (errors > 50) {
+				if (errors > 50 && Hmc.compas_motors_calibr==false) {
 					Autopilot.control_falling(e_GPS_ERRORS_M_50);
 					
 				}
 			}
+#endif
 		}
 		//loc.accuracy_hor_pos = errors__/100;
 		//loc.accuracy_ver_pos = errors__ % 100;

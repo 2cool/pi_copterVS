@@ -309,7 +309,7 @@ int main(int argc, char *argv[]) {
 	else
 		return printHelp();
 
-	fprintf(Debug.out_stream, "ver 2.170617_2 \n");
+	fprintf(Debug.out_stream, "ver 2.170618 \n");
 	fprintf(Debug.out_stream, "picopter par: %s %s %s %s\n", argv[1], argv[2], argv[3], argv[4]);
 
 	if (signal(SIGINT, handler) == SIG_ERR) {
