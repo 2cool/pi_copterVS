@@ -33,6 +33,7 @@
 class BalanceClass
 {
  protected:
+	 float cS;
 	 void escCalibration();
 	 
 	float throttle;
@@ -41,6 +42,7 @@ class BalanceClass
 	float yaw_stabKP, pitch_roll_stabKP;
 
 	float f_[4];
+	void correct_c_pitch_c_roll();
 float maxAngle;
  public:
 	 

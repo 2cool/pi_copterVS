@@ -3,15 +3,15 @@
   Copying sources remotely to '192.168.1.155'
   Starting remote build
   Compiling sources:
-  Autopilot.cpp
-D:\Users\2cool\Desktop\COPTER\pi_copterVS\pi_copterVS\helper_3dmath.h(82,36): warning : conversion to ‘float’ from ‘double’ may alter its value [-Wfloat-conversion]
-D:\Users\2cool\Desktop\COPTER\pi_copterVS\pi_copterVS\helper_3dmath.h(119,30): warning : conversion to ‘float’ from ‘double’ may alter its value [-Wfloat-conversion]
-D:\Users\2cool\Desktop\COPTER\pi_copterVS\pi_copterVS\helper_3dmath.h(124,5): warning : conversion to ‘int16_t {aka short int}’ from ‘float’ may alter its value [-Wfloat-conversion]
-D:\Users\2cool\Desktop\COPTER\pi_copterVS\pi_copterVS\helper_3dmath.h(125,5): warning : conversion to ‘int16_t {aka short int}’ from ‘float’ may alter its value [-Wfloat-conversion]
-D:\Users\2cool\Desktop\COPTER\pi_copterVS\pi_copterVS\helper_3dmath.h(126,5): warning : conversion to ‘int16_t {aka short int}’ from ‘float’ may alter its value [-Wfloat-conversion]
-D:\Users\2cool\Desktop\COPTER\pi_copterVS\pi_copterVS\helper_3dmath.h(155,5): warning : conversion to ‘int16_t {aka short int}’ from ‘float’ may alter its value [-Wfloat-conversion]
-D:\Users\2cool\Desktop\COPTER\pi_copterVS\pi_copterVS\helper_3dmath.h(156,5): warning : conversion to ‘int16_t {aka short int}’ from ‘float’ may alter its value [-Wfloat-conversion]
-D:\Users\2cool\Desktop\COPTER\pi_copterVS\pi_copterVS\helper_3dmath.h(157,5): warning : conversion to ‘int16_t {aka short int}’ from ‘float’ may alter its value [-Wfloat-conversion]
-D:\Users\2cool\Desktop\COPTER\pi_copterVS\pi_copterVS\helper_3dmath.h(186,30): warning : conversion to ‘float’ from ‘double’ may alter its value [-Wfloat-conversion]
+  Balance.cpp
+C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\helper_3dmath.h(82,36): warning : conversion to ‘float’ from ‘double’ may alter its value [-Wfloat-conversion]
+C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\helper_3dmath.h(119,30): warning : conversion to ‘float’ from ‘double’ may alter its value [-Wfloat-conversion]
+C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\helper_3dmath.h(124,5): warning : conversion to ‘int16_t {aka short int}’ from ‘float’ may alter its value [-Wfloat-conversion]
+C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\helper_3dmath.h(125,5): warning : conversion to ‘int16_t {aka short int}’ from ‘float’ may alter its value [-Wfloat-conversion]
+C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\helper_3dmath.h(126,5): warning : conversion to ‘int16_t {aka short int}’ from ‘float’ may alter its value [-Wfloat-conversion]
+C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\helper_3dmath.h(155,5): warning : conversion to ‘int16_t {aka short int}’ from ‘float’ may alter its value [-Wfloat-conversion]
+C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\helper_3dmath.h(156,5): warning : conversion to ‘int16_t {aka short int}’ from ‘float’ may alter its value [-Wfloat-conversion]
+C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\helper_3dmath.h(157,5): warning : conversion to ‘int16_t {aka short int}’ from ‘float’ may alter its value [-Wfloat-conversion]
+C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\helper_3dmath.h(186,30): warning : conversion to ‘float’ from ‘double’ may alter its value [-Wfloat-conversion]
   Linking objects
-  pi_copterVS.vcxproj -> D:\Users\2cool\Desktop\COPTER\pi_copterVS\pi_copterVS\bin\ARM\Debug\pi_copterVS.out
+  pi_copterVS.vcxproj -> C:\Users\tcool\Desktop\COPTER\pi_copterVS\pi_copterVS\bin\ARM\Debug\pi_copterVS.out

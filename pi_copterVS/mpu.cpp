@@ -4,7 +4,7 @@
 #include "Hmc.h"
 #include "Autopilot.h"
 #include "Telemetry.h"
-
+#include "Balance.h"
 #include "debug.h"
 #include "Stabilization.h"
 #include "GPS.h"
@@ -15,12 +15,7 @@
 #define delay_ms(a)    usleep(a*1000)
 
 
-inline void sin_cos(const float a, float &s, float &c) {
-	s = (float)sin(a);
-	const float ss = s*s;
-	c = (float)sqrt(1 - min(1.0f, ss));
-	c = c;
-}
+
 
 
 
@@ -132,13 +127,8 @@ void MpuClass::init()
 	acc_callibr_time = 0;
 	rate = 100;
 	yaw = add_2_yaw = 0;
-	//f/speed^2/0.5=cS;
-	//speed^2*0.5*cS=f
-	//speed = sqrt(2f / cS)
-	//cS = 0.00536;//15 град 
-//	0.00357
-	cS = (float)tan(NEED_ANGLE_4_SPEED_10_MS * GRAD2RAD)*0.02f;
-	speedX = speedY;
+	
+	
 	max_g_cnt = 0;
 	cosYaw = 1;
 	sinYaw = 0;
@@ -150,7 +140,7 @@ void MpuClass::init()
 	yaw = pitch = roll = gyroPitch = gyroRoll = gyroYaw = accX = accY = accZ = 0;
 	sinPitch = sinRoll = 0;
 	tiltPower = cosPitch = cosRoll = 1;
-	roll_max_angle = pitch_max_angle = MAX_ANGLE;
+
 	//COMP_FILTR = 0;// 0.003;
 
 	fprintf(Debug.out_stream,"Initializing MPU6050\n");
@@ -441,64 +431,8 @@ uint8_t GetGravity(VectorFloat *v, Quaternion *q) {
 
 
 
-float c_cosPitch = 1, c_sinPitch = 0, c_cosRoll = 1, c_sinRoll = 0, c_tiltPower=0, c_pitch=0, c_roll=0;
-void MpuClass::set_max_angle(float cx,float cy) {
-	roll_max_angle = pitch_max_angle = MAX_ANGLE;
-	if (Autopilot.motors_is_on()) {
-		//спедд икс и игрик они же недолжны вращатся вместе с const float _ax = cosYaw*GPS.loc.aX + sinYaw*GPS.loc.aY;
-#ifndef MOTORS_OFF
-		float rspeedX = cosYaw*speedX - sinYaw*speedY;
-		float rspeedY = cosYaw*speedY + sinYaw*speedX;
 
 
-		float break_fx = 0.5f*abs(rspeedX)*rspeedX*(cS + cS*abs(c_sinPitch));
-		float total_ax = c_sinPitch / c_cosPitch - break_fx;
-		rspeedX = 9.8f*total_ax*dt;
-		total_ax *= c_cosPitch;
-
-
-		float break_fy = 0.5f*abs(rspeedY)*rspeedY*(cS + cS*abs(c_sinRoll));
-		float total_ay = c_sinRoll / c_cosRoll - break_fy;
-		rspeedY = 9.8f*total_ay*dt;
-		total_ay *= c_cosRoll;
-
-
-		speedX += (cosYaw*rspeedX + sinYaw*rspeedY);
-		speedY += (cosYaw*rspeedY - sinYaw*rspeedX);
-
-
-		cx += total_ax;
-		cy -= total_ay;
-
-#define CF 0.007f
-		const float aRoll = atan2(cy, c_tiltPower) * RAD2GRAD;
-		const float aPitch = atan(cx / sqrt(cy * cy + c_tiltPower * c_tiltPower)) * RAD2GRAD;
-		c_roll += gyroRoll*dt;
-		c_pitch += gyroPitch*dt;
-		c_roll -= (aRoll + c_roll)*CF;
-		c_pitch += (aPitch - c_pitch)*CF;
-		sin_cos(c_pitch*GRAD2RAD, c_sinPitch, c_cosPitch);
-		sin_cos(c_roll*GRAD2RAD, c_sinRoll, c_cosRoll);
-
-		c_tiltPower = c_cosPitch*c_cosRoll;
-		c_tiltPower = constrain(c_tiltPower, 0.5, 1);
-
-		float pk = abs(c_pitch-pitch);
-		pk = constrain(pk, 15, MAX_ANGLE);
-		pitch_max_angle -= pk;
-
-		float rk = abs(c_roll - roll);
-		rk = constrain(rk, 15, MAX_ANGLE);
-		roll_max_angle -= rk;
-#endif
-
-	}
-	else {
-		speedY = speedX = 0;
-		c_cosPitch = c_cosRoll =1; c_sinPitch = c_sinRoll = c_tiltPower = c_pitch = c_roll = 0;
-	}
-	//Debug.load(0, roll_max_angle / MAX_ANGLE, pitch_max_angle / MAX_ANGLE);
-}
 
 
 #define ROLL_COMPENSATION_IN_YAW_ROTTATION 0.02
@@ -602,7 +536,7 @@ bool MpuClass::loop(){//-------------------------------------------------L O O P
 	pitch *= RAD2GRAD;
 	roll *= RAD2GRAD;
 
-	set_max_angle(x, y);
+	
 	//float pk = pitch / c_pitch;
 	//float rk = roll / c_roll;
 

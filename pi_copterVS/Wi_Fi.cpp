@@ -90,8 +90,8 @@ void server(){
 		  wifiold_t = t;
 		  if (dt < 33)
 			  usleep(33 - dt);
-		  
-		 n = read(newsockfd,inbuffer, TELEMETRY_BUF_SIZE);
+		  if (run)
+			n = read(newsockfd,inbuffer, TELEMETRY_BUF_SIZE);
 
 
 
@@ -116,8 +116,8 @@ void server(){
 				logfile.flush();
 			}
 
-
-			n = write(newsockfd,outbuffer,buf_len);
+			if (true)
+				n = write(newsockfd,outbuffer,buf_len);
 
 
 			

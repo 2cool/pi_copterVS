@@ -96,6 +96,13 @@ static const float f_constrain(const float v, const float min, const float max){
 
 void BalanceClass::init()
 {
+//f/speed^2/0.5=cS;
+	//speed^2*0.5*cS=f
+	//speed = sqrt(2f / cS)
+	//cS = 0.00536;//15 град 
+//	0.00357
+	cS = (float)tan(NEED_ANGLE_4_SPEED_10_MS * GRAD2RAD)*0.02f;
+
 	f_[0] = f_[1] = f_[2] = f_[3] = 0;
 	fprintf(Debug.out_stream,"BALANCE INIT\n");
 	
@@ -261,6 +268,72 @@ void BalanceClass::setMaxAngle(const float ang){
 
 
 
+float c_cosPitch = 1, c_sinPitch = 0, c_cosRoll = 1, c_sinRoll = 0;
+float total_ax = 0, total_ay = 0;
+float speedX, speedY;
+void BalanceClass::correct_c_pitch_c_roll() {
+	c_pitch = constrain(c_pitch, -maxAngle, maxAngle);
+	c_roll = constrain(c_roll, -maxAngle, maxAngle);
+	const float maxAngle07 = maxAngle*0.7f;
+	if (abs(c_pitch) > maxAngle07 || abs(c_roll) > maxAngle07) {
+		//	c_pitch = constrain(c_pitch, -maxAngle, maxAngle);
+		//c_roll = constrain(c_roll, -maxAngle, maxAngle);
+		float k = (float)(RAD2GRAD*acos(cos(c_pitch*GRAD2RAD)*cos(c_roll*GRAD2RAD)));
+		if (k == 0)
+			k = maxAngle;
+		if (k > maxAngle) {
+			k = maxAngle / k;
+			c_pitch *= k;
+			c_roll *= k;
+		}
+	}
+
+	if (Autopilot.motors_is_on() && c_pitch!=0 && c_roll!=0) {
+		sin_cos(c_pitch*GRAD2RAD, c_sinPitch, c_cosPitch);
+		sin_cos(c_roll*GRAD2RAD, c_sinRoll, c_cosRoll);
+
+#ifndef MOTORS_OFF
+		float rspeedX = Mpu.cosYaw*speedX - Mpu.sinYaw*speedY;
+		float rspeedY = Mpu.cosYaw*speedY + Mpu.sinYaw*speedX;
+
+#define CF 0.007f
+
+		//c_pitch
+		float break_fx = 0.5f*abs(rspeedX)*rspeedX*(cS + cS*abs(c_sinPitch));
+		float force_ax = c_sinPitch / c_cosPitch - break_fx;
+		rspeedX = 9.8f*force_ax*Mpu.dt;
+		total_ax += ((force_ax*c_cosPitch) - total_ax)*CF;
+
+		const float false_pitch = RAD2GRAD*(float)atan(total_ax-c_sinPitch);
+		c_pitch =- false_pitch;
+
+		//c_roll
+		float break_fy = 0.5f*abs(rspeedY)*rspeedY*(cS + cS*abs(c_sinRoll));
+		float force_ay = c_sinRoll / c_cosRoll - break_fy;
+		rspeedY = 9.8f*force_ay*Mpu.dt;
+		total_ay += ((force_ay*c_cosRoll) - total_ay)*CF;
+
+		const float false_roll = RAD2GRAD*(float)atan(total_ay-c_sinRoll);
+		c_roll =- false_roll;
+
+		speedX += (Mpu.cosYaw*rspeedX + Mpu.sinYaw*rspeedY);
+		speedY += (Mpu.cosYaw*rspeedY - Mpu.sinYaw*rspeedX);
+#endif
+		
+	}
+	else {
+		c_pitch = Balance.c_pitch;
+		c_roll = Balance.c_roll;
+		speedY = speedX = 0;
+		c_cosPitch = c_cosRoll = 1; c_sinPitch = c_sinRoll = total_ax = total_ay = 0;
+	}
+
+	c_pitch = constrain(c_pitch, -maxAngle, maxAngle);
+	c_roll = constrain(c_roll, -maxAngle, maxAngle);
+	//Debug.load(0, roll_max_angle / MAX_ANGLE, pitch_max_angle / MAX_ANGLE);
+}
+
+
 uint64_t hmc_last_time = 0;
 bool BalanceClass::loop()
 {
@@ -344,26 +417,9 @@ bool BalanceClass::loop()
 				c_roll = Autopilot.get_Roll();
 			}
 
+			correct_c_pitch_c_roll();
 
-			const float maxPa = Mpu.get_pitch_max_a();
-			c_pitch = constrain(c_pitch, -maxPa, maxPa);
-			const float maxRa = Mpu.get_roll_max_a();
-			c_roll = constrain(c_roll, -maxRa, maxRa);
-
-
-			const float maxAngle07 = maxAngle*0.7f;
-			if (abs(c_pitch) > maxAngle07 || abs(c_roll) > maxAngle07) {
-				//	c_pitch = constrain(c_pitch, -maxAngle, maxAngle);
-					//c_roll = constrain(c_roll, -maxAngle, maxAngle);
-				float k = (float)(RAD2GRAD*acos(cos(c_pitch*GRAD2RAD)*cos(c_roll*GRAD2RAD)));
-				if (k == 0)
-					k = maxAngle;
-				if (k > maxAngle) {
-					k = maxAngle / k;
-					c_pitch *= k;
-					c_roll *= k;
-				}
-			}
+			
 
 #define BCF 0.1
 

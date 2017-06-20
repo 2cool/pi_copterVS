@@ -111,7 +111,12 @@ class EEPROM_Class
 };
 
 
-
+inline void sin_cos(const float a, float &s, float &c) {
+	s = (float)sin(a);
+	const float ss = s*s;
+	c = (float)sqrt(1 - min(1.0f, ss));
+	c = c;
+}
 
 
 

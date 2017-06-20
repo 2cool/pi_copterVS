@@ -1,5 +1,13 @@
+#define PROG_VERSION "ver 2.170619\n"
+
+
 #include <cstdio>
 #include <signal.h>
+
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/sem.h>
+#include <stdio.h>
 
 //#include "KalmanFilterVector.h"
 #include "Filter.h"
@@ -60,89 +68,52 @@ bool loop();
 
 
 
+int semid;
+bool is_clone(char *argv0) {
+	
+	struct sembuf my_sembuf;
+	key_t IPC_key = ftok(argv0, 0);
+	if (0 > IPC_key)
+	{
+		printf("Can\'t generate IPC key\n");
+		std::cout << argv0 << std::endl;
+		std::cout << IPC_key << std::endl;
+		
+	}
+	semid = semget(IPC_key, 1, 0666 | IPC_CREAT);
+	if (0 > semid)
+	{
+		printf("Can\'t get semid\n");
+	}
+	my_sembuf.sem_op = 1;
+	my_sembuf.sem_flg = 0;
+	my_sembuf.sem_num = 0;
+	if (0 > semop(semid, &my_sembuf, 1))
+	{
+		printf("Error increment semaphore!\n");
+	}
+	int sem_value = semctl(semid, 0, GETVAL, 0);
+	if (-1 != sem_value)
+	{
+		//std::cout << sem_value << std::endl;
+	}
+	else
+	{
+		std::cout << " Error get senafor value! " << std::endl;
+	}
+	if (sem_value > 1)
+	{
+		//std::cout << " Error! 2 COPY! " << std::endl;
+		return true;
+	}
 
-
+	
+	return false;
+}
 
 
 
 uint16_t oldCounter = 1000;
-
-
-
-
-
-
-void buzz_until_not_finded() {
-	//wdt_disable();
-	//pinMode(7, OUTPUT);   // buzzer
-	//uint8_t errors = 0;
-	//int16_t res = Mpu.getGX();
-	
-	LED.prog_index = LED.PROG0_P;
-	//long time_ms = micros();
-	//int sb = 0;
-#ifdef MOTORS_OFF
-	Pwm.on(0, pwm_OFF_THROTTLE);
-	
-#else	
-
-	const bool power_on = true;// analogRead(A4) > 500;
-	Pwm.on(0, power_on ? pwm_OFF_THROTTLE : pwm_MAX_THROTTLE);
-	fprintf(Debug.out_stream,power_on ? "	- COPTER IS LOST -\n" : "wait 4 power\n");
-
-
-	/*
-	uint32_t temp_time = 0;
-	do {
-		GPS.loop();
-
-		MS5611.loop();
-
-		WiFi.loop(micros() + (long)1000000);
-
-		if (power_on) {
-			if (micros() - time_ms > 1300) {
-				time_ms = micros();
-				sb++;
-				digitalWrite(7, sb & 1);
-			}
-		}
-		LED.loop();
-
-
-		if (power_on == false) {
-			if (WiFi.copterFound) {
-				Serial.println("wait4power_on");
-			}
-			WiFi.copterFound = false;
-			if (analogRead(A4) > 500) {
-				if (temp_time == 0) {
-					temp_time = millis();
-					//Serial.println("12 VOLT");
-					//Serial.println(analogRead(A4));
-				}
-				else {
-					if (millis() - temp_time > (uint32_t)1000U) {
-
-						//OCR5A = OCR3A = OCR4A = OCR4C = pwm_OFF_THROTTLE;
-						WiFi.copterFound = true;
-						break;
-						//Serial.println("off THR");
-					}
-				}
-			}
-		}
-		else
-			if (WiFi.copterFound) {
-				Out.println("COPTER IS FOUND!");
-				break;
-			}
-
-
-	} while (true);
-	*/
-#endif
-}
 
 int setup(int cnt) {////--------------------------------------------- SETUP ------------------------------
 	
@@ -253,8 +224,20 @@ int printHelp() {
 
 
 int main(int argc, char *argv[]) {
-	
-	
+
+	printf( PROG_VERSION);
+
+/*
+	if (is_clone(argv[0])==true) {
+		printf("clone\n");
+		if (-1 == semctl(semid, 0, IPC_RMID, 0))
+		{
+			printf("Error delete!\n");
+		}
+		return 0;
+	}
+	*/
+
 	Debug.n_p1 = 3;
 	Debug.n_p2 = 1.6f;
 	Debug.n_debug = 0;
@@ -277,17 +260,18 @@ int main(int argc, char *argv[]) {
 			
 			Debug.n_p2 = 0.01f*(float)t;
 
-
+#define LOG_COUNTER_NAME "/home/igor/logs/logCounter.txt"
 			
-			FILE *set = fopen("/home/igor/logs/logCounter.txt", "r");
+			FILE *set = fopen(LOG_COUNTER_NAME, "r");
 			if (set) {
 				fscanf(set, "%i", &counter);
 
 				fclose(set);
-				remove("/home/igor/logs/logCounter.txt");
+				usleep(500);
+				remove(LOG_COUNTER_NAME);
 			}
-
-			set = fopen("/home/igor/logs/logCounter.txt", "w+");
+			usleep(500);
+			set = fopen(LOG_COUNTER_NAME, "w+");
 			fprintf(set, "%i\n", counter + 1);
 			fclose(set);
 			if (argv[3][0] == 'f' || argv[3][0] == 'F') {
@@ -309,36 +293,37 @@ int main(int argc, char *argv[]) {
 	else
 		return printHelp();
 
-	fprintf(Debug.out_stream, "ver 2.170618 \n");
+	fprintf(Debug.out_stream, PROG_VERSION);
 	fprintf(Debug.out_stream, "picopter par: %s %s %s %s\n", argv[1], argv[2], argv[3], argv[4]);
 
 	if (signal(SIGINT, handler) == SIG_ERR) {
 		return EXIT_FAILURE;
 	}
 
-	if (setup(counter))
-		return -1;
-	old_time4loop =micros();
-	float dfr = 100;
-	Debug.run_main = true;
-	while (Debug.run_main && flag == 0) {
+	if (setup(counter) == 0) {
 
-		if (loop()) {
-			//usleep(5400);
-		//	int ttt = micros();
-		//	dfr += ((1000000 / (ttt - old_time4loop)) - dfr)*0.01;
-		//	Debug.load(0, dfr, 0);
-		//	old_time4loop = ttt;
-			int64_t t = micros();
-			int32_t time_past = (int32_t)(t - old_time4loop);
-			old_time4loop = t;
-			//if (time_past > 15000)
-			//	fprintf(Debug.out_stream,"too long %i\n",time_past);
+		old_time4loop = micros();
+		float dfr = 100;
+		Debug.run_main = true;
+		while (Debug.run_main && flag == 0) {
 
-			//Debug.load(0, time_past, 0);
-			//Debug.dump();
+			if (loop()) {
+				//usleep(5400);
+			//	int ttt = micros();
+			//	dfr += ((1000000 / (ttt - old_time4loop)) - dfr)*0.01;
+			//	Debug.load(0, dfr, 0);
+			//	old_time4loop = ttt;
+				int64_t t = micros();
+				int32_t time_past = (int32_t)(t - old_time4loop);
+				old_time4loop = t;
+				//if (time_past > 15000)
+				//	fprintf(Debug.out_stream,"too long %i\n",time_past);
+
+				//Debug.load(0, time_past, 0);
+				//Debug.dump();
+			}
+
 		}
-
 	}
 	WiFi.stopServer();
 	if (Debug.run_main==false)
@@ -346,8 +331,14 @@ int main(int argc, char *argv[]) {
 	if (flag!=0)
 		fprintf(Debug.out_stream, "\n main Signal caught!\n");
 	EEPROM.write_set();
-	fclose(Debug.out_stream);
+	//fclose(Debug.out_stream);
+
 	
+
+	if (-1 == semctl(semid, 0, IPC_RMID, 0))
+	{
+		printf("Error delete!\n");
+	}
 
 	return 0;
 
