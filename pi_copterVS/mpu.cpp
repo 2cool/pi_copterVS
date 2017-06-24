@@ -8,7 +8,7 @@
 #include "debug.h"
 #include "Stabilization.h"
 #include "GPS.h"
-#include "LED.h"
+
 //#include "Mem.h"
 
 
@@ -128,7 +128,7 @@ void MpuClass::init()
 	rate = 100;
 	yaw = add_2_yaw = 0;
 	
-	
+	maccX = maccY = maccZ = 0;
 	max_g_cnt = 0;
 	cosYaw = 1;
 	sinYaw = 0;
@@ -184,8 +184,8 @@ void MpuClass::init()
 		accelgyro.setYGyroOffset(offset_[gy_offset]);
 		accelgyro.setZGyroOffset(offset_[gz_offset]);*/
 #ifdef DEBUG_MODE
-		for (int i = 0; i < 6; i++)
-			Out.println(offset_[i]);
+		//for (int i = 0; i < 6; i++)
+		//	Out.println(offset_[i]);
 #endif
 #ifndef WORK_WITH_WIFI
 		//calibrated = false;
@@ -384,9 +384,12 @@ bool flagggggg = true;
 float oldpitch = 0, oldRoll = 0, oldyaw = 0;
 ///////////////////////////////////////////////////////////////////
 
-void MpuClass::loop(){
-	uint32_t mputime = micros();
-	dt = (float)(mputime - oldmpuTime)*0.000001;// *div;
+bool MpuClass::loop(){
+	uint64_t mputime = micros();
+	float ___dt = (float)(mputime - oldmpuTime)*0.000001;// *div;
+	if (___dt < 0.01)
+		return false;
+	dt = ___dt;
 	rdt = 1.0 / dt;
 	oldmpuTime = mputime;
 
@@ -414,7 +417,8 @@ void MpuClass::loop(){
 	getFalse(accX, accY);
 	cosYaw = cos(Mpu.yaw*GRAD2RAD);
 	sinYaw = sin(Mpu.yaw*GRAD2RAD);
-	delay(9);
+	delay(4);
+	return true;
 }
 
 #else
@@ -521,10 +525,19 @@ bool MpuClass::loop(){//-------------------------------------------------L O O P
 	accX = 9.8f*(x*cosPitch - z*sinPitch)-ac_accX;
 	accY = 9.8f*(y*cosRoll + z*sinRoll)-ac_accY;
 
-	if (acc_callibr_time > mputime) {
-		ac_accZ += accZ*0.01;
-		ac_accY += accY*0.01;
-		ac_accX += accX*0.01;
+
+	if (Autopilot.motors_is_on() == false) {
+		if (mputime > 20000000) {
+			maccX += (accX - maccX)*0.01f;
+			maccY += (accY - maccY)*0.01f;
+			maccZ += (accZ - maccZ)*0.01f;
+		}
+
+		if (mputime > 30000000 && acc_callibr_time > mputime) {
+			ac_accZ += accZ*0.01;
+			ac_accY += accY*0.01;
+			ac_accX += accX*0.01;
+		}
 	}
 	
 
@@ -617,7 +630,7 @@ bool MpuClass::selfTest(){
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void MpuClass::new_calibration(const bool onlyGyro){
-	LED.off();
+
 	acc_callibr_time = micros()+(uint64_t)10000000;
 	gyro_calibratioan = true;
 }

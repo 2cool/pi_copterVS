@@ -61,7 +61,7 @@ protected:
 	  void phase2();
 	  void phase3();
 
-	float altitude_,alt;
+	float altitude_;
 public:
 	float altitude();
 

@@ -33,7 +33,7 @@ THG out of Perimetr high
 
 #include "GPS.h"
 
-#include "LED.h"
+
 #include "Telemetry.h"
 #include "Stabilization.h"
 #include "debug.h"
@@ -48,7 +48,7 @@ THG out of Perimetr high
 
 
 void AutopilotClass::init(){/////////////////////////////////////////////////////////////////////////////////////////////////
-	lowest_height = Debug.n_p2;
+	lowest_height = Debug.lowest_altitude_to_fly;
 	last_time_data_recived = 0;
 	gimBalPitch = 0;
 	Balance.init();
@@ -166,7 +166,6 @@ void AutopilotClass::loop(){////////////////////////////////////////////////////
 		}
 		else{
 			if (control_bits & GO2HOME){
-				LED.prog_index = LED.GO_TO_HOME_P;
 				go2HomeProc(dt);
 			}
 			else{
@@ -201,7 +200,6 @@ void AutopilotClass::loop(){////////////////////////////////////////////////////
 						aRoll = Commander.getRoll();
 					}
 				}
-				LED.prog_index = (smart == 0) ? LED.MANUAL_P : ((smart == 2) ? LED.FULL_SMART_P : LED.SEMI_SMART_P);
 			}
 			
 		}
@@ -326,7 +324,7 @@ bool AutopilotClass::go2HomeProc(const float dt){
 
 	}
 	case GO_UP_OR_NOT:{
-			   const float accuracy = ACCURACY_XY + GPS.loc.accuracy_hor_pos;
+			   const float accuracy = ACCURACY_XY + GPS.loc.accuracy_hor_pos_;
 			   if (fabs(GPS.loc.x2home) <= accuracy && fabs(GPS.loc.y2home) <= accuracy){
 				   f_go2homeTimer = 6; //min time for stab
 				   go2homeIndex = (MS5611.altitude() <= (FAST_DESENDING_TO_HIGH)) ? SLOW_DESENDING : START_FAST_DESENDING;
@@ -351,7 +349,7 @@ bool AutopilotClass::go2HomeProc(const float dt){
 			   break;
 	}
 	case TEST4HOME_LOC:{//прилет на место старта
-			   const float accuracy = ACCURACY_XY + GPS.loc.accuracy_hor_pos;
+			   const float accuracy = ACCURACY_XY + GPS.loc.accuracy_hor_pos_;
 			   if (fabs(GPS.loc.x2home) <= accuracy && fabs(GPS.loc.y2home) <= accuracy){
 				   go2homeIndex = START_FAST_DESENDING;
 				   f_go2homeTimer = 0;
@@ -475,42 +473,50 @@ bool AutopilotClass::holdLocationStartStop(){///////////////////////////////////
 	}
 	return false;
 }
-
-
+/*
+beep codes
+{0, B00001000, B00001001, B00001010, B00001011, B00001100, B00001101, B00001110, B00001111, B00000001, B00000010, B00000011, B00000100, B00000101, B00000110, B00000111 };//4 beeps. 0 short 1 long beep
+*/
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 bool AutopilotClass::motors_do_on(const bool start, const string msg){////////////////////////  M O T O R S  D O  ON  /////////////////////////////////////////////////////////////////////////
 	fprintf(Debug.out_stream,"%s - ",msg.c_str());
 	
 	if (start){
+#ifndef FALSE_MPU
 		fprintf(Debug.out_stream,"on ");
 		if (millis() < 30000) {
 			fprintf(Debug.out_stream,"\n!!!calibrating!!! to end:%i sec.\n", 30-millis()/1000);
 			return false;
 		}
+#endif
 		if (Telemetry.power_is_on() == false) {
 			fprintf(Debug.out_stream,"!!! power is off !!!\n");
 			Pwm.beep_code(BEEPS_ON+(1<<1));
 		}
-		LED.error_code = 0;
-		LED.error_code = 255;
+#define MAX_MACC 0.1f
+		if (abs(Mpu.maccX) > MAX_MACC || abs(Mpu.maccY) > MAX_MACC || abs(Mpu.maccZ) > MAX_MACC) {
+			fprintf(Debug.out_stream, "ACC ERROR!!! \n");
+			Pwm.beep_code(BEEPS_ON + (2 << 1));
+			return false;
+		}
+
 		if (Mpu.gyro_calibratioan && Hmc.calibrated){
 
 			if (Telemetry.low_voltage){
 				Telemetry.addMessage(e_LOW_VOLTAGE);
 				fprintf(Debug.out_stream," LOW VOLTAGE\n");
-				Pwm.beep_code(BEEPS_ON + (2 << 1));
-				return false;
-			}
-#ifdef TEST_GPS_CCURACY
-			if (Hmc.compas_motors_calibr==false && GPS.loc.accuracy_hor_pos > MIN_ACUR_HOR_POS_2_START ){
-				fprintf(Debug.out_stream," GPS error\n");
 				Pwm.beep_code(BEEPS_ON + (3 << 1));
-				Telemetry.addMessage(e_GPS_ERROR);
-				LED.error_time = millis();
-				LED.error_code &= 255^1;
 				return false;
 			}
-#endif
+
+			if (Hmc.compas_motors_calibr==false && GPS.loc.accuracy_hor_pos_ > MIN_ACUR_HOR_POS_2_START ){
+				fprintf(Debug.out_stream," GPS error\n");
+				Pwm.beep_code(BEEPS_ON + (4 << 1));
+				Telemetry.addMessage(e_GPS_ERROR);
+
+				return false;
+			}
+
 			Telemetry.update_voltage();
 			
 			control_bits = MOTORS_ON;
@@ -523,42 +529,25 @@ bool AutopilotClass::motors_do_on(const bool start, const string msg){//////////
 			tflyAtAltitude = flyAtAltitude = MS5611.altitude();
 			
 			Mpu.max_g_cnt = 0;
-			holdAltitude(Debug.n_p1);
+			holdAltitude(Debug.fly_at_start);
 			holdLocation(GPS.loc.lat_, GPS.loc.lon_);
 			aYaw_ = -Mpu.yaw;
 			fflush(Debug.out_stream);
-
+			start_time = millis();
 #ifdef DEBUG_MODE
-			Out.fprintf(Debug.out_stream,"\nhome loc:");
-			Out.fprintf(Debug.out_stream,GPS.loc.lat_);
-			Out.fprintf(Debug.out_stream," ");
-			Out.fprintf(Debug.out_stream,GPS.loc.lon_);
-			Out.fprintf(Debug.out_stream," ");
-			Out.fprintf(Debug.out_stream,GPS.loc.altitude);
-			Out.println("M");
-			Out.println("home alt set");
-			Out.println(flyAtAltitude);
+			fprintf(Debug.out_stream, "\nhome loc: %i %i %i M\nhome alt set %i\n", GPS.loc.lat_, GPS.loc.lon_, (int)flyAtAltitude);
 #endif
-
-
-
-
-
-
-
 		}
 		else{
 			if (Hmc.calibrated == false){
 				fprintf(Debug.out_stream,"compas, ");
 				Pwm.beep_code(BEEPS_ON + (4 << 1));
-				LED.error_time = millis();
-				LED.error_code &= 255 ^ 2;
+
 			}
 			if (Mpu.gyro_calibratioan == false){
 				fprintf(Debug.out_stream,"gyro");
 				Pwm.beep_code(BEEPS_ON + (5 << 1));
-				LED.error_time = millis();
-				LED.error_code &= 255 ^ 4;
+
 			}
 			fprintf(Debug.out_stream," calibr FALSE\n");
 		}
@@ -578,7 +567,7 @@ void AutopilotClass::control_falling(const string msg){
 		throttle = FALLING_THROTTLE*Balance.powerK();
 		aPitch = aRoll = 0;
 #ifdef DEBUG_MODE
-		Out.println("CNTROLL FALLING");
+		fprintf(Debug.out_stream, "CNTROLL FALLING\n");
 #endif
 		Telemetry.addMessage(msg);
 		Telemetry.addMessage(i_CONTROL_FALL);
@@ -743,35 +732,37 @@ void AutopilotClass::gimBalPitchADD(const float add){
 
 
 bool AutopilotClass::start_stop_program(const bool stopHere){
-	if (progState()){
-		control_bits ^= PROGRAM;
-		LED.prog_index = LED.PROG1_P;
-		Prog.clear();
-		Stabilization.setDefaultMaxSpeeds();
-		if (stopHere){
-			float alt = MS5611.altitude();
-			if (alt  < 10)
-				alt = 10;
-			holdAltitude(alt);
-			holdLocation(GPS.loc.lat_, GPS.loc.lon_);
-		}
-		return true;
-	}
-	else{
-		if (Prog.start()){
-			if (go2homeState())
-				going2HomeStartStop(false);
-			bool res = holdAltitude(MS5611.altitude());
-			res &= holdLocation(GPS.loc.lat_, GPS.loc.lon_);
-			if (res){
-				control_bits |= PROGRAM;
-				fprintf(Debug.out_stream,"prog started\n");
-				return true;
+	if (motors_is_on()) {
+		if (progState()) {
+			control_bits ^= PROGRAM;
+
+			Prog.clear();
+			Stabilization.setDefaultMaxSpeeds();
+			if (stopHere) {
+				float alt = MS5611.altitude();
+				if (alt < 10)
+					alt = 10;
+				holdAltitude(alt);
+				holdLocation(GPS.loc.lat_, GPS.loc.lon_);
 			}
+			return true;
 		}
+		else {
+			if (Prog.start()) {
+				if (go2homeState())
+					going2HomeStartStop(false);
+				bool res = holdAltitude(MS5611.altitude());
+				res &= holdLocation(GPS.loc.lat_, GPS.loc.lon_);
+				if (res) {
+					control_bits |= PROGRAM;
+					fprintf(Debug.out_stream, "prog started\n");
+					return true;
+				}
+			}
+			return false;
+		}
+	}
 	return false;
-}
-	
 	
 }
 

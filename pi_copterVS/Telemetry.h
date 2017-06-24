@@ -40,13 +40,7 @@ class TelemetryClass
  public:
 	float b[3];
 	uint32_t get_power_on_time() { return power_on_time; }
-	bool power_is_on() {
-#ifdef NO_BATTERY
-		return true;
-#else 
-		return (power_on_time > 0 && millis() - power_on_time > ((Debug.n_p1>0)?2000:Debug.n_p1));
-#endif 
-	}
+	bool power_is_on();
 
 	 uint8_t no_time_cnt = 0;
 	 void update_voltage();
@@ -63,7 +57,7 @@ class TelemetryClass
 
 
 
-	 int16_t check_time_left_if_go_to_home();
+	 int check_time_left_if_go_to_home();
 	 void testBatteryVoltage();
 
 	 void init_();

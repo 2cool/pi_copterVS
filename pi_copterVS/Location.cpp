@@ -142,8 +142,8 @@ void LocationClass::update(){
 	float bearing, distance;
 
 #ifdef DEBUG_MODE
-	Out.println("upd");
-	Debug.dump(lat_, lon_, 0, 0);
+	//printf("upd\n");
+	//Debug.dump(lat_, lon_, 0, 0);
 #endif
 	float lat = 1.74532925199433e-9f * (float)lat_;  //radians
 	float lon = 1.74532925199433e-9f * (float)lon_;
@@ -173,7 +173,7 @@ void LocationClass::update(){
 void LocationClass::updateXY(){
 	dist2home_2 = x2home*x2home + y2home*y2home;
 	//Out.println(dist2home_2);
-	if (accuracy_hor_pos<5 &&  abs(dist2home_2 - oldDist) > MAX_DIST2UPDATE){
+	if (abs(dist2home_2 - oldDist) > MAX_DIST2UPDATE){
 		oldDist = dist2home_2;
 		
 		update();
@@ -233,10 +233,10 @@ bool LocationClass::processGPS_1() {
 				fpos = 0;
 				if (buf_loc[buf_ind_loc] == checksum[1]) {
 
-					accuracy_hor_pos = DELTA_ANGLE_C*(float)posllh.hAcc;
-					if (accuracy_hor_pos > 99)accuracy_hor_pos = 99;
-					accuracy_ver_pos = DELTA_ANGLE_C*(float)posllh.vAcc;
-					if (accuracy_ver_pos > 99)accuracy_ver_pos = 99;
+					accuracy_hor_pos_ = DELTA_ANGLE_C*(float)posllh.hAcc;
+					if (accuracy_hor_pos_ > 99)accuracy_hor_pos_ = 99;
+					accuracy_ver_pos_ = DELTA_ANGLE_C*(float)posllh.vAcc;
+					if (accuracy_ver_pos_ > 99)accuracy_ver_pos_ = 99;
 					mseconds = posllh.iTOW;
 					if (old_iTOW == 0)
 						old_iTOW = posllh.iTOW - 100;
@@ -344,8 +344,8 @@ int LocationClass::init(){
 
 	x2home = y2home = speedX = speedY = 0;
 	lon_home = lat_home = 0;
-	accuracy_hor_pos = 99.99f;
-	accuracy_ver_pos = 99.99f;
+	accuracy_hor_pos_ = 99;
+	accuracy_ver_pos_ = 99;
 	altitude = 0;
 	lat_ = 0;  //radians
 	lon_ = 0;

@@ -22,8 +22,9 @@ class DebugClass
 	 void graphic(const int n, const float x, const float y);
 
  public:
+	 uint32_t escCalibr;
 	 int n_debug;
-	 float n_p1, n_p2;
+	 float fly_at_start, lowest_altitude_to_fly;
 	 FILE * out_stream;
 	 bool writeTelemetry;
 	 bool run_main;

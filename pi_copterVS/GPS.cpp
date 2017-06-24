@@ -1,6 +1,4 @@
  
-// 
-// 
 #include "Hmc.h"
 #include "define.h"
 #include "GPS.h"
@@ -12,19 +10,13 @@
 
 void GPSClass::init()
 {	
-
 #ifndef	FALSE_GPS
-	//gps.begin(9600);
-	//gps.begin(115200);
 	loc.last_gps_data_time = millis();
-
 #endif
-	
 	if (loc.init() == -1) {
 		fprintf(Debug.out_stream,"GPS ERROR\n");
 		return;
 	}
-	errors = 0;
 	fprintf(Debug.out_stream,"GPS INIT\n");
 }
 
@@ -77,8 +69,8 @@ void GPSClass::loop(){
 		loc.mseconds = gpsttime;
 	else
 		return;
-	loc.accuracy_hor_pos = 0;
-	loc.accuracy_ver_pos = 1;
+	loc.accuracy_hor_pos_ = 0;
+	loc.accuracy_ver_pos_ = 1;
 	loc.altitude = MS5611.altitude();// +4 * ((float)rand()) / RAND_MAX;
 
 
@@ -140,62 +132,24 @@ void GPSClass::loop(){
 
 #else
 
-int errors__ =0;
+
 uint64_t last_gps_time1 = 0;
 
-uint64_t max_time = 0;
 void GPSClass::loop(){
 
 	uint64_t ttt = micros();
 	if (micros() - last_gps_time1 >= 33000) {
 		last_gps_time1 = micros();
 		if (loc.processGPS()) {
-			//fprintf(Debug.out_stream,"pgs %i\n", micros() - ttt);
-#ifdef TEST_GPS_CCURACY
-			if (loc.accuracy_hor_pos < (MIN_ACUR_HOR_POS_TO_FLY)) {
-				errors = 0;
-
-				loc.updateXY();
-			}
-			else {
-				errors++;
-				if (errors > 50 && Hmc.compas_motors_calibr==false) {
-					Autopilot.control_falling(e_GPS_ERRORS_M_50);
-					
-				}
-			}
-#endif
+			loc.updateXY();
 		}
-		//loc.accuracy_hor_pos = errors__/100;
-		//loc.accuracy_ver_pos = errors__ % 100;
 		if ((last_gps_time1 > loc.last_gps_data_time) && (last_gps_time1 - loc.last_gps_data_time) > 1000000){//NO_GPS_TIME_TO_FALL) {
 			fprintf(Debug.out_stream,"gps update error  %i\n",millis()/1000);
-			//init();
 			loc.last_gps_data_time = micros();
-			errors__++;
-			Autopilot.control_falling(e_GPS_NO_UPDATE);
+			//Autopilot.control_falling(e_GPS_NO_UPDATE);
 		}
-
-	}
-	uint64_t dt=micros() - ttt;
-	if (dt > max_time) {
-		max_time = dt;
-	//	fprintf(Debug.out_stream,"max=%i\n", max_time);
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
 #endif
 
 GPSClass GPS;

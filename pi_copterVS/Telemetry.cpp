@@ -27,9 +27,17 @@
 #define BAT_ZERO (360.0f*3)
 #define BAT_50P (391.0f*3)
 #define MAX_VOLTAGE_AT_START 406
-#define MAX_FLY_TIME 120000.0f
+#define MAX_FLY_TIME 1200.0f
 //батареи хватает на 
-#define FALSE_TIME_TO_BATERY_OFF 120000.0f
+#define FALSE_TIME_TO_BATERY_OFF 1500.0f
+
+bool TelemetryClass::power_is_on() {
+#ifdef NO_BATTERY
+	return true;
+#else 
+	return (power_on_time > 0 && millis() - power_on_time > Debug.escCalibr);
+#endif 
+}
 
 void TelemetryClass::addMessage(const string msg){
 	fprintf(Debug.out_stream,"%s\n", msg.c_str());
@@ -128,7 +136,7 @@ void TelemetryClass::loop()
 }
 #define BALANCE_DELAY 120
 
-int16_t TelemetryClass::check_time_left_if_go_to_home(){
+int TelemetryClass::check_time_left_if_go_to_home(){
 	float max_fly_time=0;
 	if (voltage_at_start > 0){
 		float work_time = 0.001f*(float)(millis() - timeAtStart);
@@ -143,10 +151,10 @@ int16_t TelemetryClass::check_time_left_if_go_to_home(){
 		const float time2home = dist2home *(1.0f / MAX_HOR_SPEED);
 		const float time2down = abs((MS5611.altitude())*(1.0f / MAX_VER_SPEED_MINUS));
 	//	Debug.dump(max_fly_time, time2home + time2down, voltage, 0);
-		return (int16_t)(max_fly_time - time2home - time2down);
+		return (int)(max_fly_time - time2home - time2down);
 	}
 	else
-		return (int16_t)max_fly_time;
+		return (int)max_fly_time;
 
 }
 
@@ -341,13 +349,12 @@ void TelemetryClass::update_buf() {
 //	fprintf(Debug.out_stream,"out <- %i\n", mod);
 	loadBUF32(i, mod);
 	//fprintf(Debug.out_stream,"message=", message.c_str());
-	const bool err = (GPS.loc.accuracy_hor_pos >= 99);
 	loadBUF(i, 1000 + (Balance.get_throttle() * 1000));
 	loadBUF32(i, GPS.loc.lat_);
 	loadBUF32(i, GPS.loc.lon_);
 
-	buf[i++] = (byte)(err)?99: GPS.loc.accuracy_hor_pos;
-	buf[i++] = (byte)(err)?99: GPS.loc.accuracy_ver_pos;
+	buf[i++] = (byte)GPS.loc.accuracy_hor_pos_;
+	buf[i++] = (byte)GPS.loc.accuracy_ver_pos_;
 
 	loadBUF(i, 10.0f*Autopilot.corectedAltitude4tel());// -Autopilot.startAltitude));
 	//Out.fprintf(Debug.out_stream,t_old_alt); Out.fprintf(Debug.out_stream," "); Out.println(MS5611.altitude);// -Autopilot.startAltitude);

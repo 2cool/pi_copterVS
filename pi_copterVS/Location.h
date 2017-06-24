@@ -37,8 +37,8 @@ public:
 	float dt, rdt;
 	float add_lat_need, add_lon_need;
 	long lat_, lon_, lat_home, lon_home;
-	float accuracy_hor_pos, altitude;
-	float accuracy_ver_pos;
+	float accuracy_hor_pos_, altitude;
+	float accuracy_ver_pos_;
 	unsigned long mseconds;
 	void setSpeedZero(){ lat_needV_ = lat_needR_; lon_needV_ = lon_needR_; }
 	int init();

@@ -60,7 +60,7 @@ int MS5611Class::init(){
 	bar_zero = 0x0;
 	ct=10000;
 	
-	speed=altitude_=alt=0;
+	speed=altitude_=0;
 	altitude_error = ALT_NOT_SET;
 
 	powerK = 1;
@@ -118,7 +118,7 @@ int MS5611Class::init(){
 	
 }
 float MS5611Class::altitude() {
-	return alt;// altitude_ - altitude_error;
+	return altitude_ - altitude_error;
 }
 #ifndef WORK_WITH_WIFI
 int cntssdde = 0;
@@ -179,11 +179,11 @@ uint8_t MS5611Class::loop(){
 		flying = true;
 	speed = Mpu.speed_Z;
 	
-	alt = altitude_ - altitude_error;
+
 	//Serial.println(altitude_)
 
 #ifdef Z_SAFE_AREA
-	if (Autopilot.motors_is_on() && alt > Z_SAFE_AREA) {
+	if (Autopilot.motors_is_on() && (altitude_ - altitude_error) > Z_SAFE_AREA) {
 		Autopilot.control_falling(i_CONTROL_FALL);
 	}
 #endif
@@ -191,15 +191,7 @@ uint8_t MS5611Class::loop(){
 
 
 
-	//Serial.fprintf(Debug.out_stream,"alt="); Serial.fprintf(Debug.out_stream,altitude_ + altitude_error); Serial.fprintf(Debug.out_stream," "); Serial.println(altitude_);
-	/*if (altitude_ <= 0){
-		altitude_ = speed = 0;
-		if (flying){
-			flying = false;
-			Serial.println("FALL");
-			Autopilot.motors_do_on(false, "TST");
-		}
-	}*/
+	
 
 
 }
@@ -433,9 +425,9 @@ void MS5611Class::phase3() {
 
 	speed = (new_altitude - altitude_) / dt;
 	altitude_ = new_altitude;
-	alt = altitude_ - altitude_error;
+
 #ifdef Z_SAFE_AREA
-	if (Autopilot.motors_is_on() && alt > Z_SAFE_AREA) {
+	if (Autopilot.motors_is_on() && (altitude_ - altitude_error) > Z_SAFE_AREA) {
 		Autopilot.control_falling(e_OUT_OF_PER_V);
 	}
 #endif

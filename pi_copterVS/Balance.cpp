@@ -23,7 +23,7 @@
 #include "Stabilization.h"
 #include "Telemetry.h"
 #include "debug.h"
-#include "LED.h"
+
 #include "GPS.h"
 void correct(float & f){
 	if (f < 0)
@@ -143,7 +143,8 @@ void BalanceClass::init()
 	Hmc.loop();
 	Mpu.initYaw(Hmc.heading);
 #ifdef DEBUG_MODE
-	Out.fprintf(Debug.out_stream,"Heading :"); Out.println(Hmc.headingGrad);
+	fprintf(Debug.out_stream, "Heading :%i\n", (int)Hmc.get_headingGrad());
+	
 #endif
 
 	
@@ -288,10 +289,13 @@ void BalanceClass::correct_c_pitch_c_roll() {
 		}
 	}
 
-	if (Autopilot.motors_is_on() && c_pitch!=0 && c_roll!=0) {
+	if (Autopilot.motors_is_on()) {
+		
 		sin_cos(c_pitch*GRAD2RAD, c_sinPitch, c_cosPitch);
 		sin_cos(c_roll*GRAD2RAD, c_sinRoll, c_cosRoll);
-
+		if (c_cosRoll == 0 || c_cosPitch == 0)
+			return;
+		
 #ifndef MOTORS_OFF
 		float rspeedX = Mpu.cosYaw*speedX - Mpu.sinYaw*speedY;
 		float rspeedY = Mpu.cosYaw*speedY + Mpu.sinYaw*speedX;
@@ -304,8 +308,8 @@ void BalanceClass::correct_c_pitch_c_roll() {
 		rspeedX = 9.8f*force_ax*Mpu.dt;
 		total_ax += ((force_ax*c_cosPitch) - total_ax)*CF;
 
-		const float false_pitch = RAD2GRAD*(float)atan(total_ax-c_sinPitch);
-		c_pitch =- false_pitch;
+		const float false_pitch = RAD2GRAD*(float)atan((total_ax - c_sinPitch)/c_cosPitch);
+		c_pitch = -false_pitch;
 
 		//c_roll
 		float break_fy = 0.5f*abs(rspeedY)*rspeedY*(cS + cS*abs(c_sinRoll));
@@ -313,11 +317,12 @@ void BalanceClass::correct_c_pitch_c_roll() {
 		rspeedY = 9.8f*force_ay*Mpu.dt;
 		total_ay += ((force_ay*c_cosRoll) - total_ay)*CF;
 
-		const float false_roll = RAD2GRAD*(float)atan(total_ay-c_sinRoll);
-		c_roll =- false_roll;
+		const float false_roll = RAD2GRAD*(float)atan((total_ay - c_sinRoll)/c_cosRoll);
+		c_roll = -false_roll;
 
 		speedX += (Mpu.cosYaw*rspeedX + Mpu.sinYaw*rspeedY);
 		speedY += (Mpu.cosYaw*rspeedY - Mpu.sinYaw*rspeedX);
+		
 #endif
 		
 	}
@@ -330,6 +335,11 @@ void BalanceClass::correct_c_pitch_c_roll() {
 
 	c_pitch = constrain(c_pitch, -maxAngle, maxAngle);
 	c_roll = constrain(c_roll, -maxAngle, maxAngle);
+	//Debug.load(0, total_ax, total_ay);
+	//Debug.load(1, speedX / 12, speedY / 12);
+
+
+	//Debug.dump();
 	//Debug.load(0, roll_max_angle / MAX_ANGLE, pitch_max_angle / MAX_ANGLE);
 }
 
@@ -398,17 +408,6 @@ bool BalanceClass::loop()
 
 			}
 
-
-
-
-
-
-
-
-
-
-
-
 			if (Autopilot.xy_stabState()) {
 				Stabilization.XY(c_pitch, c_roll);
 			}
@@ -416,10 +415,16 @@ bool BalanceClass::loop()
 				c_pitch = Autopilot.get_Pitch();
 				c_roll = Autopilot.get_Roll();
 			}
-
+		//	float oc_roll = c_roll;
+			//float oc_pitch = c_pitch;
+#ifndef FALSE_MPU
 			correct_c_pitch_c_roll();
+#endif
 
-			
+			//Debug.load(0, oc_pitch / 30, oc_roll / 30);
+			//Debug.load(0, c_pitch / 30, oc_pitch / 30);
+			//Debug.load(1, c_roll / 30, oc_roll / 30);
+			//Debug.dump();
 
 #define BCF 0.1
 
@@ -470,8 +475,7 @@ bool BalanceClass::loop()
 				f_[1] = 0;
 				f_[2] = 0;
 				f_[3] = 0;
-				LED.light(Hmc.motor_index);
-				LED.prog_index = LED.MOT_OFF_P;
+
 
 				f_[Hmc.motor_index] = 0.5;
 
@@ -486,13 +490,13 @@ bool BalanceClass::loop()
 		}
 		else
 		{
-			LED.prog_index = LED.MOT_OFF_P;
+
 			c_pitch = c_roll = 0;
 
 			//	Pwm.throttle(0, 0, 0, 0);
 				//throttle = 0;
 
-			if (false)
+			if (Debug.escCalibr>0)
 				escCalibration();
 
 		}
@@ -500,7 +504,7 @@ bool BalanceClass::loop()
 
 
 
-		LED.loop();
+
 		//	int tt = micros();
 
 

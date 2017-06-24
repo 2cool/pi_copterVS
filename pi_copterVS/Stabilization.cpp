@@ -18,7 +18,7 @@
 void StabilizationClass::init(){
 
 	
-	accXY_stabKP = 0.2f;
+	accXY_stabKP = 0.5f;
 	accXY_stabKP_Rep = 1.0f / accXY_stabKP;
 	set_acc_xy_speed_kp(5);
 	set_acc_xy_speed_kI(1);
@@ -47,7 +47,7 @@ void StabilizationClass::init(){
 
 
 	pids[ACCZ_SPEED].kP(0.1f);//?
-	pids[ACCZ_SPEED].kI(0.05f);//?
+	pids[ACCZ_SPEED].kI(0.01f);//?
 	pids[ACCZ_SPEED].imax(0.3f);
 	max_stab_z_P =  MAX_VER_SPEED_PLUS;
 	max_stab_z_M = MAX_VER_SPEED_MINUS;
@@ -136,24 +136,7 @@ void StabilizationClass::XY(float &pitch, float&roll){
 			stabY *= -1.0f;
 	}
 
-	//experimental
-	//0.6=log(max_angle/5)/log(max_speed)
-	float k = 5;
-	if (abs(stabX) > 1) {
-		k = (float)(5.0*pow(abs(stabX), 0.6)) / abs(stabX);
-	}
-	pids[ACCX_SPEED].kP(k);
-	pids[ACCX_SPEED].kI(k*0.2);
-
 	const float glob_pitch = -pids[ACCX_SPEED].get_pid(stabX + speedX, Mpu.dt);
-
-	k = 5;
-	if (abs(stabY) > 1) {
-		const float k = (float)(5.0*pow(abs(stabY), 0.6)) / abs(stabY);
-		
-	}
-	pids[ACCY_SPEED].kP(k);
-	pids[ACCY_SPEED].kI(k*0.2);
 	const float glob_roll = pids[ACCY_SPEED].get_pid(stabY + speedY, Mpu.dt);
 
 	//----------------------------------------------------------------преобр. в относительную систему координат
@@ -217,7 +200,9 @@ float StabilizationClass::Z(){//////////////////////////////////////////////////
 	speedZ += Mpu.accZ*Mpu.dt;
 	speedZ += (MS5611.speed - speedZ)*Z_CF_SPEED;
 
-	float stab = getSpeed_Z(Autopilot.flyAtAltitude - sZ);
+	
+
+	float stab = getSpeed_Z(Autopilot.fly_at_altitude() - sZ);
 	stab = constrain(stab, max_stab_z_M, max_stab_z_P);
 
 	float fZ = HOVER_THROTHLE + pids[ACCZ_SPEED].get_pid(stab - speedZ, Mpu.dt)*Balance.powerK();
@@ -231,6 +216,10 @@ float StabilizationClass::Z(){//////////////////////////////////////////////////
 		//Debug.dump(fZ, sZ, Autopilot.flyAtAltitude, 0);
 		//Out.println(fZ);
 //	}
+
+	if (millis() - Autopilot.start_time < 5000 && (sZ - Autopilot.fly_at_altitude())>2)
+		Autopilot.motors_do_on(false, e_ESK_ERROR);
+
 
 	return fZ;
 	

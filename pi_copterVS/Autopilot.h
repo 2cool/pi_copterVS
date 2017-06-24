@@ -40,7 +40,7 @@ class AutopilotClass
 	 uint32_t oldtime;
 	 
 	 
-
+	 float flyAtAltitude;
 
 	// bool motors_on, smart_ctrl;
 
@@ -75,7 +75,7 @@ class AutopilotClass
 
 	 float corectedAltitude4tel();
 	
-	
+	 uint32_t start_time;
 	void reset_compas_motors_calibr_bit() {control_bits &= (~COMPASS_MOTOR_CALIBR);}
 
 	bool motors_onState(){ return control_bits&MOTORS_ON; }
@@ -89,7 +89,7 @@ class AutopilotClass
 	 bool set_control_bits(uint32_t bits);
 	 void compass_tr();
 	 void horizont_tr();
-	 
+	 float fly_at_altitude() { return flyAtAltitude; }
 	 uint32_t get_control_bits(){ return control_bits; }
 	 //uint8_t mod;  //режим работы 
 	// bool falling(){ return ctrl_flag == CNTR_FALLING; }
@@ -106,7 +106,7 @@ class AutopilotClass
 	string get_set();
 	 void set(const float buf[]);
 
-	 float flyAtAltitude;
+	
 	 void clearSpeedCoreection(){ flyAtAltitude = tflyAtAltitude; }
 
 	// bool get_smart_cntr_flag(){ return smart_ctrl; }

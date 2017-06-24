@@ -75,7 +75,6 @@
     <ClCompile Include="I2Cdev.cpp" />
     <ClCompile Include="inv_mpu.cpp" />
     <ClCompile Include="inv_mpu_dmp_motion_driver.cpp" />
-    <ClCompile Include="LED.cpp" />
     <ClCompile Include="Location.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mpu.cpp" />
@@ -109,7 +108,6 @@
     <ClInclude Include="I2Cdev.h" />
     <ClInclude Include="inv_mpu.h" />
     <ClInclude Include="inv_mpu_dmp_motion_driver.h" />
-    <ClInclude Include="LED.h" />
     <ClInclude Include="Location.h" />
     <ClInclude Include="MotionSensor.h" />
     <ClInclude Include="mpu.h" />

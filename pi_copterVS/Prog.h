@@ -22,7 +22,7 @@ direction
 
 class ProgClass
 {
-#define PROG_MEMORY_SIZE 2000
+#define PROG_MEMORY_SIZE 20000
  protected:
 	 bool go_next, distFlag, altFlag;
 	 //float preX, preY;
@@ -39,6 +39,7 @@ class ProgClass
 	 float r_time,time4step2done,speed_corected_delta, old_dt;
 	 uint32_t begin_time;
 	 float max_speed_xy,timer;
+	 float max_stab_z_P, max_stab_z_M;
  public:
 	 bool intersactionFlag;
 	 float stabX, stabY;
@@ -48,7 +49,7 @@ class ProgClass
 	// GeoDotClass gd;
 	 bool add(byte*buf);
 	 bool start();
-	 bool load_next();
+	 bool load_next(bool);
 	
 	 void clear();
 	 void loop();

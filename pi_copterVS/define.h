@@ -9,34 +9,18 @@
 #define DEFINE_H
 
 
-#define WATCHDOG WDTO_1S
+#define TEST_GPS_CCURACY
 
-
-
-//#define WIFIPRINT1
-//#define WIFIPRINT2
-//#define GPSPRINT
-//#define MPU_PRINTTIME_CICLE
-
-//#define TEST_GPS_CCURACY
-
-#define XY_SAFE_AREA 200
-#define Z_SAFE_AREA 60
+//#define XY_SAFE_AREA 200
+//#define Z_SAFE_AREA 60
 
 #define RAD2GRAD 57.29578f
 #define GRAD2RAD 0.0174533f
 
-//כמדט פכארטעü ןונוה נוסועמל ןמ גאקהמד
+
+#define DEBUG_MODE
 
 
-//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-
-
-
-//#define DEBUG_MODE
-
-// millis take less time then micros
 //#define OFF_MOTOR_IF_LOST_CONNECTION  
 #define _cos(_sin_) (sqrt(1 - min(1, _sin_*_sin_)))
 
@@ -47,11 +31,7 @@
 
 #define BEEPS_ON 0
 
-
-#define ULTRASOUND_MAX_DETECT_HEIGHT 4
-
-
-//#define FALSE_WIRE
+#define FALSE_WIRE
 
 
 #define STEP_DEBAGING
@@ -82,7 +62,7 @@
 
 
 
-#define NEED_ANGLE_4_SPEED_10_MS 15.1f
+#define NEED_ANGLE_4_SPEED_10_MS 16.1f
 
 #define FALL_IF_STRONG_WIND
 
@@ -95,20 +75,17 @@
 
 #define NO_CONNECTION_DELAY_TO_RESET_IF_MOTORS_OFF 60000
 #define NO_GPS_TIME_TO_FALL 5000000
-#define MIN_ACUR_HOR_POS_TO_FLY 7
+
 #define MIN_ACUR_HOR_POS_2_START 5
 
 
 #define PRESSURE_AT_0 101325
 
 
-//#define ErrorLog Serial
-
-
 #define MAX_ACC_HOR 3
 #define MAX_ACC_VER 1.5f
 
-#define MAX_ANGLE 30
+#define MAX_ANGLE 25
 #define MIN_ANGLE 15
 #define COS_MIN_ANGLE 0.966f
 
@@ -175,6 +152,7 @@
 #define e_CONNECTION_TIME_LAG "LAG"
 #define e_LOST_CONNECTION "LST"
 #define e_SYSTEM_MALFUNCTION "WDT"
+#define e_ESK_ERROR			"ESK"
 #define i_OFF_MOTORS     "MD0"
 #define i_CONTROL_FALL   "CNF"
 #define i_MAX_THR        "MXT"

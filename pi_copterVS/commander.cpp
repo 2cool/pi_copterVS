@@ -183,7 +183,7 @@ B,COUNTER,S_S,		start stop
 bool CommanderClass::ButtonMessage(string msg){
 
 #ifdef DEBUG_MODE
-	Out.fprintf(Debug.out_stream,"<- "); Out.println(msg);
+	fprintf(Debug.out_stream,"<- $s\n",msg.c_str());
 #endif
 
 	bool command_correct = false;

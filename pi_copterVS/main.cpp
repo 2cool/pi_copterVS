@@ -1,4 +1,5 @@
-#define PROG_VERSION "ver 2.170619\n"
+#define PROG_VERSION "ver 2.170622_\n"
+//#define ONLY_ONE_RUN
 
 
 #include <cstdio>
@@ -15,7 +16,7 @@
 #include "Filter.h"
 #include "define.h"
 #include "debug.h"
-#include "LED.h"
+
 
 
 #include "WProgram.h"
@@ -34,10 +35,6 @@
 #include "I2Cdev.h"
 #include "MPU6050.h"
 #include "Balance.h"
-
-
-
-
 
 
 bool loop();
@@ -120,7 +117,7 @@ int setup(int cnt) {////--------------------------------------------- SETUP ----
 	Pwm.on(0,  pwm_MAX_THROTTLE);
 
 	EEPROM.read_set();
-	LED.init();
+
 	fprintf(Debug.out_stream,"___setup___\n");
 	
 
@@ -216,18 +213,20 @@ void handler(int sig) { // can be called asynchronously
 
 int printHelp() {
 	printf("<-help> for this help\n");
-	printf(" <fly at start at hight in sm> <lower hight in sm> <f=write stdout to file> <y=log com and tel>\n");
-	printf("example to write in log file : pi_copter 300 100 f y\n");
-	printf("example to write in stdout   : pi_copter 300 100 s\n");
+	printf(" <fly at start at hight in sm > <lower hight in sm> <f=write stdout to file > <log com and tel y/n> <esc calibr\n");
+	printf("example to write in log file : pi_copter 300 100 f n 1900 \n");
+	printf("example to write in stdout   : pi_copter 300 100 s n 0\n");
 	return -1;
 }
+
+
 
 
 int main(int argc, char *argv[]) {
 
 	printf( PROG_VERSION);
 
-/*
+#ifdef ONLY_ONE_RUN
 	if (is_clone(argv[0])==true) {
 		printf("clone\n");
 		if (-1 == semctl(semid, 0, IPC_RMID, 0))
@@ -236,10 +235,10 @@ int main(int argc, char *argv[]) {
 		}
 		return 0;
 	}
-	*/
+#endif	
 
-	Debug.n_p1 = 3;
-	Debug.n_p2 = 1.6f;
+	Debug.fly_at_start = 3;
+	Debug.lowest_altitude_to_fly = 1.6f;
 	Debug.n_debug = 0;
 	int counter = 0;
 
@@ -252,14 +251,15 @@ int main(int argc, char *argv[]) {
 
 		}
 		
-		if (argc >= 5) {
+		if (argc >= 6) {
 			int t = atoi(argv[1]);
-			//if (t>=100 && t<=500)
-			Debug.n_p1 = 0.01f*(float)t;
-			t=atoi(argv[2]);
-			
-			Debug.n_p2 = 0.01f*(float)t;
+			t = constrain(t, 0, 300);
+			Debug.fly_at_start = 0.01f*(float)t;
 
+			t=atoi(argv[2]);
+			Debug.lowest_altitude_to_fly = 0.01f*(float)t;
+			if (Debug.lowest_altitude_to_fly > Debug.fly_at_start)
+				Debug.lowest_altitude_to_fly = Debug.fly_at_start;
 #define LOG_COUNTER_NAME "/home/igor/logs/logCounter.txt"
 			
 			FILE *set = fopen(LOG_COUNTER_NAME, "r");
@@ -286,6 +286,7 @@ int main(int argc, char *argv[]) {
 				Debug.out_stream = stdout;
 
 			Debug.writeTelemetry = (argv[4][0] == 'y' || argv[4][0] == 'Y');
+			Debug.escCalibr= atoi(argv[5]);
 
 		}
 		
@@ -333,13 +334,13 @@ int main(int argc, char *argv[]) {
 	EEPROM.write_set();
 	//fclose(Debug.out_stream);
 
-	
+#ifdef ONLY_ONE_RUN
 
 	if (-1 == semctl(semid, 0, IPC_RMID, 0))
 	{
 		printf("Error delete!\n");
 	}
-
+#endif
 	return 0;
 
 }

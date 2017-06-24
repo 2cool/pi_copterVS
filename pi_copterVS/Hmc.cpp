@@ -14,7 +14,7 @@
 
 #include "MS5611.h"
 #include "debug.h"
-#include "LED.h"
+
 #define DEFAULT_DEV "/dev/i2c-1"
 
 void HmcClass::init()
@@ -76,7 +76,7 @@ void HmcClass::start_motor_compas_calibr(){
 		baseX = baseY = baseZ = 0;
 		startTime = millis() + 5000;
 		motor_index = 0;
-		LED.prog_index = LED.MOT_OFF_P;
+
 	}
 }
 
@@ -305,7 +305,7 @@ void HmcClass::loop(){
 #endif
 
 
-#include "LED.h"
+
 
 void HmcClass::newCalibration(int16_t sh[]){
 	//wdt_enable(WDTO_4S);
@@ -316,7 +316,7 @@ void HmcClass::newCalibration(int16_t sh[]){
 	delay(2000);
 	int16_t mx, my, mz;
 	long cnt = 0;
-	LED.off();
+
 	while (true){
 		
 		bool new_val = false;

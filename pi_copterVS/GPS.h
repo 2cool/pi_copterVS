@@ -19,12 +19,6 @@
 class GPSClass
 {
  protected:
-	 void predict();
-	
-	 
-
-	 uint8_t errors;
-	 
 	
  public:
 	 

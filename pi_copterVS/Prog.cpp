@@ -12,7 +12,7 @@
 #include "Stabilization.h"
 #include "debug.h"
 #include "Telemetry.h"
-#include "LED.h"
+
 enum { LAT_LON = 1, DIRECTION = 2, ALTITUDE = 4,  CAMERA_ANGLE = 8, TIMER = 16,SPEED_XY=32,SPEED_Z=64,LED_CONTROL=128};
 
 
@@ -54,7 +54,7 @@ void ProgClass::loop(){
 	if (go_next == false) {
 		if (timer == 0) {
 			if (altFlag == false)
-				altFlag = (alt == old_alt) || (abs(MS5611.altitude() - Autopilot.flyAtAltitude) <= (ACCURACY_Z));
+				altFlag = (alt == old_alt) || (abs(MS5611.altitude() - Autopilot.fly_at_altitude()) <= (ACCURACY_Z));
 
 			if (distFlag == false) {
 				if (lat == old_lat && lon == old_lon) {
@@ -62,7 +62,7 @@ void ProgClass::loop(){
 				}
 				else {
 					const float advance_dist = Stabilization.getDist_XY(max_speed_xy);//*1.1
-					const float acur = max(max(ACCURACY_XY, GPS.loc.accuracy_hor_pos), advance_dist);
+					const float acur = max(max(ACCURACY_XY, GPS.loc.accuracy_hor_pos_), advance_dist);
 					distFlag = sqrt(GPS.loc.dX*GPS.loc.dX + GPS.loc.dY*GPS.loc.dY) <= acur;
 				}
 			}
@@ -76,7 +76,7 @@ void ProgClass::loop(){
 	}
 	if (go_next){
 		go_next = distFlag = altFlag = false;
-		if (load_next() == false){
+		if (load_next(true) == false){
 			//if (Autopilot.lost_conection_time == 0){
 				fprintf(Debug.out_stream,"PROG END\n");
 				Autopilot.start_stop_program(false);
@@ -89,7 +89,9 @@ void ProgClass::loop(){
 
 #define MAX_TIME_LONG_FLIGHT  1200
 bool ProgClass::program_is_OK(){
-	if (prog_data_size >= 14){// && prog_steps_count_must_be == steps_count){
+	float timeLeft=Telemetry.check_time_left_if_go_to_home();
+
+	if (prog_data_size >= 14 && prog_steps_count_must_be == steps_count){
 		prog_data_index = 0;
 		time4step2done = 0;
 		old_dt = 0;
@@ -99,14 +101,14 @@ bool ProgClass::program_is_OK(){
 		alt = MS5611.altitude();
 		uint8_t step = 1;
 		float fullTime = 0;
-		while (load_next()){
+		while (load_next(false)){
 			
 			if (lat != old_lat && lon != old_lon){
 				const float dx = GPS.loc.from_lat2X((float)(lat - old_lat));
 				const float dy = GPS.loc.form_lon2Y((float)(lon - old_lon));
 				float time = (float)(sqrt(dx*dx + dy*dy) / max_speed_xy);
 				const float dAlt = alt - old_alt;
-				time += dAlt / ((dAlt >= 0) ? Stabilization.max_stab_z_P : Stabilization.max_stab_z_M);
+				time += dAlt / ((dAlt >= 0) ? max_stab_z_P : max_stab_z_M);
 				time *= 1.25f;
 				if (timer > 0){
 					if (timer < time){
@@ -117,7 +119,7 @@ bool ProgClass::program_is_OK(){
 						time = timer;
 				}
 				fullTime += time;
-				if (fullTime>MAX_TIME_LONG_FLIGHT){
+				if (fullTime>timeLeft){//MAX_TIME_LONG_FLIGHT){
 					fprintf(Debug.out_stream,"to long fly for prog!\n");
 					return false;
 				}
@@ -142,7 +144,7 @@ bool ProgClass::program_is_OK(){
 			return false;
 		}
 
-		fprintf(Debug.out_stream,"time for flyghy: %i",(int)fullTime);
+		fprintf(Debug.out_stream,"time for flyghy: %i\n",(int)fullTime);
 		return true;
 	}
 else
@@ -342,7 +344,7 @@ void ProgClass::clear(){
 	init();
 }
 
-bool ProgClass::load_next(){
+bool ProgClass::load_next(bool loadf){
 	old_lat = lat;
 	old_lon = lon;
 	old_alt = alt;
@@ -350,7 +352,7 @@ bool ProgClass::load_next(){
 		return false;
 	}
 	step_index++;
-	//Out.println("next");
+//	printf("\nNext\n");
 
 	int wi = prog_data_index+1;
 
@@ -358,32 +360,43 @@ bool ProgClass::load_next(){
 		timer = prog[wi++];
 		//time4step2done = (float)gd.timer;
 		//r_time = 1.0 / time4step2done;
-		//Out.println(timer);
+		//printf("timer %i\n",timer);
 	}
 
 #define K01 0.1f
 	if (prog[prog_data_index] & SPEED_XY){
-		//Stabilization.max_speed_xy = K01*(float)prog[wi++];
+		
 		max_speed_xy = K01*(float)prog[wi++];
 		if (max_speed_xy < 1)
 			max_speed_xy = 1;
-		//Out.println(max_speed_xy);
+		if (loadf)
+			Stabilization.max_speed_xy = max_speed_xy;
+
+		//printf("max speed XY %f\n", max_speed_xy);
 	}
 
 	if (prog[prog_data_index] & SPEED_Z){
-		const float speedZ = K01* (float)prog[wi++];
+		const float speedZ = K01* (int8_t)prog[wi++];
 		
-		if (speedZ >= 0){
-			Stabilization.max_stab_z_P = max(speedZ,0.15f);
-			Stabilization.max_stab_z_M = MAX_VER_SPEED_MINUS;
+		if (speedZ >= 0) {
+			max_stab_z_P = max(speedZ, 0.15f);
+			max_stab_z_M = MAX_VER_SPEED_MINUS;
+			if (loadf) {
+				Stabilization.max_stab_z_P = max_stab_z_P;
+				Stabilization.max_stab_z_M = max_stab_z_M;
+			}
 		}
 		else {
-			Stabilization.max_stab_z_P = MAX_VER_SPEED_PLUS;
-			Stabilization.max_stab_z_M = speedZ;
-
+			max_stab_z_P = MAX_VER_SPEED_PLUS;
+			max_stab_z_M = speedZ;
+			if (loadf) {
+				Stabilization.max_stab_z_P = max_stab_z_P;
+				Stabilization.max_stab_z_M = max_stab_z_M;
+			}
 		}
+		
 
-		//Out.println(speedZ);
+		//printf("max speedZ %f\n", speedZ);
 	}
 
 	if (prog[prog_data_index] & LAT_LON){
@@ -398,23 +411,17 @@ bool ProgClass::load_next(){
 		lb[2] = prog[wi++];
 		lb[3] = prog[wi++];
 
-		/*advance_dist = Stabilization.getDist_XY(max_speed_xy);
-		const float dX = lat - GPS.loc.lat_;
-		const float dY = lon - GPS.loc.lon_;
-		const float distX = GPS.loc.from_X2Lat(dX);
-		const float distY = GPS.loc.from_Y2Lon(dY);
-		float track_dist = sqrt(distX*distX + distY*distY);
-		if (track_dist < (advance_dist * 4)){
-			advance_dist = track_dist*0.25;
-		}*/
-		GPS.loc.setNeedLoc(lat, lon);
+		if (loadf)
+			GPS.loc.setNeedLoc(lat, lon);
+		//printf("lat %i, lon %i\n", lat, lon);
 		//Out.println(lat); Out.println(lon);  Out.println(advance_dist);
 	}
 
 
 	if (prog[prog_data_index] & DIRECTION){
 		oldDir = 1.4173228f*(float)prog[wi++];
-		Autopilot.setYaw(-oldDir);
+		if (loadf)
+			Autopilot.setYaw(-oldDir);
 	}
 
 	if (prog[prog_data_index] & ALTITUDE){
@@ -423,25 +430,25 @@ bool ProgClass::load_next(){
 		lb[0] = prog[wi++];
 		lb[1] = prog[wi++];
 		alt = ialt;
-		Autopilot.set_new_altitude(alt);
+		if (loadf)
+			Autopilot.set_new_altitude(alt);
+		//printf("Altitude %f\n", alt);
 	}
 
 
 	if (prog[prog_data_index] & CAMERA_ANGLE){
-		old_cam_angle = -1.4173228f*(float)prog[wi++];
-		Pwm.gimagl_pitch(old_cam_angle);
+		old_cam_angle = -1.4173228f*(int8_t)prog[wi++];
+		//printf("camera ang=%f\n", old_cam_angle);
+		if (loadf)
+			Pwm.gimagl_pitch(old_cam_angle);
 	}
 
-	if (prog[prog_data_index] & LED_CONTROL){
-		LED.prog_index = prog[wi++];
+	if (prog[prog_data_index] & LED_CONTROL) {
+		wi++;//now not used
 	}
-
 
 	//==============================================================
-	
-	
-	
-	
+
 	prog_data_index = wi;
 
 	//==============================================================
@@ -468,7 +475,7 @@ bool ProgClass::add(byte*buf)
 	prog[pi++] = buf[0];
 
 
-	//Out.println(buf[0]);
+	//printf("mask= %i\n",buf[0]);
 	
 
 	
@@ -486,16 +493,16 @@ bool ProgClass::add(byte*buf)
 	
 	if (buf[0] & TIMER){
 		prog[pi++] = buf[i++];
-	//	Out.fprintf(Debug.out_stream,"timer="); Out.println(timer);
+		//printf("timer=%i\n",buf[i-1]);
 	}
 
 	if (buf[0] & SPEED_XY){
 		prog[pi++] = buf[i++];
-	//	Out.println("speed="); Out.println(K01*speedXY);
+		//printf("speedXY=%f\n",K01*buf[i-1]);
 	}
 	if (buf[0] & SPEED_Z){
 		prog[pi++] = buf[i++];
-	//	Out.println("speedZ="); Out.println(K01*speedZ);
+	    //printf("speedZ=%f\n",K01*(int8_t)buf[i-1]);   
 	}
 
 	if (buf[0] & LAT_LON){
@@ -509,11 +516,13 @@ bool ProgClass::add(byte*buf)
 		prog[pi++] = buf[i++];
 		prog[pi++] = buf[i++];
 		prog[pi++] = buf[i++];
+		//printf("lat lon\n");
 	}
 	
 
 	if (buf[0] & DIRECTION){
 		prog[pi++] = buf[i++];
+		//printf("direction=%i\n", buf[i - 1]);
 	}
 	
 
@@ -521,30 +530,32 @@ bool ProgClass::add(byte*buf)
 
 		prog[pi++] = buf[i++];
 		prog[pi++] = buf[i++];
+		//printf("alt %i\n", buf[i-2]|(buf[i-1]<<8));
+
 	}
 
 	if (buf[0] & CAMERA_ANGLE){
 		prog[pi++] = buf[i++];
-
+		//printf("camera angle=%i\n", buf[i - 1]);
 	}
 
 	if (buf[0] & LED_CONTROL){
 		prog[pi++] = buf[i++];
-		fprintf(Debug.out_stream,"led prog=%i\n",buf[i-1]);
+		//printf("led prog=%i\n",buf[i-1]);
 	}
 
 	if (steps_count == 0){
 		byte*lb = (byte*)&prog_steps_count_must_be;
 		lb[0] = buf[i++];
 		lb[1] = buf[i++];
-		//Out.fprintf(Debug.out_stream,"prog steps="); Out.println(prog_steps_count_must_be);
+		fprintf(Debug.out_stream, "prog steps=%i\n",prog_steps_count_must_be);
 	}
 	
 	
 
 	prog_data_size = pi;
 	steps_count++;
-	fprintf(Debug.out_stream,"%i dot added! %i\n", steps_count, prog_data_size); 
+	fprintf(Debug.out_stream,"%i. dot added! %i\n", steps_count, prog_data_size); 
 	return true;
 }
 
