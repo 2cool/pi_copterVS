@@ -198,9 +198,9 @@ void TelemetryClass::update_voltage(){
 	//int t = micros();
 	Pwm.get_analog(buf);  //300 microsec
 
-	float a0 = (float)buf[0] / 2.397f;
-	float a1 = (float)buf[1] / 1.16f;
-	voltage = (float)buf[2] / 0.76f;
+	float a0 = (float)buf[0] / 2.31666f;
+	float a1 = (float)buf[1] / 1.1357143f;
+	voltage = (float)buf[2] / 0.75;
 
 
 

@@ -14,7 +14,7 @@
 #include "debug.h"
 #include "Balance.h"
 #include "Prog.h"
-
+#include "Log.h"
 void StabilizationClass::init(){
 
 	
@@ -119,6 +119,14 @@ void StabilizationClass::XY(float &pitch, float&roll){
 	sY += (GPS.loc.dY - sY)*XY_KF_DIST;
 	speedY += (GPS.loc.speedY - speedY)*XY_KF_SPEED;
 
+	if (Log.writeTelemetry && Autopilot.motors_is_on()) {
+		Log.loadByte(LOG::STABXY);
+		Log.loadFloat(sX);
+		Log.loadFloat(speedX);
+		Log.loadFloat(sY);
+		Log.loadFloat(speedY);
+	}
+
 
 	float stabX, stabY;
 	if (Autopilot.progState() && Prog.intersactionFlag){
@@ -200,7 +208,12 @@ float StabilizationClass::Z(){//////////////////////////////////////////////////
 	speedZ += Mpu.accZ*Mpu.dt;
 	speedZ += (MS5611.speed - speedZ)*Z_CF_SPEED;
 
-	
+	if (Log.writeTelemetry && Autopilot.motors_is_on()) {
+		Log.loadByte(LOG::STABZ);
+		Log.loadFloat(sZ);
+		Log.loadFloat(speedZ);
+
+	}
 
 	float stab = getSpeed_Z(Autopilot.fly_at_altitude() - sZ);
 	stab = constrain(stab, max_stab_z_M, max_stab_z_P);

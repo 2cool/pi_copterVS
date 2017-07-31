@@ -23,8 +23,10 @@
 #include "Stabilization.h"
 #include "Telemetry.h"
 #include "debug.h"
-
 #include "GPS.h"
+#include "Log.h"
+
+
 void correct(float & f){
 	if (f < 0)
 		f = 0;
@@ -114,7 +116,7 @@ void BalanceClass::init()
 	maxAngle = MAX_ANGLE;
 
 
-	pitch_roll_stabKP = 1.5;
+	pitch_roll_stabKP = 3;
 	
 
 	//pitch_roll_rateKP = 0.0007;
@@ -269,10 +271,14 @@ void BalanceClass::setMaxAngle(const float ang){
 
 
 
-float c_cosPitch = 1, c_sinPitch = 0, c_cosRoll = 1, c_sinRoll = 0;
+
 float total_ax = 0, total_ay = 0;
-float speedX, speedY;
+float speedX=0, speedY=0;
 void BalanceClass::correct_c_pitch_c_roll() {
+
+
+	
+
 	c_pitch = constrain(c_pitch, -maxAngle, maxAngle);
 	c_roll = constrain(c_roll, -maxAngle, maxAngle);
 	const float maxAngle07 = maxAngle*0.7f;
@@ -290,7 +296,7 @@ void BalanceClass::correct_c_pitch_c_roll() {
 	}
 
 	if (Autopilot.motors_is_on()) {
-		
+		float c_cosPitch, c_sinPitch, c_cosRoll, c_sinRoll;
 		sin_cos(c_pitch*GRAD2RAD, c_sinPitch, c_cosPitch);
 		sin_cos(c_roll*GRAD2RAD, c_sinRoll, c_cosRoll);
 		if (c_cosRoll == 0 || c_cosPitch == 0)
@@ -330,7 +336,7 @@ void BalanceClass::correct_c_pitch_c_roll() {
 		c_pitch = Balance.c_pitch;
 		c_roll = Balance.c_roll;
 		speedY = speedX = 0;
-		c_cosPitch = c_cosRoll = 1; c_sinPitch = c_sinRoll = total_ax = total_ay = 0;
+		total_ax = total_ay = 0;
 	}
 
 	c_pitch = constrain(c_pitch, -maxAngle, maxAngle);
@@ -347,6 +353,7 @@ void BalanceClass::correct_c_pitch_c_roll() {
 uint64_t hmc_last_time = 0;
 bool BalanceClass::loop()
 {
+	
 	if (!Mpu.loop()) {
 		//usleep(1000);
 		MS5611.loop();
@@ -362,7 +369,10 @@ bool BalanceClass::loop()
 	}
 	else {
 
+		
+
 		// Do the magic
+		
 		if (Autopilot.motors_is_on()) {  // Throttle raised, turn on stablisation.
 
 				// Stablise PIDS
@@ -418,6 +428,8 @@ bool BalanceClass::loop()
 		//	float oc_roll = c_roll;
 			//float oc_pitch = c_pitch;
 #ifndef FALSE_MPU
+			float t_c_pitch = c_pitch;
+			float t_c_roll = c_roll;
 			correct_c_pitch_c_roll();
 #endif
 
@@ -470,6 +482,18 @@ bool BalanceClass::loop()
 			f_[2] = f_constrain((throttle - roll_output + pitch_output + yaw_output), STOP_THROTTLE_, FULL_THROTTLE_);
 			f_[0] = f_constrain((throttle - roll_output - pitch_output + m_yaw_output), STOP_THROTTLE_, FULL_THROTTLE_);
 
+
+
+			if (Log.writeTelemetry) {
+				Log.loadByte(LOG::BAL);
+				Log.loadFloat(t_c_pitch);
+				Log.loadFloat(t_c_roll);
+				Log.loadFloat(c_pitch);
+				Log.loadFloat(c_roll);
+				Log.loadFloat(throttle);
+				Log.loadMem((uint8_t*)f_, 16);
+			}
+
 			if (Hmc.compas_motors_calibr) {
 				f_[0] = 0;
 				f_[1] = 0;
@@ -500,7 +524,8 @@ bool BalanceClass::loop()
 				escCalibration();
 
 		}
-
+		if (Log.writeTelemetry)
+			Log.end();
 
 
 

@@ -14,6 +14,7 @@ D:\Users\2cool\Desktop\COPTER\pi_copterVS\pi_copterVS\I2Cdev.cpp|/home/igor/proj
 D:\Users\2cool\Desktop\COPTER\pi_copterVS\pi_copterVS\inv_mpu.cpp|/home/igor/projects/pi_copterVS/inv_mpu.cpp
 D:\Users\2cool\Desktop\COPTER\pi_copterVS\pi_copterVS\inv_mpu_dmp_motion_driver.cpp|/home/igor/projects/pi_copterVS/inv_mpu_dmp_motion_driver.cpp
 D:\Users\2cool\Desktop\COPTER\pi_copterVS\pi_copterVS\Location.cpp|/home/igor/projects/pi_copterVS/Location.cpp
+D:\Users\2cool\Desktop\COPTER\pi_copterVS\pi_copterVS\Log.cpp|/home/igor/projects/pi_copterVS/Log.cpp
 D:\Users\2cool\Desktop\COPTER\pi_copterVS\pi_copterVS\main.cpp|/home/igor/projects/pi_copterVS/main.cpp
 D:\Users\2cool\Desktop\COPTER\pi_copterVS\pi_copterVS\mpu.cpp|/home/igor/projects/pi_copterVS/mpu.cpp
 D:\Users\2cool\Desktop\COPTER\pi_copterVS\pi_copterVS\MPU6050.cpp|/home/igor/projects/pi_copterVS/MPU6050.cpp
@@ -45,6 +46,7 @@ D:\Users\2cool\Desktop\COPTER\pi_copterVS\pi_copterVS\I2Cdev.h|/home/igor/projec
 D:\Users\2cool\Desktop\COPTER\pi_copterVS\pi_copterVS\inv_mpu.h|/home/igor/projects/pi_copterVS/inv_mpu.h
 D:\Users\2cool\Desktop\COPTER\pi_copterVS\pi_copterVS\inv_mpu_dmp_motion_driver.h|/home/igor/projects/pi_copterVS/inv_mpu_dmp_motion_driver.h
 D:\Users\2cool\Desktop\COPTER\pi_copterVS\pi_copterVS\Location.h|/home/igor/projects/pi_copterVS/Location.h
+D:\Users\2cool\Desktop\COPTER\pi_copterVS\pi_copterVS\Log.h|/home/igor/projects/pi_copterVS/Log.h
 D:\Users\2cool\Desktop\COPTER\pi_copterVS\pi_copterVS\MotionSensor.h|/home/igor/projects/pi_copterVS/MotionSensor.h
 D:\Users\2cool\Desktop\COPTER\pi_copterVS\pi_copterVS\mpu.h|/home/igor/projects/pi_copterVS/mpu.h
 D:\Users\2cool\Desktop\COPTER\pi_copterVS\pi_copterVS\MPU6050.h|/home/igor/projects/pi_copterVS/MPU6050.h

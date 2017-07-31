@@ -16,7 +16,7 @@
 #include "Stabilization.h"
 #include "debug.h"
 #include "Wi_Fi.h"
-
+#include "Log.h"
 
 void CommanderClass::init()
 {
@@ -266,6 +266,14 @@ bool CommanderClass::input(){
 
 		//Autopilot.last_time_data_recived = millis();
 		if (data_size >= 12) {
+
+			if (Log.writeTelemetry && Autopilot.motors_is_on()) {
+				Log.loadByte(LOG::COMM);
+				Log.loadMem(buf, data_size);
+			}
+
+
+
 			uint32_t mode = *(uint32_t*)buf;
 			int sec_mask = mode >> 24;
 			

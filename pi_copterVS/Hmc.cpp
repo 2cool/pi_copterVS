@@ -14,6 +14,7 @@
 
 #include "MS5611.h"
 #include "debug.h"
+#include "Log.h"
 
 #define DEFAULT_DEV "/dev/i2c-1"
 
@@ -200,9 +201,6 @@ void HmcClass::loop(){
 	mz = (((int16_t)buffer[2]) << 8) | buffer[3];
 
 
-
-
-
 	fmx=(float)(mx - baseX)*dx;	
 	fmy=(float)(my - baseY)*dy;
 	fmz=(float)(mz - baseZ)*dz;
@@ -291,6 +289,17 @@ void HmcClass::loop(){
 	///	heading -= 2 * PI;
 	//if (heading <= -PI)
 	//	heading += 2 * PI;
+
+	if (Log.writeTelemetry && Autopilot.motors_is_on()) {
+		Log.loadByte(LOG::HMC);
+		Log.loadInt16t(buffer[0]);
+		Log.loadInt16t(buffer[1]);
+		Log.loadInt16t(buffer[2]);
+		Log.loadInt16t(buffer[3]);
+		Log.loadInt16t(buffer[4]);
+		Log.loadInt16t(buffer[5]);
+		Log.loadFloat(heading);
+	}
 
 
 

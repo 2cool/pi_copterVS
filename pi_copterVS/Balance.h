@@ -33,6 +33,7 @@
 class BalanceClass
 {
  protected:
+
 	 float cS;
 	 void escCalibration();
 	 
@@ -46,7 +47,8 @@ class BalanceClass
 float maxAngle;
  public:
 	 
-
+	 void set_cS(float f) { cS = f; }
+	 float get_cS() { return cS; }
 	 float powerK();
 	 float c_pitch, c_roll;
 	 float get_throttle(){ return throttle; }

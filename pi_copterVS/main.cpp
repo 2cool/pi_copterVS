@@ -1,4 +1,4 @@
-#define PROG_VERSION "ver 2.170622_\n"
+#define PROG_VERSION "ver 2.170627_L\n"
 //#define ONLY_ONE_RUN
 
 
@@ -9,7 +9,7 @@
 #include <sys/ipc.h>
 #include <sys/sem.h>
 #include <stdio.h>
-
+#include "Log.h"
 //#include "KalmanFilterVector.h"
 #include "Filter.h"
 
@@ -113,7 +113,7 @@ bool is_clone(char *argv0) {
 uint16_t oldCounter = 1000;
 
 int setup(int cnt) {////--------------------------------------------- SETUP ------------------------------
-	
+	Log.init(cnt);
 	Pwm.on(0,  pwm_MAX_THROTTLE);
 
 	EEPROM.read_set();
@@ -123,7 +123,7 @@ int setup(int cnt) {////--------------------------------------------- SETUP ----
 
 #ifdef WORK_WITH_WIFI
 	fprintf(Debug.out_stream,"wifi init...\n");
-	if (WiFi.init(cnt))
+	if (WiFi.init())
 		return -1;
 #endif
 	fprintf(Debug.out_stream,"commander init...\n");
@@ -269,8 +269,11 @@ int main(int argc, char *argv[]) {
 				fclose(set);
 				usleep(500);
 				remove(LOG_COUNTER_NAME);
+
 			}
-			usleep(500);
+			else
+				return 0;
+			
 			set = fopen(LOG_COUNTER_NAME, "w+");
 			fprintf(set, "%i\n", counter + 1);
 			fclose(set);
@@ -285,8 +288,10 @@ int main(int argc, char *argv[]) {
 			}else	
 				Debug.out_stream = stdout;
 
-			Debug.writeTelemetry = (argv[4][0] == 'y' || argv[4][0] == 'Y');
-			Debug.escCalibr= atoi(argv[5]);
+			
+			Log.writeTelemetry = (argv[4][0] == 'y' || argv[4][0] == 'Y');
+			Debug.escCalibr = atoi(argv[5]);
+			
 
 		}
 		
@@ -326,6 +331,7 @@ int main(int argc, char *argv[]) {
 
 		}
 	}
+	Log.close();
 	WiFi.stopServer();
 	if (Debug.run_main==false)
 		fprintf(Debug.out_stream, "\n exit\n");

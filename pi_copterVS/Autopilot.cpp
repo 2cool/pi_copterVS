@@ -514,7 +514,7 @@ bool AutopilotClass::motors_do_on(const bool start, const string msg){//////////
 				Pwm.beep_code(BEEPS_ON + (4 << 1));
 				Telemetry.addMessage(e_GPS_ERROR);
 
-				return false;
+				//return false;
 			}
 
 			Telemetry.update_voltage();

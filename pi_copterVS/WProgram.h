@@ -113,20 +113,17 @@ class EEPROM_Class
 
 inline void sin_cos(const float a, float &s, float &c) {
 	s = (float)sin(a);
-	const float ss = s*s;
+	c = (float)cos(a);
+	/*
+	const double ss = s*s;
 	c = (float)sqrt(1 - min(1.0f, ss));
-	c = c;
+	//30.7.2017 corected
+	if (abs(a) > 90)
+		c = -c;
+		*/
 }
 
-
-
-
-
-
-
 extern EEPROM_Class EEPROM;
-
-
 
 #endif
 

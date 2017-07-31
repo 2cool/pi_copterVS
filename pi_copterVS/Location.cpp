@@ -24,7 +24,7 @@
 #include "debug.h"
 #include "Stabilization.h"
 #include "Autopilot.h"
-
+#include "Log.h"
 #define gps Serial2
 #define DELTA_ANGLE_C 0.001f
 #define DELTA_A_RAD (DELTA_ANGLE_C*GRAD2RAD)
@@ -233,10 +233,18 @@ bool LocationClass::processGPS_1() {
 				fpos = 0;
 				if (buf_loc[buf_ind_loc] == checksum[1]) {
 
+					
+
 					accuracy_hor_pos_ = DELTA_ANGLE_C*(float)posllh.hAcc;
 					if (accuracy_hor_pos_ > 99)accuracy_hor_pos_ = 99;
 					accuracy_ver_pos_ = DELTA_ANGLE_C*(float)posllh.vAcc;
 					if (accuracy_ver_pos_ > 99)accuracy_ver_pos_ = 99;
+
+					if (Log.writeTelemetry && Autopilot.motors_is_on()) {
+						Log.loadByte(LOG::GpS);
+						Log.loadGPS(&posllh);
+					}
+
 					mseconds = posllh.iTOW;
 					if (old_iTOW == 0)
 						old_iTOW = posllh.iTOW - 100;

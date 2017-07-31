@@ -31,7 +31,7 @@
 
 #define BEEPS_ON 0
 
-#define FALSE_WIRE
+//#define FALSE_WIRE
 
 
 #define STEP_DEBAGING
@@ -62,7 +62,7 @@
 
 
 
-#define NEED_ANGLE_4_SPEED_10_MS 16.1f
+#define NEED_ANGLE_4_SPEED_10_MS 20.0f
 
 #define FALL_IF_STRONG_WIND
 
@@ -85,7 +85,7 @@
 #define MAX_ACC_HOR 3
 #define MAX_ACC_VER 1.5f
 
-#define MAX_ANGLE 25
+#define MAX_ANGLE 35
 #define MIN_ANGLE 15
 #define COS_MIN_ANGLE 0.966f
 

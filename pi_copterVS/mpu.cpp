@@ -8,6 +8,7 @@
 #include "debug.h"
 #include "Stabilization.h"
 #include "GPS.h"
+#include "Log.h"
 
 //#include "Mem.h"
 
@@ -210,7 +211,7 @@ void MpuClass::init()
 }
 
 string MpuClass::get_set(){
-	float ang = atan(50*cS)*RAD2GRAD;
+	float ang = atan(50*Balance.get_cS())*RAD2GRAD;
 	
 	ostringstream convert;
 	convert<<
@@ -236,9 +237,9 @@ void MpuClass::set(const float  *ar){
 
 		const float new_cS = (float)(tan(ar[i++] * GRAD2RAD)*0.02f);
 		//Serial.println(new_cS);
-		t = cS;
+		t = Balance.get_cS();
 		if ((error += Commander._set(new_cS, t)) == 0)
-			cS = t;
+			Balance.set_cS(t);
 
 		fprintf(Debug.out_stream,"mpu set:\n");
 		//int ii;
@@ -456,6 +457,12 @@ bool MpuClass::loop(){//-------------------------------------------------L O O P
 		return false;
 		
 	dt = (float)(mputime - oldmpuTime)*0.000001f;// *div;
+	//if (dt > 0.015)
+	//	printf("MPU DT too long\n");
+
+	
+	
+
 	rdt = 1.0f / dt;
 	oldmpuTime = mputime;
 
@@ -465,6 +472,9 @@ bool MpuClass::loop(){//-------------------------------------------------L O O P
 	gravity.x = 2 * (q.x*q.z - q.w*q.y);
 	gravity.y = 2 * (q.w*q.x + q.y*q.z);
 	gravity.z = q.w*q.w - q.x*q.x - q.y*q.y + q.z*q.z;
+
+
+	
 
 	if ((abs(a[0]) > MAX_G || abs(a[1]) > MAX_G || abs(a[2]) > MAX_G)) {
 		max_g_cnt++;
@@ -549,6 +559,27 @@ bool MpuClass::loop(){//-------------------------------------------------L O O P
 	pitch *= RAD2GRAD;
 	roll *= RAD2GRAD;
 
+
+
+
+
+
+	if (Log.writeTelemetry && Autopilot.motors_is_on()) {
+		Log.loadByte(LOG::MPU);
+		Log.loadByte((uint8_t)(dt * 1000));
+
+		Log.loadFloat(pitch);
+		Log.loadFloat(roll);
+
+		Log.loadFloat(gyroPitch);
+		Log.loadFloat(gyroRoll);
+		Log.loadFloat(gyroYaw);
+		Log.loadFloat(accX);
+		Log.loadFloat(accY);
+		Log.loadFloat(accZ);
+
+	}
+
 	
 	//float pk = pitch / c_pitch;
 	//float rk = roll / c_roll;
@@ -569,6 +600,18 @@ bool MpuClass::loop(){//-------------------------------------------------L O O P
 	//Debug.load(7, roll / 90, -accY / M_PI_2);
 */	//Debug.load(6, roll / 90, -accY / M_PI_2);
 	//Debug.dump();
+
+
+
+
+
+
+
+
+
+	
+
+
 	return true;
 }
 

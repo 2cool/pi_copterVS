@@ -20,7 +20,7 @@ void error(const char *msg)
     exit(1);
 }
 
-ofstream logfile;
+
 
 
 
@@ -38,17 +38,8 @@ int connected=0;
 string log_fname;
 	 
 void mclose(){
+
 	fprintf(Debug.out_stream, "server stoped\n");
-	if (Debug.writeTelemetry)
-		logfile.close();
-	std::ifstream in(log_fname, std::ifstream::ate | std::ifstream::binary);
-	int filesize = in.tellg();
-	//printf("file size %i\n", filesize);
-	if (filesize <=3) {
-		remove(log_fname.c_str());
-	}
-
-
     wifi_connections--;
 	close(newsockfd);
     close(sockfd);
@@ -78,8 +69,7 @@ bool WiFiClass::stopServer() {
 uint32_t wifiold_t = 0;
 void server(){
 	//delay(5000);
-	if (Debug.writeTelemetry)
-		logfile.write("HI\n", 3);
+	
      if (wite_connection())
 		return;
 	  while(run){
@@ -95,11 +85,7 @@ void server(){
 
 
 
-		 if (Debug.writeTelemetry && Autopilot.motors_is_on()) {
-			 logfile.write((char*)&n, 4);
-			 logfile.write((char*)inbuffer, n);
-			 logfile.flush();
-		 }
+		
 		if (n>0){
 			if (connected == 0)
 				fprintf(Debug.out_stream,"connected \n");
@@ -110,11 +96,7 @@ void server(){
 			int buf_len=tel->read_buf(outbuffer);
 		//	fprintf(Debug.out_stream,"T\n");
 
-			if (Debug.writeTelemetry && Autopilot.motors_is_on()) {
-				logfile.write((char*)&buf_len, 4);
-				logfile.write((char*)outbuffer, buf_len);
-				logfile.flush();
-			}
+			
 
 			if (true)
 				n = write(newsockfd,outbuffer,buf_len);
@@ -142,26 +124,14 @@ void server(){
 
 bool WiFiClass::connectedF() { return connected > 0; }
 
-WiFiClass::~WiFiClass(){
-	run = false;
-	fprintf(Debug.out_stream,"WIFICLass distructor\n");
-	//delay(1000);
-	//mclose();
-}
 
 
 
 
-int WiFiClass::init(int counter)
+
+int WiFiClass::init()
 {
-	if (Debug.writeTelemetry) {
-		ostringstream convert;
-		convert << "/home/igor/logs/log" << counter << ".log";
-		log_fname = convert.str();
-
-
-		logfile.open(log_fname.c_str(), fstream::in | fstream::out | fstream::trunc);
-	}
+	
 
 
 

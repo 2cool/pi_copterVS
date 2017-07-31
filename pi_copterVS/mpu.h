@@ -82,15 +82,13 @@ class MpuClass
 	  void calibrationF(int16_t ar[]);
 	  void calibrationF0(int16_t ar[]);
 	  void calibrationPrint(int16_t ar[],const bool onlyGyro);
-	  float cS;
-	  
-	  
+
 	  uint64_t acc_callibr_time;
  public:
 	 float cor_c_pitch, cor_c_roll;
 	 uint64_t oldmpuTime;
 
-	 void set_cS(const float v){ cS = v; }
+
 	 float cosYaw,sinYaw;
 	 int8_t max_g_cnt;
 #ifdef FALSE_MPU

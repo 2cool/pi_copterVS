@@ -26,7 +26,7 @@ class DebugClass
 	 int n_debug;
 	 float fly_at_start, lowest_altitude_to_fly;
 	 FILE * out_stream;
-	 bool writeTelemetry;
+
 	 bool run_main;
 	 void init();
 	 void dump(const long f1, long f2, long f3, long f4);

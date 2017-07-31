@@ -3,6 +3,7 @@
 #include "Telemetry.h"
 #include "Autopilot.h"
 #include "debug.h"
+#include "Log.h"
 
 int fd4S;
 unsigned int PROM_read(int DA, char PROM_CMD)
@@ -362,6 +363,7 @@ void MS5611Class::phase2() {
 }
 
 void MS5611Class::phase3() {
+
 	dT = D2 - (uint32_t)C[5] * 256;
 	TEMP = (2000 + ((int64_t)dT * (int64_t)C[5] / 8388608));
 	OFF = (int64_t)C[2] * 65536 + (dT*C[4]) / 128;
@@ -413,6 +415,15 @@ void MS5611Class::phase3() {
 
 
 	pressure += ((float)P - pressure)*0.3;
+
+
+	if (Log.writeTelemetry && Autopilot.motors_is_on()) {
+		Log.loadByte(LOG::MS5);
+		Log.loadFloat(pressure);
+	}
+
+
+
 	powerK = PRESSURE_AT_0 / pressure;
 
 	if (powerK>1.4)

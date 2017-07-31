@@ -76,6 +76,7 @@
     <ClCompile Include="inv_mpu.cpp" />
     <ClCompile Include="inv_mpu_dmp_motion_driver.cpp" />
     <ClCompile Include="Location.cpp" />
+    <ClCompile Include="Log.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mpu.cpp" />
     <ClCompile Include="MPU6050.cpp" />
@@ -109,6 +110,7 @@
     <ClInclude Include="inv_mpu.h" />
     <ClInclude Include="inv_mpu_dmp_motion_driver.h" />
     <ClInclude Include="Location.h" />
+    <ClInclude Include="Log.h" />
     <ClInclude Include="MotionSensor.h" />
     <ClInclude Include="mpu.h" />
     <ClInclude Include="MPU6050.h" />
