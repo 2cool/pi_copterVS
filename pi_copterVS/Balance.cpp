@@ -116,7 +116,7 @@ void BalanceClass::init()
 	maxAngle = MAX_ANGLE;
 
 
-	pitch_roll_stabKP = 3;
+	pitch_roll_stabKP = 2;
 	
 
 	//pitch_roll_rateKP = 0.0007;
@@ -124,13 +124,13 @@ void BalanceClass::init()
 	//pitch_roll_rateIMAX = 0.05;
 	
 
-	pids[PID_PITCH_RATE].kP(0.0014f);
-	pids[PID_PITCH_RATE].kI(0.0001f);
-	pids[PID_PITCH_RATE].imax(MAX_DELTA*0.1f);
+	pids[PID_PITCH_RATE].kP(0.0014f);//0.001
+	pids[PID_PITCH_RATE].kI(0.0007f);
+	pids[PID_PITCH_RATE].imax(MAX_DELTA);
 
-	pids[PID_ROLL_RATE].kP(0.0014f);
-	pids[PID_ROLL_RATE].kI(0.0001f);
-	pids[PID_ROLL_RATE].imax(MAX_DELTA*0.1f);
+	pids[PID_ROLL_RATE].kP(0.0014f);//0.001
+	pids[PID_ROLL_RATE].kI(0.0007f);
+	pids[PID_ROLL_RATE].imax(MAX_DELTA);
 
 	yaw_stabKP = 2;
 
@@ -427,11 +427,11 @@ bool BalanceClass::loop()
 			}
 		//	float oc_roll = c_roll;
 			//float oc_pitch = c_pitch;
-#ifndef FALSE_MPU
+
 			float t_c_pitch = c_pitch;
 			float t_c_roll = c_roll;
 			correct_c_pitch_c_roll();
-#endif
+
 
 			//Debug.load(0, oc_pitch / 30, oc_roll / 30);
 			//Debug.load(0, c_pitch / 30, oc_pitch / 30);
@@ -472,7 +472,7 @@ bool BalanceClass::loop()
 
 			float m_yaw_output = -yaw_output;  //антираскачивание при низкой мощности на плече
 			if ((throttle + yaw_output) < min_throttle)
-				yaw_output = min_throttle - throttle;
+				yaw_output = min_throttle - throttle;//???????????????????????????????????????????????????
 			if ((throttle + m_yaw_output) < min_throttle)
 				m_yaw_output = min_throttle - throttle;
 
@@ -525,7 +525,7 @@ bool BalanceClass::loop()
 
 		}
 		if (Log.writeTelemetry)
-			Log.end();
+			Log.end();                           Nepishetca poslednie secundy loga?
 
 
 

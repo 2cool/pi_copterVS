@@ -41,6 +41,70 @@ THG out of Perimetr high
 #include "Wi_Fi.h"
 #include "Pwm.h"
 
+#include <cstdio>
+#include <signal.h>
+
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/sem.h>
+#include <stdio.h>
+
+
+
+
+#include <iostream>
+#include <stdexcept>
+#include <stdio.h>
+#include <string>
+
+#include  "Log.h"
+
+using namespace std;
+
+int get_pid(const char* name) {
+	FILE *in;
+	char buff[512];
+
+	if (!(in = popen("ps -e", "r"))) {
+		return 1;
+	}
+	int pid = -1;
+	while (fgets(buff, sizeof(buff), in) != NULL) {
+		//	cout << buff;
+		string s = string(buff);
+		if (s.find(name) != -1) {
+			cout << s;
+			int n = s.find(" ");
+			if (n != -1) {
+				pid = stoi(s.substr(0, n));
+
+			}
+		}
+	}
+	pclose(in);
+	return pid;
+}
+
+
+
+void stop_video() {
+
+	int pid = get_pid("ffmpeg");
+	if (pid != -1)
+		kill(pid, SIGQUIT);
+
+}
+
+void save_video() {
+	string s = "/home/igor/ffmpeg_cedrus264_H3/ffmpeg -f v4l2 -channel 0 -video_size 640x480 -i /dev/video0 -pix_fmt nv12 -r 30 -b:v 64k -c:v cedrus264 /home/igor/logs/video";
+	s += std::to_string(Log.counter);
+	s += "_";
+	s += std::to_string(Log.run_counter);
+	s += ".mp4 > /dev/null 2>&1";
+	int status = system(s.c_str());
+}
+
+
 
 //каждий новий режим работі добовляется в месадж
 
@@ -535,8 +599,17 @@ bool AutopilotClass::motors_do_on(const bool start, const string msg){//////////
 			fflush(Debug.out_stream);
 			start_time = millis();
 #ifdef DEBUG_MODE
-			fprintf(Debug.out_stream, "\nhome loc: %i %i %i M\nhome alt set %i\n", GPS.loc.lat_, GPS.loc.lon_, (int)flyAtAltitude);
+			fprintf(Debug.out_stream, "\nhome loc: %i %i \nhome alt set %i\n", GPS.loc.lat_, GPS.loc.lon_, (int)flyAtAltitude);
 #endif
+
+			Log.run_counter++;
+			if (Debug.record_video) {//---------------------------------------------------
+				thread t(save_video);
+				t.detach();
+
+			}
+
+
 		}
 		else{
 			if (Hmc.calibrated == false){
@@ -558,6 +631,12 @@ bool AutopilotClass::motors_do_on(const bool start, const string msg){//////////
 		off_throttle(true, msg);
 
 		fprintf(Debug.out_stream,"OK\n");
+
+		if (Debug.record_video) {//----------------------------------
+			thread t(stop_video);
+			t.detach();
+
+		}
 	}
 	return true;
 }

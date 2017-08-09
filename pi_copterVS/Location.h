@@ -33,12 +33,12 @@ class LocationClass
 public:
 	bool processGPS_1();
 	bool processGPS();
-	float cosDirection, sinDirection;
-	float dt, rdt;
-	float add_lat_need, add_lon_need;
+	double cosDirection, sinDirection;
+	double dt, rdt;
+	double add_lat_need, add_lon_need;
 	long lat_, lon_, lat_home, lon_home;
-	float accuracy_hor_pos_, altitude;
-	float accuracy_ver_pos_;
+	double accuracy_hor_pos_, altitude;
+	double accuracy_ver_pos_;
 	unsigned long mseconds;
 	void setSpeedZero(){ lat_needV_ = lat_needR_; lon_needV_ = lon_needR_; }
 	int init();
@@ -46,51 +46,51 @@ public:
 	
 	void setNeedLoc(const long lat, const long lon);
 	void setHomeLoc();
-	void add2NeedLoc(const float speedX, const float speedY, const float dt);
+	void add2NeedLoc(const double speedX, const double speedY, const double dt);
 
 
 	void updateXY();
-	void bearing_dist(float &bearing, float & distance);
+	//void bearing_dist(double &bearing, double & distance);
 	
-	float x2home, y2home, dX, dY, speedX, speedY;
-	float dist2home_2;
+	double x2home, y2home, dX, dY, speedX, speedY;
+	double dist2home_2;
 	//---------------
 	uint64_t last_gps_data_time;
 	
-	float bearing_(const float lat, const float lon, const float lat2, const float lon2);
-	void sin_cos(float &x, float &y, const float lat, const float lon, const float lat2, const float lon2);
+	double bearing_(const double lat, const double lon, const double lat2, const double lon2);
+	void sin_cos(double &x, double &y, const double lat, const double lon, const double lat2, const double lon2);
 
-	float distance_(const float lat, const float lon, const float lat2, const float lon2);
+	double distance_(const double lat, const double lon, const double lat2, const double lon2);
 	//---------------
 
 	void clearSpeedCorrection(){ lat_needV_ = lat_needR_; lon_needV_ = lon_needR_; }
 
-	float from_lat2X(const float lat){
+	double from_lat2X(const double lat){
 		return lat*kd_lat_;
 	}
-	float from_X2Lat(const float x){ 
+	double from_X2Lat(const double x){ 
 		return x *r_kd_lat; 
 	}
 
-	float form_lon2Y(const float lon){
+	double form_lon2Y(const double lon){
 		return lon*kd_lon_;
 	}
-	float from_Y2Lon(const float y){
+	double from_Y2Lon(const double y){
 		return y * r_kd_lon;
 	}
 
 private:
-	float set_cos_sin_dir();
+	double set_cos_sin_dir();
 	void xy();
-	float lat_needV_, lon_needV_, lat_needR_, lon_needR_;
+	double lat_needV_, lon_needV_, lat_needR_, lon_needR_;
 	unsigned long old_iTOW;
-	float mspeedx, mspeedy;
+	double mspeedx, mspeedy;
 	void calcChecksum(unsigned char* CK);
 	NAV_POSLLH posllh;
-	float oldDist;
+	double oldDist;
 	void update();
-	float kd_lon_, kd_lat_;
-	float r_kd_lon, r_kd_lat;
+	double kd_lon_, kd_lat_;
+	double r_kd_lon, r_kd_lat;
 
 
 

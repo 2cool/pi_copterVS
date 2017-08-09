@@ -54,8 +54,9 @@ bool LogClass::close() {
 	return !logfile.is_open();
 }
 
-bool LogClass::init(int counter) {
-	
+bool LogClass::init(int counter_) {
+	counter = counter_;
+	run_counter = 0;
 	if (writeTelemetry) {
 		run_loging = true;
 		ostringstream convert;

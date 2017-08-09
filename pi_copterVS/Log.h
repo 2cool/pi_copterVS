@@ -23,7 +23,8 @@ private:
 	
 public:
 	bool writeTelemetry;
-	
+	int counter = 0;
+	int run_counter;
 	void end();
 	void loadGPS(NAV_POSLLH *gps);
 	void loaduint32t(uint32_t ui);

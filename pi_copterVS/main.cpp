@@ -1,5 +1,6 @@
-#define PROG_VERSION "ver 2.170627_L\n"
-//#define ONLY_ONE_RUN
+#define PROG_VERSION "ver 2.170809_L\n"
+
+#define ONLY_ONE_RUN
 
 
 #include <cstdio>
@@ -56,7 +57,7 @@ bool loop();
 //#include <avr/interrupt.h> // can be omitted
 
 
-
+int zzz = 1;
 
 
 
@@ -250,7 +251,9 @@ int main(int argc, char *argv[]) {
 			return printHelp();
 
 		}
-		
+
+		Debug.record_video = true;//////////////////////////////////////////////
+
 		if (argc >= 6) {
 			int t = atoi(argv[1]);
 			t = constrain(t, 0, 300);
@@ -268,6 +271,8 @@ int main(int argc, char *argv[]) {
 
 				fclose(set);
 				usleep(500);
+				if (counter < 9999)
+					return 0;
 				remove(LOG_COUNTER_NAME);
 
 			}
@@ -305,6 +310,10 @@ int main(int argc, char *argv[]) {
 	if (signal(SIGINT, handler) == SIG_ERR) {
 		return EXIT_FAILURE;
 	}
+
+
+
+
 
 	if (setup(counter) == 0) {
 

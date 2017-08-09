@@ -331,8 +331,8 @@ float air_dragg(const float speed){
 
 long nextTime = 0;
 float max_wind_speed;
-#define MAX_X_WIND_SPEED 0
-#define MAX_Y_WIND_SPEED 0
+#define MAX_X_WIND_SPEED 3
+#define MAX_Y_WIND_SPEED 2
 
 
 float MpuClass::windX(){
