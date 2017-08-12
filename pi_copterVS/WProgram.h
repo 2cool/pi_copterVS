@@ -101,14 +101,7 @@ class Serial_class{
 */
 
 
-class EEPROM_Class
-{
-	public:
-	void write (int i, char c);
-	char read(int i);
-	int write_set();
-	int read_set();
-};
+
 
 
 inline void sin_cos(const float a, float &s, float &c) {
@@ -123,7 +116,7 @@ inline void sin_cos(const float a, float &s, float &c) {
 		*/
 }
 
-extern EEPROM_Class EEPROM;
+
 
 #endif
 

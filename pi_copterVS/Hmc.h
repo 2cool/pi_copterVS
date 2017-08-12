@@ -96,7 +96,7 @@ class HmcClass
 	 int motor_index;
 	 bool compas_motors_calibr;
 	 float base[12];
-	 bool calibrated;
+	 bool calibrated,motors_calibrated;
 	 string get_set();
 	 void set(const float buf[]);
 	// int16_t mx, my, mz;

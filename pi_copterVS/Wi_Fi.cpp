@@ -32,8 +32,17 @@ uint8_t outbuffer[TELEMETRY_BUF_SIZE];
 struct sockaddr_in serv_addr, cli_addr;
 int n;
 int connected=0;
+#define uchar unsigned char
 
 
+string WiFiClass::get_client_addres() {
+	int adr = cli_addr.sin_addr.s_addr;
+	string s = to_string((uchar)(adr & 255)) + "." + to_string((uchar)(255 & (adr >> 8))) + "." + to_string((uchar)(255 & (adr >> 16))) + "." + to_string((uchar)(adr >> 24));
+	return s;
+
+
+
+}
 
 string log_fname;
 	 

@@ -1,4 +1,4 @@
-#define PROG_VERSION "ver 2.170809_L\n"
+#define PROG_VERSION "ver 2.170812_Cam\n"
 
 #define ONLY_ONE_RUN
 
@@ -115,9 +115,10 @@ uint16_t oldCounter = 1000;
 
 int setup(int cnt) {////--------------------------------------------- SETUP ------------------------------
 	Log.init(cnt);
-	Pwm.on(0,  pwm_MAX_THROTTLE);
+	Pwm.on(0, pwm_MAX_THROTTLE);
 
-	EEPROM.read_set();
+	Settings.read();
+
 
 	fprintf(Debug.out_stream,"___setup___\n");
 	
@@ -252,8 +253,6 @@ int main(int argc, char *argv[]) {
 
 		}
 
-		Debug.record_video = true;//////////////////////////////////////////////
-
 		if (argc >= 6) {
 			int t = atoi(argv[1]);
 			t = constrain(t, 0, 300);
@@ -272,9 +271,27 @@ int main(int argc, char *argv[]) {
 				fclose(set);
 				usleep(500);
 				if (counter < 9999)
-					return 0;
-				remove(LOG_COUNTER_NAME);
+				{
+					FILE *in;
+					char buff[512];
 
+					if (!(in = popen("ls /home/igor/logs", "r"))) {
+						return 1;
+					}
+					counter = 10000;
+					while (fgets(buff, sizeof(buff), in) != NULL) {
+						string s = string(buff);
+						int b = s.find_first_of("0123456789");
+						int e = s.find_first_of(".");
+						if (b > 0 && e + 4 > b) {
+							int cnt = stoi(s.substr(b, e));
+							if (cnt > counter)
+								counter = cnt;
+						}
+					}
+					fclose(in);
+				}
+				remove(LOG_COUNTER_NAME);
 			}
 			else
 				return 0;
@@ -346,7 +363,7 @@ int main(int argc, char *argv[]) {
 		fprintf(Debug.out_stream, "\n exit\n");
 	if (flag!=0)
 		fprintf(Debug.out_stream, "\n main Signal caught!\n");
-	EEPROM.write_set();
+	Settings.write();
 	//fclose(Debug.out_stream);
 
 #ifdef ONLY_ONE_RUN

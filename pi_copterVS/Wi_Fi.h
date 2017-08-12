@@ -27,6 +27,7 @@ class WiFiClass
 	bool connectedF();
 	 bool newConnection_;
 	bool is_connected(void){return connected>0;}
+	string get_client_addres();
 	int init();
 
 };

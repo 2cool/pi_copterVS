@@ -230,8 +230,8 @@ float StabilizationClass::Z(){//////////////////////////////////////////////////
 		//Out.println(fZ);
 //	}
 
-	if (millis() - Autopilot.start_time < 5000 && (sZ - Autopilot.fly_at_altitude())>2)
-		Autopilot.motors_do_on(false, e_ESK_ERROR);
+	//if (millis() - Autopilot.start_time < 5000 && (sZ - Autopilot.fly_at_altitude())>2)
+	//	Autopilot.motors_do_on(false, e_ESK_ERROR);
 
 
 	return fZ;

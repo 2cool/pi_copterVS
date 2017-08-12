@@ -61,6 +61,10 @@ THG out of Perimetr high
 
 using namespace std;
 
+int camera_mode;
+enum { CAMMERA_OFF, CAMERA_RECORDING, CAMERA_TRANCLATE };
+
+
 int get_pid(const char* name) {
 	FILE *in;
 	char buff[512];
@@ -68,21 +72,20 @@ int get_pid(const char* name) {
 	if (!(in = popen("ps -e", "r"))) {
 		return 1;
 	}
-	int pid = -1;
+	
 	while (fgets(buff, sizeof(buff), in) != NULL) {
 		//	cout << buff;
 		string s = string(buff);
 		if (s.find(name) != -1) {
 			cout << s;
-			int n = s.find(" ");
-			if (n != -1) {
-				pid = stoi(s.substr(0, n));
-
-			}
+			int pid = stoi(s.substr(0, 5));
+			fclose(in);
+			return pid;
+			
 		}
 	}
 	pclose(in);
-	return pid;
+	return -1;
 }
 
 
@@ -90,18 +93,33 @@ int get_pid(const char* name) {
 void stop_video() {
 
 	int pid = get_pid("ffmpeg");
-	if (pid != -1)
+	if (pid != -1) {
 		kill(pid, SIGQUIT);
+		fprintf(Debug.out_stream, "video STOP\n");
+	}
 
 }
 
-void save_video() {
-	string s = "/home/igor/ffmpeg_cedrus264_H3/ffmpeg -f v4l2 -channel 0 -video_size 640x480 -i /dev/video0 -pix_fmt nv12 -r 30 -b:v 64k -c:v cedrus264 /home/igor/logs/video";
-	s += std::to_string(Log.counter);
-	s += "_";
-	s += std::to_string(Log.run_counter);
-	s += ".mp4 > /dev/null 2>&1";
-	int status = system(s.c_str());
+void start_video() {
+	if (camera_mode == CAMERA_RECORDING) {
+		usleep(2000000);
+		fprintf(Debug.out_stream, "recording video START\n");
+		string s = "/home/igor/ffmpeg_cedrus264_H3/ffmpeg -f v4l2 -channel 0 -video_size 640x480 -i /dev/video0 -pix_fmt nv12 -r 30 -b:v 64k -c:v cedrus264 /home/igor/logs/video";
+		s += std::to_string(Log.counter);
+		s += "_";
+		s += std::to_string(Log.run_counter);
+		s += ".mp4 > /dev/null 2>&1";
+		system(s.c_str());
+		
+	}
+	if (camera_mode=CAMERA_TRANCLATE){
+		fprintf(Debug.out_stream, "transmiting video START\n");
+		string adr = WiFi.get_client_addres();
+		string s = "/home/igor/ffmpeg_cedrus264_H3/ffmpeg -f v4l2 -framerate 30 -video_size 640x480 -i /dev/video0 -f mpegts udp://"+adr+":1234 > /dev/null 2>&1";
+		system(s.c_str());
+		
+		
+	}
 }
 
 
@@ -112,6 +130,7 @@ void save_video() {
 
 
 void AutopilotClass::init(){/////////////////////////////////////////////////////////////////////////////////////////////////
+	camera_mode = CAMMERA_OFF;
 	lowest_height = Debug.lowest_altitude_to_fly;
 	last_time_data_recived = 0;
 	gimBalPitch = 0;
@@ -282,7 +301,7 @@ string AutopilotClass::get_set(){
 	MIN_THROTTLE_<<","<<\
 	sens_xy<<","<<\
 	sens_z<<","<<\
-	lowest_height<<","<< Debug.n_debug;
+	lowest_height<<","<< Debug.n_debug<<","<<camera_mode;
 	string ret = convert.str();
 	return string(ret);
 }
@@ -297,14 +316,13 @@ void AutopilotClass::set(const float ar[]){
 		
 		
 		error += Commander._set(ar[i++], height_to_lift_to_fly_to_home);
-
 		//Balance.set_min_max_throttle(ar[i++], ar[i++]);
-
 		i += 2;
 		error += Commander._set(ar[i++], sens_xy);
 		error += Commander._set(ar[i++], sens_z);
 		error += Commander._set(ar[i++], lowest_height,false);
-		Debug.n_debug = (int)ar[i];
+		Debug.n_debug = (int)ar[i++];
+		camera_mode = (int)ar[i++];
 
 		if (error == 0){
 			int ii = 0;
@@ -558,13 +576,13 @@ bool AutopilotClass::motors_do_on(const bool start, const string msg){//////////
 			Pwm.beep_code(BEEPS_ON+(1<<1));
 		}
 #define MAX_MACC 0.1f
-		if (abs(Mpu.maccX) > MAX_MACC || abs(Mpu.maccY) > MAX_MACC || abs(Mpu.maccZ) > MAX_MACC) {
+		if (Hmc.compas_motors_calibr == false && (abs(Mpu.maccX) > MAX_MACC || abs(Mpu.maccY) > MAX_MACC || abs(Mpu.maccZ) > MAX_MACC)) {
 			fprintf(Debug.out_stream, "ACC ERROR!!! \n");
 			Pwm.beep_code(BEEPS_ON + (2 << 1));
 			return false;
 		}
 
-		if (Mpu.gyro_calibratioan && Hmc.calibrated){
+		if (Hmc.compas_motors_calibr || (Mpu.gyro_calibratioan && Hmc.calibrated)){
 
 			if (Telemetry.low_voltage){
 				Telemetry.addMessage(e_LOW_VOLTAGE);
@@ -603,8 +621,8 @@ bool AutopilotClass::motors_do_on(const bool start, const string msg){//////////
 #endif
 
 			Log.run_counter++;
-			if (Debug.record_video) {//---------------------------------------------------
-				thread t(save_video);
+			if (camera_mode) {//---------------------------------------------------
+				thread t(start_video);
 				t.detach();
 
 			}
@@ -632,11 +650,11 @@ bool AutopilotClass::motors_do_on(const bool start, const string msg){//////////
 
 		fprintf(Debug.out_stream,"OK\n");
 
-		if (Debug.record_video) {//----------------------------------
+		//if (camera_mode) {//----------------------------------
 			thread t(stop_video);
 			t.detach();
 
-		}
+		//}
 	}
 	return true;
 }

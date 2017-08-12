@@ -127,7 +127,7 @@ void HmcClass::motTest(const float fmx, const float fmy, const float fmz){
 				else{
 					compas_motors_calibr = false;
 					Autopilot.reset_compas_motors_calibr_bit();
-					Settings.saveCompssSettings2(base);
+					Settings.saveCompasMotorSettings(base);
 					fprintf(Debug.out_stream,"set saved\n");
 				}
 				
@@ -398,12 +398,13 @@ bool HmcClass::calibration(const bool newc){
 
 
 	calibrated = Settings.readCompassSettings(sh);
-	if (calibrated)
-		Settings.loadCompssSettings2(base);
-	if (calibrated==false){
-		fprintf(Debug.out_stream,"! ! ! ! Comppas not Calibrated ! ! ! !\n");
-		return false;
-	}
+	if (calibrated == false) 
+		fprintf(Debug.out_stream, "! ! ! ! Comppas not Calibrated ! ! ! !\n");
+	bool mot_cal = Settings.readCompasMotorSettings(base);
+	if (!mot_cal)
+		fprintf(Debug.out_stream, "! ! ! ! Comppas motors not Calibrated ! ! ! !\n");
+	calibrated &= mot_cal;
+
 	
 	dx = (float)(sh[0] - sh[1])*0.5f;
 	baseX = (int16_t)(dx + sh[1]);

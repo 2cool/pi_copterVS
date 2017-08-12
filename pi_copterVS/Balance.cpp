@@ -525,7 +525,7 @@ bool BalanceClass::loop()
 
 		}
 		if (Log.writeTelemetry)
-			Log.end();                           Nepishetca poslednie secundy loga?
+			Log.end();            //               Nepishetca poslednie secundy loga?..  filtruemye dannye proverat na oshibku
 
 
 

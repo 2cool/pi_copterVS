@@ -13,22 +13,25 @@ string this_log_fname;
 
 void loger() {
 	while (run_loging) {
-		if (log_bank_ == old_bank) {
+		while (log_bank_ == old_bank) {
 			usleep(2000);
 		}
-		else {
-			//printf("%i\n",log_bank_ - old_bank);
-			while (log_bank_ - old_bank > 7) {
-				fprintf(Debug.out_stream, "log sync error!\n");
-				old_bank++;
-			}
-
-			int len = *((uint16_t*)log_buffer[old_bank&7]);
-			logfile.write((char*)log_buffer[old_bank&7], len);
-			//logfile.flush();
-			old_bank ++;
-			
+		
+		//printf("%i\n",log_bank_ - old_bank);
+		bool print = true;
+		while (log_bank_ - old_bank > 7) {
+			if (print)
+				fprintf(Debug.out_stream, "log sync error! %i\n",log_bank_);
+			print = false;
+			old_bank++;
 		}
+
+		int len = *((uint16_t*)log_buffer[old_bank&7]);
+		logfile.write((char*)log_buffer[old_bank&7], len);
+		//logfile.flush();
+		old_bank ++;
+			
+		
 	}
 	logfile.close();
 
@@ -47,7 +50,7 @@ void loger() {
 bool LogClass::close() {
 	fprintf(Debug.out_stream, "close tel log\n");
 	run_loging = false;
-	usleep(10000);
+	usleep(500000);
 
 
 

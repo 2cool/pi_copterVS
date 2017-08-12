@@ -173,11 +173,11 @@ void MpuClass::init()
 #else
 	gyro_calibratioan = true;
 #endif
-	int16_t offset_[6];
-	mpu_calibrated = Settings.readMpuSettings(offset_);
-	gyro_calibratioan &= mpu_calibrated;
+	//int16_t offset_[6];
+//	mpu_calibrated = Settings.readMpuSettings(offset_);
+//	gyro_calibratioan &= mpu_calibrated;
 
-	if (mpu_calibrated) {
+	//if (mpu_calibrated) {
 		/*accelgyro.setXAccelOffset(offset_[ax_offset]);
 		accelgyro.setYAccelOffset(offset_[ay_offset]);
 		accelgyro.setZAccelOffset(offset_[az_offset]);
@@ -191,10 +191,10 @@ void MpuClass::init()
 #ifndef WORK_WITH_WIFI
 		//calibrated = false;
 #endif
-	}
-	else {
-		fprintf(Debug.out_stream,"MPU NOT CALIBRATED !!!\n");
-	}
+	//}
+//	else {
+	//	fprintf(Debug.out_stream,"MPU NOT CALIBRATED !!!\n");
+	//}
 
 
 

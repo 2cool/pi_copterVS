@@ -17,10 +17,6 @@ uint32_t millis(){
 
 
 
-
-
-
-
 int64_t micros(void){
 	timespec t;
 	clock_gettime(CLOCK_REALTIME,&t);
@@ -33,65 +29,7 @@ int64_t micros(void){
 
 
 
-
 void delay(unsigned long t){
 	usleep(t*1000);
 }
-
-
-
-
-	#define EEPROM_SIZE 4096
-	char EEPROM_MEM[EEPROM_SIZE];
-
-	bool setings_file_exist = false;
-	int EEPROM_Class::read_set() {
-		ifstream f;
-		f.open("/home/igor/eeprom.set");
-		if (f.is_open()){
-			f.read(EEPROM_MEM, EEPROM_SIZE);
-			f.close();
-			return 0;
-		}
-		return -1;
-	}
-
-	int EEPROM_Class::write_set() {
-
-
-		
-		ofstream f;
-		f.open("/home/igor/eeprom.set", fstream::in | fstream::out | fstream::trunc);
-		if (f.is_open()) {
-			f.write(EEPROM_MEM, EEPROM_SIZE);
-		//	f << EEPROM_MEM;
-			f.close();
-			return 0;
-		}
-		return -1;
-	}
-
-
-
-	
-	void EEPROM_Class::write (int i, char c){
-		if (EEPROM_SIZE > i) {
-			EEPROM_MEM[i] = c;
-		}
-	};
-	char EEPROM_Class::read(int i){
-		if (EEPROM_SIZE > i) {
-			return EEPROM_MEM[i];
-		}else
-		return 0;
-	
-	}
-	
-	
-	
-	
-	
-	
-EEPROM_Class EEPROM;	
-	
 
