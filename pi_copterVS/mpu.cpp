@@ -36,7 +36,7 @@ static const float f_constrain(const float v, const float min, const float max){
 
 
 void  MpuClass::initYaw(const float angle){
-	float add_2_yaw = angle;
+	yaw = angle;
 }
 
 
@@ -127,7 +127,7 @@ void MpuClass::init()
 {
 	acc_callibr_time = 0;
 	rate = 100;
-	yaw = add_2_yaw = 0;
+	yaw =  0;
 	
 	maccX = maccY = maccZ = 0;
 	max_g_cnt = 0;
@@ -508,12 +508,18 @@ bool MpuClass::loop(){//-------------------------------------------------L O O P
 
 
 	yaw += gyroYaw*dt;
-	float t = head - yaw;
 
-	if (t > 180)
-		yaw += 360;
-	else if (t < -180)
+	if (yaw >= 360)
 		yaw -= 360;
+	if (yaw <= -360)
+		yaw += 360;
+
+
+	if ((head - yaw) > 180)
+		head -= 360;
+	if ((head - yaw) < -180)
+		head += 360;
+
 	yaw += (head- yaw)*0.0031f;
 
 	pitch = atan(gravity.x / sqrt(gravity.y*gravity.y + gravity.z*gravity.z));

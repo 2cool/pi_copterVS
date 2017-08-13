@@ -30,7 +30,7 @@ void DebugClass::graphic(const int n, const float x, const float y) {
 	 uint64_t d_old_t = 0;
 
 
-	 int d_delay = 20;
+	 int d_delay = 100;
 	 double d_dt = (double)d_delay *0.001;
 
 	 void DebugClass::load(const uint8_t i, const float x, const float y) {

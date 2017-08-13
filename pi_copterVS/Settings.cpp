@@ -73,8 +73,8 @@ bool  SettingsClass::saveCompasMotorSettings(float base[]) {
 	writeBuf(MOTOR_COMPAS, base, 12);
 	uint32_t hash = get_hash((char*)base, 12);
 	*(uint32_t*)(EEPROM_MEM + MOTOR_COMPAS_HASH) = hash;
-	write();
-	return true;
+	return write()!=-1;
+	
 }
 
 bool  SettingsClass::saveCompssSettings(int16_t sh[]) {

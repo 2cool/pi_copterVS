@@ -128,7 +128,7 @@ void HmcClass::motTest(const float fmx, const float fmy, const float fmz){
 					compas_motors_calibr = false;
 					Autopilot.reset_compas_motors_calibr_bit();
 					Settings.saveCompasMotorSettings(base);
-					fprintf(Debug.out_stream,"set saved\n");
+
 				}
 				
 

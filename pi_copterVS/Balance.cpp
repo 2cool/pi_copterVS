@@ -143,7 +143,7 @@ void BalanceClass::init()
 	Mpu.init();
 	Hmc.init();
 	Hmc.loop();
-	Mpu.initYaw(Hmc.heading);
+	Mpu.initYaw(Hmc.heading*RAD2GRAD);
 #ifdef DEBUG_MODE
 	fprintf(Debug.out_stream, "Heading :%i\n", (int)Hmc.get_headingGrad());
 	

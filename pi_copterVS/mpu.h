@@ -31,7 +31,6 @@ class MpuClass
 	friend class HmcClass;
  protected:
 
-	 float add_2_yaw;
 	 int ms_open();
 	 // MPU control/status vars
 	 uint8_t devStatus;      // return status after each device operation

@@ -370,7 +370,15 @@ void TelemetryClass::update_buf() {
 	t = (int16_t)b[2];
 	buf[i++] = ((byte*)&t)[0];
 	buf[i++] = (int8_t)Autopilot.getGimbalPitch();
-	loadBUF8(i, Mpu.yaw * 0.705555555555555f);
+
+	
+
+
+	float yaw=wrap_180(Mpu.yaw);
+
+
+
+	loadBUF8(i, yaw * 0.705555555555f);
 
 	if (message.length() && i + message.length() < TELEMETRY_BUF_SIZE) {
 		memcpy(&buf[i], message.c_str(), message.length());

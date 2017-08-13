@@ -1,4 +1,4 @@
-#define PROG_VERSION "ver 2.170812_Cam\n"
+#define PROG_VERSION "ver 2.170813_2_Cam\n"
 
 #define ONLY_ONE_RUN
 
