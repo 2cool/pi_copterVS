@@ -525,7 +525,9 @@ bool BalanceClass::loop()
 		}
 		else
 		{
-
+			pids[PID_PITCH_RATE].reset_I();
+			pids[PID_ROLL_RATE].reset_I();
+			pids[PID_YAW_RATE].reset_I();
 			c_pitch = c_roll = 0;
 
 			if (Debug.escCalibr>0)

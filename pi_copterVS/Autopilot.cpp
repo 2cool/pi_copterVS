@@ -616,9 +616,10 @@ bool AutopilotClass::motors_do_on(const bool start, const string msg){//////////
 
 			holdAltitude(Debug.fly_at_start);
 			holdLocation(GPS.loc.lat_, GPS.loc.lon_);
-
+			Stabilization.resset_z();
+			Stabilization.resset_xy_integrator();
 			aYaw_ = -Mpu.yaw;
-			fflush(Debug.out_stream);
+			//fflush(Debug.out_stream);
 			start_time = millis();
 			if (Telemetry.power_is_on())
 				starts_cnt++;
