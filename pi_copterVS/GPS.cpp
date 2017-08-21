@@ -10,7 +10,7 @@
 
 void GPSClass::init()
 {	
-#ifndef	FALSE_GPS
+#ifndef	FALSE_WIRE
 	loc.last_gps_data_time = millis();
 #endif
 	if (loc.init() == -1) {
@@ -21,12 +21,9 @@ void GPSClass::init()
 }
 
 
-#ifdef FALSE_GPS
-
-#include "Stabilization.h"
+#ifdef FALSE_WIRE
 
 
-#include "Balance.h"
 uint32_t gpsttime = 0;
 //float distX = 0, distY = 0;
 //float speedX = 0, speedY = 0;
@@ -49,19 +46,9 @@ long lon = FALSE_LON;
 
 float fullX = 0, fullY = 0;
 void GPSClass::loop(){
-	//dataRedy = false;
-	if (Mpu.mpu_calibrated==false){
-		
-		return;
-	}
 
-	//home 47.9078 33.3318
-	//next 47.908233 33.3319
 
-	//distX = Mpu.fdistX;
-	//distY = Mpu.fdistY;
-	//speedX = Mpu.fspeedX;
-	//speedY = Mpu.fspeedY;
+
 
 	gpsttime = millis()/100;
 	
@@ -71,7 +58,7 @@ void GPSClass::loop(){
 		return;
 	loc.accuracy_hor_pos_ = 0;
 	loc.accuracy_ver_pos_ = 1;
-	loc.altitude = MS5611.altitude();// +4 * ((float)rand()) / RAND_MAX;
+	loc.altitude = MS5611.altitude();
 
 
 
@@ -86,7 +73,7 @@ void GPSClass::loop(){
 		
 	}
 
-#ifdef FALSE_BAROMETR
+#ifdef FALSE_WIRE
 		if (MS5611.altitude() <= 0){
 			//speedX = speedY = 0;
 	
@@ -101,8 +88,8 @@ void GPSClass::loop(){
 		
 
 #ifndef FASLE_GPS_STILL
-		lat = FALSE_LAT + (long)(loc.from_X2Lat(Mpu.fdistX));
-		lon = FALSE_LON + (long)(loc.from_Y2Lon(Mpu.fdistY));
+		lat = FALSE_LAT + (long)(loc.from_X2Lat(Emu.get_x()));
+		lon = FALSE_LON + (long)(loc.from_Y2Lon(Emu.get_y()));
 #endif
 		loc.lat_ = lat;
 		loc.lon_ = lon;

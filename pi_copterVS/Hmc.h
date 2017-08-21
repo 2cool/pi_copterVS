@@ -83,7 +83,7 @@
 class HmcClass
 {
  protected:
-
+	 void log();
 	 void motTest(const float, const float, const float);
 	 int16_t baseX, baseY, baseZ;
 	 

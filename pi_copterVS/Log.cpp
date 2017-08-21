@@ -2,8 +2,10 @@
 #include "debug.h"
 
 volatile  bool	run_loging = true;
-volatile int log_index, log_bank_, log_bank,old_bank;
-uint8_t log_buffer[8][1024];
+volatile int log_index, log_bank_, log_bank, old_bank, error_bansk = 0;
+volatile bool log_file_closed;
+#define mask 255
+uint8_t log_buffer[mask+1][1024];
 
 
 ofstream logfile;
@@ -13,23 +15,27 @@ string this_log_fname;
 
 void loger() {
 	while (run_loging) {
-		while (log_bank_ == old_bank) {
+		while (run_loging && log_bank_ == old_bank) {
 			usleep(2000);
 		}
 		
 		//printf("%i\n",log_bank_ - old_bank);
 		bool print = true;
-		while (log_bank_ - old_bank > 7) {
+		while (log_bank_ - old_bank > mask) {
 			if (print)
 				fprintf(Debug.out_stream, "log sync error! %i\n",log_bank_);
 			print = false;
 			old_bank++;
+			error_bansk++;
 		}
-
-		int len = *((uint16_t*)log_buffer[old_bank&7]);
-		logfile.write((char*)log_buffer[old_bank&7], len);
-		//logfile.flush();
-		old_bank ++;
+		if (logfile.is_open()) {
+			int len = *((uint16_t*)log_buffer[old_bank & mask]);
+			logfile.write((char*)log_buffer[old_bank & mask], len);
+			//logfile.flush();
+			old_bank++;
+		}else{
+			fprintf(Debug.out_stream, "LOG ERROR\n");
+		}
 			
 		
 	}
@@ -43,18 +49,20 @@ void loger() {
 	if (filesize == 0) {
 		remove(this_log_fname.c_str());
 	}
-
+	log_file_closed = true;
 
 
 }
 bool LogClass::close() {
 	fprintf(Debug.out_stream, "close tel log\n");
+	fprintf(Debug.out_stream, "banks: %i\twrited banks: %i\terrors:%i\n", log_bank_, old_bank, error_bansk);
 	run_loging = false;
-	usleep(500000);
+	while (log_file_closed == false)
+		usleep(100000);
+	return true;
 
 
 
-	return !logfile.is_open();
 }
 
 bool LogClass::init(int counter_) {
@@ -67,7 +75,7 @@ bool LogClass::init(int counter_) {
 		this_log_fname = convert.str();
 		fprintf(Debug.out_stream, "log 2 %s\n", this_log_fname.c_str());
 		logfile.open(this_log_fname.c_str(), fstream::in | fstream::out | fstream::trunc);
-		usleep(10000);
+		log_file_closed = false;
 		log_bank_ = old_bank = log_bank = 0;
 		log_index = 2;
 		thread t(loger);
@@ -133,7 +141,7 @@ void LogClass::end() {
 		log_buffer[log_bank][0] = fp[0];
 		log_buffer[log_bank][1] = fp[1];
 		log_bank_++;
-		log_bank = log_bank_ & 7;
+		log_bank = log_bank_ & mask;
 
 		log_index = 2;
 	}

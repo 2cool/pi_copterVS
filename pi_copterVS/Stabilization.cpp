@@ -18,12 +18,11 @@
 void StabilizationClass::init(){
 
 	
-	accXY_stabKP = 0.5f;
+	accXY_stabKP = 0.2f;//0.5
 	accXY_stabKP_Rep = 1.0f / accXY_stabKP;
 	set_acc_xy_speed_kp(5);
-	set_acc_xy_speed_kI(1);
-	//set_acc_xy_speed_kD(6); зачем вичислять ускорение если мі его итак заем.
-	set_acc_xy_speed_imax(MAX_ANGLE);
+	set_acc_xy_speed_kI(2);
+	set_acc_xy_speed_imax(Balance.get_max_angle());
 	max_speed_xy = MAX_HOR_SPEED;
 
 
@@ -37,18 +36,18 @@ void StabilizationClass::init(){
 	//Z_CF_SPEED = 0.005;
 
 
+	Z_CF_DIST = 0.03;
+	Z_CF_SPEED = 0.005;
 
-	Z_CF_DIST = 0.1f;//єкспиримент
-	Z_CF_SPEED = 0.016f;
 
 
-	accZ_stabKP = 0.5f;
+	accZ_stabKP = 0.2f;
 	accZ_stabKP_Rep = 1.0f / accZ_stabKP;
 
 
-	pids[ACCZ_SPEED].kP(0.1f);//?
-	pids[ACCZ_SPEED].kI(0.01f);//?
-	pids[ACCZ_SPEED].imax(0.3f);
+	pids[ACCZ_SPEED].kP(0.15f);
+	pids[ACCZ_SPEED].kI(0.25f);
+	pids[ACCZ_SPEED].imax(MAX_THROTTLE_-HOVER_THROTHLE);
 	max_stab_z_P =  MAX_VER_SPEED_PLUS;
 	max_stab_z_M = MAX_VER_SPEED_MINUS;
 
@@ -77,13 +76,10 @@ void StabilizationClass::setDefaultMaxSpeeds(){//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	max_stab_z_P = MAX_VER_SPEED_PLUS;
 	max_stab_z_M = MAX_VER_SPEED_MINUS;
 }
-void StabilizationClass::init_XY(const float sx, const float speedx, const float sy, const float speedy){
-
+void StabilizationClass::init_XY(const float sx,  const float sy){
 	sX = sx;
 	sY = sy;
-	speedX = speedx;
-	speedY = speedy;
-	resset_xy();
+	resset_xy_integrator();
 //	gps_sec = GPS.loc.mseconds;
 
 }
@@ -95,9 +91,9 @@ int cnnnnn = 0;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //float old_gps_bearing = 0, cos_bear = 1,  sin_bear = 0;
-void StabilizationClass::XY(float &pitch, float&roll){
+void StabilizationClass::XY(float &pitch, float&roll,bool onlyUpdate){
 
-//#ifdef FALSE_GPS
+//#ifdef FALSE_WIRE
 //	const float ax = -Mpu.accX;
 //	const float ay = -Mpu.accY;
 //#else
@@ -126,6 +122,9 @@ void StabilizationClass::XY(float &pitch, float&roll){
 		Log.loadFloat(sY);
 		Log.loadFloat(speedY);
 	}
+
+	if (onlyUpdate)
+		return;
 
 
 	float stabX, stabY;
@@ -199,7 +198,7 @@ int tttcnt = 0;
 
 
 
-float StabilizationClass::Z(){/////////////////////////////////////////////////////////////
+float StabilizationClass::Z(bool onlyUpdate){/////////////////////////////////////////////////////////////
 
 	float alt = MS5611.altitude();
 	sZ += Mpu.dt*(speedZ + Mpu.accZ*Mpu.dt*0.5f);
@@ -214,11 +213,15 @@ float StabilizationClass::Z(){//////////////////////////////////////////////////
 		Log.loadFloat(speedZ);
 
 	}
-
+	if (onlyUpdate)
+		return 0;
+	
 	float stab = getSpeed_Z(Autopilot.fly_at_altitude() - sZ);
 	stab = constrain(stab, max_stab_z_M, max_stab_z_P);
 
 	float fZ = HOVER_THROTHLE + pids[ACCZ_SPEED].get_pid(stab - speedZ, Mpu.dt)*Balance.powerK();
+	
+	
 	//	if (++tttcnt == 3){
 	//	tttcnt = 0;
 		//Debug.load(0, speedZ,speedZf);// (MS5611.altitude - Autopilot.flyAtAltitude));
@@ -243,7 +246,7 @@ void StabilizationClass::resset_z(){
 	pids[ACCZ_SPEED].set_integrator(max(HOVER_THROTHLE,Autopilot.get_throttle()) - HOVER_THROTHLE);
 	
 }
-void StabilizationClass::resset_xy(){
+void StabilizationClass::resset_xy_integrator(){
 
 	pids[ACCX_SPEED].reset_I();
 	pids[ACCY_SPEED].reset_I();
@@ -349,7 +352,7 @@ void StabilizationClass::setXY(const float  *ar){
 		error += Commander._set(ar[i++], XY_KF_DIST);
 
 
-		resset_xy();
+		resset_xy_integrator();
 		fprintf(Debug.out_stream,"Stabilization XY set:\n");
 		for (uint8_t ii = 0; ii < i; ii++){
 			fprintf(Debug.out_stream,"%f,",ar[ii]);

@@ -66,7 +66,7 @@ int MS5611Class::init(){
 
 	powerK = 1;
 
-#ifndef FALSE_BAROMETR
+#ifndef FALSE_WIRE
 
     fprintf(Debug.out_stream,"Initialize High resolution: MS5611\n");
 	
@@ -81,7 +81,7 @@ int MS5611Class::init(){
 	
 	
 
-#ifndef FALSE_BAROMETR
+#ifndef FALSE_WIRE
 
 	int fd4S;
 	if ((fd4S = open("/dev/i2c-1", O_RDWR)) < 0){
@@ -141,10 +141,15 @@ double MS5611Class::getAltitude(const float pressure) {
 }
 
 
-
+void MS5611Class::log() {
+	if (Log.writeTelemetry && Autopilot.motors_is_on()) {
+		Log.loadByte(LOG::MS5);
+		Log.loadFloat(pressure);
+	}
+}
 
 //--------------------------------------------------
-#ifdef FALSE_BAROMETR
+#ifdef FALSE_WIRE
 
 #include "GPS.h"
 
@@ -161,28 +166,45 @@ float mthr = 0;
 
 
 bool flying = false;
-uint8_t MS5611Class::loop(){
-	
-	
 
+int cnt = 0;
+int mid_f_noise_cnt=15;
+int low_f_noise_cnt=511;
+
+float mid_noise = 0;
+float low_noise = 0;
+float mid_rand_noise =0, low_rand_noise = 0;
+
+uint8_t MS5611Class::loop(){
+	cnt++;
 	if (millis() - timet < 200)
 		return 0;
-
-	pressure = get_pressure(altitude_);
-	//powerK = PRESSURE_AT_0 / pressure;
-	i_readTemperature = 20;
+	
 
 	const float dt = (millis() - timet)*0.001;
 	timet = millis();
 
-	altitude_ = Mpu.altitude_Z + FALSE_ALTITUDE;
-	if (flying == false && Mpu.altitude_Z > 1)
-		flying = true;
-	speed = Mpu.speed_Z;
-	
+	float high_noise=0.2-0.4*(float)(rand())/(float)RAND_MAX;
+	if (cnt&mid_f_noise_cnt == mid_f_noise_cnt) {
+		mid_rand_noise = 0.5-1*(float)(rand()) / (float)RAND_MAX;;
+	}
+	mid_noise += (mid_rand_noise - mid_noise)*0.3;
+	if (cnt&low_f_noise_cnt == low_f_noise_cnt) {
+		low_rand_noise = 0.5 - 1 * (float)(rand()) / (float)RAND_MAX;;
+	}
+	low_noise += (low_rand_noise - low_noise)*0.03;
 
-	//Serial.println(altitude_)
+	const float new_altitude = Emu.get_alt()+low_noise+mid_noise+ high_noise;
 
+	speed = (new_altitude - altitude_) / dt;
+	altitude_ = new_altitude;
+	pressure = get_pressure(altitude_);
+
+
+
+	i_readTemperature = 20;
+
+	//speed = Emu.get_speedZ();
 #ifdef Z_SAFE_AREA
 	if (Autopilot.motors_is_on() && (altitude_ - altitude_error) > Z_SAFE_AREA) {
 		Autopilot.control_falling(i_CONTROL_FALL);
@@ -193,7 +215,7 @@ uint8_t MS5611Class::loop(){
 
 
 	
-
+	log();
 
 }
 
@@ -417,11 +439,8 @@ void MS5611Class::phase3() {
 	pressure += ((float)P - pressure)*0.3;
 
 
-	if (Log.writeTelemetry && Autopilot.motors_is_on()) {
-		Log.loadByte(LOG::MS5);
-		Log.loadFloat(pressure);
-	}
-
+	
+	log();
 
 
 	powerK = PRESSURE_AT_0 / pressure;

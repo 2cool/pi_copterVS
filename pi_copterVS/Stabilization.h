@@ -39,7 +39,7 @@ private:
 	void set_acc_xy_speed_kI(const float f){ pids[ACCX_SPEED].kI(f);	pids[ACCY_SPEED].kI(f); }
 	void set_acc_xy_speed_kD(const float f){ pids[ACCX_SPEED].kD(f,3);	pids[ACCY_SPEED].kD(f,3); }
 	void set_acc_xy_speed_imax(const float f){ pids[ACCX_SPEED].imax(f);	pids[ACCY_SPEED].imax(f); }
-	void  resset_xy();
+	void  resset_xy_integrator();
 	void  resset_z();
 public:
 
@@ -72,7 +72,7 @@ public:
 //	float getDist2SpeedXYKP(){ return accXY_stabKP; }
 	long get_sX_mul_100(){return (long)(sX * 100); 	}
 	long get_sY_mul_100(){ return (long)(sY * 100); }
-	void init_XY(const float sx, const float speedx, const float sy, const float speedy);
+	void init_XY(const float sx, const float sy);
 	void init_Z();
 	float XY_KF_SPEED, XY_KF_DIST;
 	
@@ -80,8 +80,8 @@ public:
 
 	float max_stab_z_P,max_stab_z_M,max_speed_xy;
 	float last_accZ;
-	float Z();
-	void XY(float &xF, float&yF);
+	float Z(bool onlyUpdate=false);
+	void XY(float &xF, float&yF, bool onlyUpdate = false);
 	void horizont(const uint8_t i, const float dt, const float accX, const float accY, const float F);
 
 	void init();

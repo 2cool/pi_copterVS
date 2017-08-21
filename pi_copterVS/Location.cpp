@@ -330,7 +330,7 @@ void LocationClass::add2NeedLoc(const double speedX, const double speedY, const 
 //lon 1340.482573727
 
 int LocationClass::init(){
-#ifndef FALSE_GPS
+#ifndef FALSE_WIRE
 //	close(fd_loc);
 
 	fd_loc = open("/dev/ttyS3", O_RDWR | O_NOCTTY | O_SYNC);

@@ -52,6 +52,7 @@
 class MS5611Class {
 	
 protected:
+	void log();
 	 int ct;
 	 float altitude_error;
 

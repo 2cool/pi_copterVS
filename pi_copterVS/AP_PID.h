@@ -31,7 +31,7 @@ public:
 	float	kI()			{ return _ki; }
 	float	kD()			{ return _kd; }
 	float	imax()			{ return _imax; }
-	void   set_integrator(const float i){ _integrator = i; }
+	void   set_integrator(const float i);
 	float	get_integrator() const	{ return _integrator; }
 
 private:

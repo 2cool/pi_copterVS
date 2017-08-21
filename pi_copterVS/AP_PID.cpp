@@ -10,6 +10,16 @@ AP_PID::AP_PID()
 {
 }
 
+void   AP_PID::set_integrator(const float i) { 
+	_integrator = i;
+	if (_integrator < -_imax) {
+		_integrator = -_imax;
+	}
+	else if (_integrator > _imax) {
+		_integrator = _imax;
+	}
+}
+
 //float RC = 1.0f / (2.0f * (float)M_PI*20.0f);
 
 void	AP_PID::kD(const float v, const float fCut) {   

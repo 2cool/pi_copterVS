@@ -23,6 +23,10 @@
 
 #include "define.h"
 
+#ifdef FALSE_WIRE
+#include "mpu_umulator.h"
+#endif
+
 //===================================================
 
 //#define SESOR_UPSIDE_DOWN
@@ -31,6 +35,9 @@ class MpuClass
 	friend class HmcClass;
  protected:
 
+	 void log();
+	 float g_pitch;
+	 float g_roll;
 	 int ms_open();
 	 // MPU control/status vars
 	 uint8_t devStatus;      // return status after each device operation
@@ -90,19 +97,6 @@ class MpuClass
 
 	 float cosYaw,sinYaw;
 	 int8_t max_g_cnt;
-#ifdef FALSE_MPU
-	 float wind_x,wind_y;
-	 float windX();
-	 float windY();
-#endif
-	 bool upsidedown;
-	float altitude_Z, speed_Z;
-#ifdef FALSE_MPU
-	float fspeedX, fspeedY, fdistX, fdistY;
-	 void getFalse(float &accx, float &accy);
-	 float getZA();
-#endif
-
 
 	 float temp_deb;
 	 float faccX,faccY,faccZ;

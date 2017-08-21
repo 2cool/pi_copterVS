@@ -44,9 +44,10 @@ class BalanceClass
 
 	float f_[4];
 	void correct_c_pitch_c_roll();
-float maxAngle;
+	float _max_angle_= MAX_ANGLE_;
+	float maxAngle;
  public:
-	 
+	 float get_max_angle() { return _max_angle_; }
 	 void set_cS(float f) { cS = f; }
 	 float get_cS() { return cS; }
 	 float powerK();
@@ -64,7 +65,7 @@ float maxAngle;
 	 
 
 
-void setMaxAngle(const float ang);
+
 
 string get_set();
 void set(const float  *ar);
@@ -74,7 +75,7 @@ void set(const float  *ar);
 
 
 
-	void set_off_th_(){ f_[0] = f_[1] = f_[2] = f_[3] = 0; throttle = 0;}
+	void set_off_th_();
 	float pitch2rollK;
 #define BALANCE_PIDS 3
 	AP_PID pids[BALANCE_PIDS];

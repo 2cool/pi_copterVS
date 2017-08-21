@@ -80,6 +80,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mpu.cpp" />
     <ClCompile Include="MPU6050.cpp" />
+    <ClCompile Include="mpu_umulator.cpp" />
     <ClCompile Include="MS5611.cpp" />
     <ClCompile Include="Prog.cpp" />
     <ClCompile Include="Pwm.cpp" />
@@ -114,6 +115,7 @@
     <ClInclude Include="MotionSensor.h" />
     <ClInclude Include="mpu.h" />
     <ClInclude Include="MPU6050.h" />
+    <ClInclude Include="mpu_umulator.h" />
     <ClInclude Include="MS5611.h" />
     <ClInclude Include="Prog.h" />
     <ClInclude Include="Pwm.h" />

@@ -1,4 +1,4 @@
-#define PROG_VERSION "ver 2.170813_2_Cam\n"
+#define PROG_VERSION "ver 2.170819__no\n"
 
 #define ONLY_ONE_RUN
 
@@ -216,7 +216,7 @@ void handler(int sig) { // can be called asynchronously
 int printHelp() {
 	printf("<-help> for this help\n");
 	printf(" <fly at start at hight in sm > <lower hight in sm> <f=write stdout to file > <log com and tel y/n> <esc calibr\n");
-	printf("example to write in log file : pi_copter 300 100 f n 1900 \n");
+	printf("example to write in log file : pi_copter 300 100 f n 1890 \n");
 	printf("example to write in stdout   : pi_copter 300 100 s n 0\n");
 	return -1;
 }
@@ -364,6 +364,7 @@ int main(int argc, char *argv[]) {
 	if (flag!=0)
 		fprintf(Debug.out_stream, "\n main Signal caught!\n");
 	Settings.write();
+	usleep(3000000);
 	//fclose(Debug.out_stream);
 
 #ifdef ONLY_ONE_RUN

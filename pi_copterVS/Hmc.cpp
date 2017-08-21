@@ -35,7 +35,7 @@ void HmcClass::init()
 	heading = 0;
 	ok = true;
 	calibrated = true;
-#ifndef FALSE_COMPAS
+#ifndef FALSE_WIRE
 
 
 	fprintf(Debug.out_stream,"Initializing I2C devices...\n");
@@ -62,6 +62,19 @@ void HmcClass::set(const float buf[]){
 	fprintf(Debug.out_stream,"compas %f\n",buf[0]);
 }
 //---------------------------------------------------------
+
+void HmcClass::log() {
+	if (Log.writeTelemetry && Autopilot.motors_is_on()) {
+		Log.loadByte(LOG::HMC);
+		Log.loadInt16t(buffer[0]);
+		Log.loadInt16t(buffer[1]);
+		Log.loadInt16t(buffer[2]);
+		Log.loadInt16t(buffer[3]);
+		Log.loadInt16t(buffer[4]);
+		Log.loadInt16t(buffer[5]);
+		Log.loadFloat(heading);
+	}
+}
 
 
 
@@ -163,7 +176,7 @@ void HmcClass::motTest(const float fmx, const float fmy, const float fmz){
 
 
 
-#ifdef FALSE_COMPAS
+#ifdef FALSE_WIRE
 
 uint32_t comTime = 0;
 void HmcClass::loop(){
@@ -171,20 +184,18 @@ void HmcClass::loop(){
 	if (millis() - comTime < 50)
 		return;
 	comTime = millis();
-	float dt = 0.05;
-	if (MS5611.altitude()>0){
-		float f = Autopilot.get_yaw();
-
-
-		//(-Autopilot.get_Yaw() - Mpu.yaw)
-		heading = -f*GRAD2RAD;
-	}
+	heading = Emu.get_yaw()*GRAD2RAD;
+	
 //	headingGrad = 0;
 
 
 #ifndef WORK_WITH_WIFI
 	headingGrad = 0;
 #endif
+
+	calibrated = true;
+
+	log();
 }
 
 #else
@@ -289,17 +300,8 @@ void HmcClass::loop(){
 	///	heading -= 2 * PI;
 	//if (heading <= -PI)
 	//	heading += 2 * PI;
-
-	if (Log.writeTelemetry && Autopilot.motors_is_on()) {
-		Log.loadByte(LOG::HMC);
-		Log.loadInt16t(buffer[0]);
-		Log.loadInt16t(buffer[1]);
-		Log.loadInt16t(buffer[2]);
-		Log.loadInt16t(buffer[3]);
-		Log.loadInt16t(buffer[4]);
-		Log.loadInt16t(buffer[5]);
-		Log.loadFloat(heading);
-	}
+	log();
+	
 
 
 

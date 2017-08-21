@@ -130,6 +130,7 @@ void start_video() {
 
 
 void AutopilotClass::init(){/////////////////////////////////////////////////////////////////////////////////////////////////
+	starts_cnt = 0;
 	camera_mode = CAMMERA_OFF;
 	lowest_height = Debug.lowest_altitude_to_fly;
 	last_time_data_recived = 0;
@@ -524,14 +525,8 @@ bool AutopilotClass::holdLocation(const long lat, const long lon){
 		GPS.loc.setNeedLoc(lat,lon);
 		fprintf(Debug.out_stream,"Hower at: %i,%i\n",GPS.loc.lat_, GPS.loc.lon_);
 		oldtime = millis();
-		
-		//float cosBearing = cos(GPS.bearing);
-		//float sinBearing = sin(GPS.bearing);
-		Stabilization.init_XY(
-			0,//GPS.loc.x2home,
-			0,// GPS.loc.speedX,
-			0,//GPS.loc.y2home,
-			0);// GPS.loc.speedY);
+		Stabilization.init_XY(0, 0);
+
 
 		control_bits |= XY_STAB;
 		return true;
@@ -560,16 +555,19 @@ beep codes
 {0, B00001000, B00001001, B00001010, B00001011, B00001100, B00001101, B00001110, B00001111, B00000001, B00000010, B00000011, B00000100, B00000101, B00000110, B00000111 };//4 beeps. 0 short 1 long beep
 */
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+enum { WIND_X = 7, WIND_Y = 2, WIND_Z = 1 };
 bool AutopilotClass::motors_do_on(const bool start, const string msg){////////////////////////  M O T O R S  D O  ON  /////////////////////////////////////////////////////////////////////////
 	fprintf(Debug.out_stream,"%s - ",msg.c_str());
 	
 	if (start){
-#ifndef FALSE_MPU
+#ifndef FALSE_WIRE
 		fprintf(Debug.out_stream,"on ");
 		if (millis() < 30000) {
 			fprintf(Debug.out_stream,"\n!!!calibrating!!! to end:%i sec.\n", 30-millis()/1000);
 			return false;
 		}
+#else
+		Emu.init(WIND_X, WIND_Y, WIND_Z);
 #endif
 		if (Telemetry.power_is_on() == false) {
 			fprintf(Debug.out_stream,"!!! power is off !!!\n");
@@ -611,11 +609,15 @@ bool AutopilotClass::motors_do_on(const bool start, const string msg){//////////
 			tflyAtAltitude = flyAtAltitude = MS5611.altitude();
 			
 			Mpu.max_g_cnt = 0;
+
 			holdAltitude(Debug.fly_at_start);
 			holdLocation(GPS.loc.lat_, GPS.loc.lon_);
+
 			aYaw_ = -Mpu.yaw;
 			fflush(Debug.out_stream);
 			start_time = millis();
+			if (Telemetry.power_is_on())
+				starts_cnt++;
 #ifdef DEBUG_MODE
 			fprintf(Debug.out_stream, "\nhome loc: %i %i \nhome alt set %i\n", GPS.loc.lat_, GPS.loc.lon_, (int)flyAtAltitude);
 #endif
@@ -644,6 +646,9 @@ bool AutopilotClass::motors_do_on(const bool start, const string msg){//////////
 		}
 	}//------------------------------OFF----------------
 	else {
+#ifdef FALSE_WIRE
+		Emu.init(WIND_X, WIND_Y, WIND_Z);
+#endif
 		fprintf(Debug.out_stream,"off ");
 		Telemetry.addMessage(i_OFF_MOTORS);
 		off_throttle(true, msg);

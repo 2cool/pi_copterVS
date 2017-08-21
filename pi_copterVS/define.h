@@ -14,8 +14,8 @@
 //#define XY_SAFE_AREA 200
 //#define Z_SAFE_AREA 60
 
-#define RAD2GRAD 57.29578f
-#define GRAD2RAD 0.0174533f
+#define RAD2GRAD 57.29578
+#define GRAD2RAD 0.0174533
 
 
 #define DEBUG_MODE
@@ -31,26 +31,26 @@
 
 #define BEEPS_ON 0
 
-//#define FALSE_WIRE
+#define FALSE_WIRE
 
 
 #define STEP_DEBAGING
 #define LOST_BEEP
 
-//#define FALSE_GPS
+
 //#define FASLE_GPS_STILL
 //#define MOTORS_OFF
 //#define NO_BATTERY
 
 #ifdef FALSE_WIRE
-#define FALSE_GPS
+
 //#define FASLE_GPS_STILL
-#define FALSE_COMPAS
-#define FALSE_BAROMETR
-#define FALSE_MPU
+
+
+
 #define COMPAS_MOTORS_OFF  
 #define NO_BATTERY
-#define FALSE_ULTRASOUND_RADAR
+
 //#define MOTORS_OFF
 #define FALSE_ALTITUDE 30
 
@@ -85,7 +85,7 @@
 #define MAX_ACC_HOR 3
 #define MAX_ACC_VER 1.5f
 
-#define MAX_ANGLE 35
+#define MAX_ANGLE_ 35
 #define MIN_ANGLE 15
 #define COS_MIN_ANGLE 0.966f
 
