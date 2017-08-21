@@ -79,7 +79,7 @@ void StabilizationClass::setDefaultMaxSpeeds(){//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 void StabilizationClass::init_XY(const float sx,  const float sy){
 	sX = sx;
 	sY = sy;
-	resset_xy_integrator();
+	//resset_xy_integrator();
 //	gps_sec = GPS.loc.mseconds;
 
 }
@@ -184,7 +184,7 @@ float old_altitude = 0;
 void StabilizationClass::init_Z(){
 	sZ = MS5611.altitude();
 	//speedZ = speedz;
-	Stabilization.resset_z();
+	//Stabilization.resset_z();
 
 }
 float deltaZ = 0;
@@ -298,7 +298,7 @@ void StabilizationClass::setZ(const float  *ar){
 		error += Commander._set(ar[i], Z_CF_DIST);
 
 
-		resset_z();
+		//resset_z();
 		fprintf(Debug.out_stream,"Stabilization Z set:\n");
 
 		for (uint8_t ii = 0; ii < i; ii++){
@@ -352,7 +352,7 @@ void StabilizationClass::setXY(const float  *ar){
 		error += Commander._set(ar[i++], XY_KF_DIST);
 
 
-		resset_xy_integrator();
+		//resset_xy_integrator();
 		fprintf(Debug.out_stream,"Stabilization XY set:\n");
 		for (uint8_t ii = 0; ii < i; ii++){
 			fprintf(Debug.out_stream,"%f,",ar[ii]);

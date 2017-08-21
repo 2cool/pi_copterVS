@@ -318,8 +318,8 @@ void EmuClass::update(float fm_[4], double dt) {
 		//Autopilot.motors_do_on(false, "S_S");
 		
 	}
-	Debug.load(0, pos[X], pos[Y]);
-	Debug.dump();
+	//Debug.load(0, pos[X], pos[Y]);
+	//Debug.dump();
 
 }
 

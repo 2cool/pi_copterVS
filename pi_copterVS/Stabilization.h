@@ -39,10 +39,11 @@ private:
 	void set_acc_xy_speed_kI(const float f){ pids[ACCX_SPEED].kI(f);	pids[ACCY_SPEED].kI(f); }
 	void set_acc_xy_speed_kD(const float f){ pids[ACCX_SPEED].kD(f,3);	pids[ACCY_SPEED].kD(f,3); }
 	void set_acc_xy_speed_imax(const float f){ pids[ACCX_SPEED].imax(f);	pids[ACCY_SPEED].imax(f); }
-	void  resset_xy_integrator();
-	void  resset_z();
+	
+	
 public:
-
+	void  resset_z();
+	void  resset_xy_integrator();
 	float getAltitude() { return sZ; }
 	float getSpeed_Z(float dist){
 		return dist*accZ_stabKP;

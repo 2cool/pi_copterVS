@@ -369,11 +369,13 @@ bool AutopilotClass::holdAltitudeStartStop(){
 		return false;
 	bool h = (control_bits & Z_STAB)==0;
 	if (h){
+		Stabilization.resset_z();
 		return holdAltitude(MS5611.altitude());
 	}
 	else{
 		control_bits ^= Z_STAB;
 		throttle = HOVER_THROTHLE;
+		Stabilization.resset_z();
 		return true;
 		
 	}
@@ -540,11 +542,13 @@ bool AutopilotClass::holdLocationStartStop(){///////////////////////////////////
 		return false;
 	bool h = (control_bits &XY_STAB)==0;
 	if (h){
+		Stabilization.resset_xy_integrator();
 		return holdLocation(GPS.loc.lat_, GPS.loc.lon_);
 	}
 	else{
 		control_bits |= (COMPASS_ON | HORIZONT_ON);
 			control_bits ^=  XY_STAB;
+			Stabilization.resset_xy_integrator();
 			//holdAltitude();
 			return true;
 	}

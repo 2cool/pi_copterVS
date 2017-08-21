@@ -110,14 +110,8 @@ bool ProgClass::program_is_OK(){
 				const float dAlt = alt - old_alt;
 				time += dAlt / ((dAlt >= 0) ? max_stab_z_P : max_stab_z_M);
 				time *= 1.25f;
-				if (timer > 0){
-					if (timer < time){
-						fprintf(Debug.out_stream,"time error in step: %i\n",step);
-						return false;
-					}
-					else
-						time = timer;
-				}
+				time += timer;
+				
 				fullTime += time;
 				if (fullTime>timeLeft){//MAX_TIME_LONG_FLIGHT){
 					fprintf(Debug.out_stream,"to long fly for prog!\n");
