@@ -307,7 +307,7 @@ bool MpuClass::loop(){
 	float ___dt = (float)(mputime - oldmpuTime)*0.000001;// *div;
 	if (___dt < 0.01)
 		return false;
-	dt = ___dt;
+	dt = 0.01;
 	rdt = 1.0 / dt;
 	oldmpuTime = mputime;
 	if (dt > 0.02)

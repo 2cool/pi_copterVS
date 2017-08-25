@@ -1,4 +1,4 @@
-#define PROG_VERSION "ver 2.170821em__no\n"
+#define PROG_VERSION "ver 2.170825\n"
 
 #define ONLY_ONE_RUN
 
@@ -364,8 +364,11 @@ int main(int argc, char *argv[]) {
 	if (flag!=0)
 		fprintf(Debug.out_stream, "\n main Signal caught!\n");
 	Settings.write();
+
+	fflush(Debug.out_stream);
+	fclose(Debug.out_stream);
 	usleep(3000000);
-	//fclose(Debug.out_stream);
+	
 
 #ifdef ONLY_ONE_RUN
 

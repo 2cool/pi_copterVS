@@ -181,7 +181,7 @@ uint8_t MS5611Class::loop(){
 		return 0;
 	
 
-	const float dt = 0.2;// (millis() - timet)*0.001;
+	const float dt = (millis() - timet)*0.001;
 	timet = millis();
 
 	float high_noise=0.2-0.4*(float)(rand())/(float)RAND_MAX;

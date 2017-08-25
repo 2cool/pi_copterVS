@@ -81,7 +81,7 @@ public:
 
 private:
 	double set_cos_sin_dir();
-	void xy();
+	void xy(bool update_speed);
 	double lat_needV_, lon_needV_, lat_needR_, lon_needR_;
 	unsigned long old_iTOW;
 	double mspeedx, mspeedy;

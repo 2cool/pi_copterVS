@@ -22,7 +22,7 @@
 
 
 //#define OFF_MOTOR_IF_LOST_CONNECTION  
-#define _cos(_sin_) (sqrt(1 - min(1, _sin_*_sin_)))
+
 
 //#define PLUS_CAMERA
 #define WORK_WITH_WIFI

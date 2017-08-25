@@ -35,8 +35,13 @@ uint32_t tkskks = 0;
 //#define FALSE_LON 332531662
 
 
-#define FALSE_LAT 479059400
-#define FALSE_LON 333368000
+//park gag
+//#define FALSE_LAT 479059400
+//#define FALSE_LON 333368000
+
+//pole
+#define FALSE_LAT 479001188
+#define FALSE_LON 332530612
 
 long lat = FALSE_LAT;
 long lon = FALSE_LON;

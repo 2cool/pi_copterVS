@@ -107,25 +107,31 @@ void set_blocking(int fd_loc, int should_block)
 
 
 
-void LocationClass::xy(){
+void LocationClass::xy(bool update_speed){
 
 	
 	
 	//------------------------------------------------------------
 	
-	double t;
+	
 	if (lon_home == 0){
 		return;
 	}
 
-	t = form_lon2Y((double)(lon_home - lon_));
-	speedY = (t - y2home) *rdt;
-	y2home = t;
+	
+	if (update_speed) {
+		double t = form_lon2Y((double)(lon_home - lon_));
+		speedY = (t - y2home) *rdt;
+		y2home = t;
+	}
 	dY = form_lon2Y((double)(lon_needV_ - (double)lon_)) + (speedY*0.5);
 
-	t = from_lat2X((double)(lat_home - lat_));
-	speedX = (t - x2home) * rdt;
-	x2home = t;
+	
+	if (update_speed) {
+		double t = from_lat2X((double)(lat_home - lat_));
+		speedX = (t - x2home) * rdt;
+		x2home = t;
+	}
 	dX = from_lat2X((double)(lat_needV_ - (double)lat_)) + (speedX*0.5f);
 	
 	set_cos_sin_dir();
@@ -180,7 +186,7 @@ void LocationClass::updateXY(){
 		
 	}
 
-	xy();
+	xy(true);
 	//Out.fprintf(Debug.out_stream,"N  "); Out.fprintf(Debug.out_stream,x2home); Out.fprintf(Debug.out_stream," "); Out.println(y2home);
 }
 
@@ -240,10 +246,21 @@ bool LocationClass::processGPS_1() {
 					accuracy_ver_pos_ = DELTA_ANGLE_C*(double)posllh.vAcc;
 					if (accuracy_ver_pos_ > 99)accuracy_ver_pos_ = 99;
 
+					//	if (Log.writeTelemetry && Autopilot.motors_is_on()) {
+					//		Log.loadByte(LOG::GpS);
+					//		Log.loadGPS(&posllh);
+					//	}
+
 					if (Log.writeTelemetry && Autopilot.motors_is_on()) {
-						Log.loadByte(LOG::GpS);
-						Log.loadGPS(&posllh);
+						Log.loadByte(LOG::GPS_FULL);
+						Log.loadGPS_full(&posllh);
 					}
+
+
+
+
+
+
 
 					mseconds = posllh.iTOW;
 					if (old_iTOW == 0)
@@ -377,13 +394,20 @@ void LocationClass::setHomeLoc(){
 void LocationClass::setNeedLoc(long lat, long lon){
 	lat_needR_ = lat_needV_ = (double)lat;
 	lon_needR_ = lon_needV_ = (double)lon;
-	xy();
+	xy(false);
 	//set_cos_sin_dir();
 
 }
 
 void LocationClass::setNeedLoc2HomeLoc(){
-	setNeedLoc(lat_home, lon_home);
+	//setNeedLoc(lat_home, lon_home);
+	lat_needR_ = lat_needV_ = (double)lat_home;
+	lon_needR_ = lon_needV_ = (double)lon_home;
+	xy(true);
+
+
+
+
 }
 
 double LocationClass::set_cos_sin_dir(){

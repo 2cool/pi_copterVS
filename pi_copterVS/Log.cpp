@@ -102,6 +102,12 @@ void LogClass::loadInt16t(int16_t i) {
 	log_buffer[log_bank][log_index++] = ip[0];
 	log_buffer[log_bank][log_index++] = ip[1];
 }
+
+
+void LogClass::loadGPS_full(NAV_POSLLH *gps) {
+	memcpy((uint8_t*)&log_buffer[log_bank][log_index], gps, sizeof(NAV_POSLLH));
+	log_index += sizeof(NAV_POSLLH);
+}
 void LogClass::loadGPS(NAV_POSLLH *gps) {
 	uint8_t *fp = (uint8_t*)&gps->lat;
 	log_buffer[log_bank][log_index++] = fp[0];

@@ -15,7 +15,7 @@ MS5=6b
 comm=1024
 
 */
-enum LOG{MPU,HMC,MS5,GpS,COMM,STABXY,STABZ, BAL};
+enum LOG { MPU, HMC, MS5, GpS, COMM, STABXY, STABZ, BAL, GPS_FULL };
 class LogClass
 {
 private:
@@ -27,6 +27,7 @@ public:
 	int run_counter;
 	void end();
 	void loadGPS(NAV_POSLLH *gps);
+	void loadGPS_full(NAV_POSLLH *gps);
 	void loaduint32t(uint32_t ui);
 	void loadFloat(float f);
 	void loadInt16t(int16_t i);
