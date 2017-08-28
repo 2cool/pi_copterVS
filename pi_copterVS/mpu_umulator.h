@@ -46,6 +46,7 @@ public:
 	float get_pitch();
 	float get_roll();
 	float get_yaw();
+	float get_heading();
 	float get_gyroYaw();
 	float get_gyroPitch();
 	float get_gyroRoll();

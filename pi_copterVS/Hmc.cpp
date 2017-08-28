@@ -184,7 +184,7 @@ void HmcClass::loop(){
 	if (millis() - comTime < 50)
 		return;
 	comTime = millis();
-	heading = Emu.get_yaw()*GRAD2RAD;
+	heading = Emu.get_heading();
 	
 //	headingGrad = 0;
 

@@ -352,9 +352,8 @@ bool MpuClass::loop(){
 	pitch=Emu.get_pitch();
 	roll = Emu.get_roll();
 
-	
 
-	yaw = Emu.get_yaw();
+
 	gyroPitch = Emu.get_gyroPitch();
 	gyroRoll = Emu.get_gyroRoll();
 	gyroYaw = Emu.get_gyroYaw();
@@ -363,13 +362,31 @@ bool MpuClass::loop(){
 	accZ = Emu.get_accZ();
 
 
+	float head = Hmc.heading*RAD2GRAD;
+	yaw += gyroYaw*dt;
+
+
+	if (yaw >= 360)
+		yaw -= 360;
+	if (yaw <= -360)
+		yaw += 360;
+
+
+	if ((head - yaw) > 180)
+		head -= 360;
+	if ((head - yaw) < -180)
+		head += 360;
+
+	yaw += (head - yaw)*0.0031f;
+
+
 	sin_cos(pitch*GRAD2RAD, sinPitch, cosPitch);
 	sin_cos(roll*GRAD2RAD, sinRoll, cosRoll);
 
 
 	tiltPower = cosPitch*cosRoll;
-	cosYaw = cos(Mpu.yaw*GRAD2RAD);
-	sinYaw = sin(Mpu.yaw*GRAD2RAD);
+	cosYaw = cos(yaw*GRAD2RAD);
+	sinYaw = sin(yaw*GRAD2RAD);
 
 
 	calc_real_ang();

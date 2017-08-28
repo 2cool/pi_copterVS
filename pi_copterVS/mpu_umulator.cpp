@@ -9,7 +9,7 @@
 #include "Telemetry.h"
 
 
-//#define NOISE_ON
+#define NOISE_ON
 
 //#define TEST_4_FULL_VOLTAGE
 
@@ -146,6 +146,27 @@ void get_wind(float w[][4]) {
 float  EmuClass::get_pitch() { return (float)(f_ang[PITCH]*RAD2GRAD); }
 float  EmuClass::get_roll() { return (float)(f_ang[ROLL]*RAD2GRAD); }
 float  EmuClass::get_yaw() { return (float)(ang[YAW]*RAD2GRAD); }
+
+#define wrap_PI(x) (x < -M_PI ? x+2*M_PI : (x > M_PI ? x - 2*M_PI: x))
+float  EmuClass::get_heading() {
+
+	double head = ang[YAW];
+
+#ifdef NOISE_ON
+	head+=0.4*rand() / (double)RAND_MAX;
+#endif
+	head=wrap_PI(head);
+	head = wrap_PI(head);
+
+
+
+	return head;
+
+}
+
+
+
+
 float  EmuClass::get_gyroYaw() { return (float)((gyro[YAW]* RAD2GRAD)); }
 float  EmuClass::get_gyroPitch() { return (float)(gyro[PITCH]* RAD2GRAD); }
 float  EmuClass::get_gyroRoll() { return (float)(gyro[ROLL]* RAD2GRAD); }
