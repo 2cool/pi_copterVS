@@ -157,44 +157,15 @@ void MS5611Class::log() {
 #include "Balance.h"
 
 
-
-
-
-
-uint32_t timet = millis();
-float mthr = 0;
-
-
-bool flying = false;
-
-int cnt = 0;
-int mid_f_noise_cnt=15;
-int low_f_noise_cnt=511;
-
-float mid_noise = 0;
-float low_noise = 0;
-float mid_rand_noise =0, low_rand_noise = 0;
-
+long ttimet = millis();
 uint8_t MS5611Class::loop(){
-	cnt++;
-	if (millis() - timet < 200)
+	if (millis() - ttimet < 200)
 		return 0;
-	
+
 
 	const float dt = 0.2;// (millis() - timet)*0.001;
-	timet = millis();
-
-	float high_noise=0.2-0.4*(float)(rand())/(float)RAND_MAX;
-	if (cnt&mid_f_noise_cnt == mid_f_noise_cnt) {
-		mid_rand_noise = 0.5-1*(float)(rand()) / (float)RAND_MAX;;
-	}
-	mid_noise += (mid_rand_noise - mid_noise)*0.3;
-	if (cnt&low_f_noise_cnt == low_f_noise_cnt) {
-		low_rand_noise = 0.5 - 1 * (float)(rand()) / (float)RAND_MAX;;
-	}
-	low_noise += (low_rand_noise - low_noise)*0.03;
-
-	const float new_altitude = Emu.get_alt()+low_noise+mid_noise+ high_noise;
+	ttimet = millis();
+		const float new_altitude = Emu.get_alt();
 
 	speed = (new_altitude - altitude_) / dt;
 	altitude_ = new_altitude;
@@ -216,6 +187,11 @@ uint8_t MS5611Class::loop(){
 
 	
 	log();
+
+	powerK = PRESSURE_AT_0 / pressure;
+
+	if (powerK>1.4)
+		powerK = 1.4;
 
 }
 

@@ -6,7 +6,7 @@
 #include "Telemetry.h"
 #include "Autopilot.h"
 #include "debug.h"
-
+#include "Log.h"
 
 void GPSClass::init()
 {	
@@ -99,6 +99,12 @@ void GPSClass::loop(){
 		loc.lat_ = lat;
 		loc.lon_ = lon;
 		loc.updateXY();
+
+			if (Log.writeTelemetry && Autopilot.motors_is_on()) {
+				Log.loadByte(LOG::GpS);
+				Log.loadGPS(lat,lon);
+			}
+
 
 		//loc.lat_ = lat;
 		//loc.lon_ = lon;

@@ -18,7 +18,22 @@ THG out of Perimetr high
 
 */
 
-//добавить проверку на возможность вернутся домой.
+//при shift yaw на 180 грудусов летает в обратном направление при управлении наклоном телефона
+//при старте его кидает в сторону. наверное проблема в необнулении стаб спид
+
+
+
+
+
+
+
+
+#define WIND_X 2
+#define WIND_Y 1
+#define WIND_Z 0.5
+
+
+
 
 
 #include "define.h"
@@ -261,7 +276,7 @@ void AutopilotClass::loop(){////////////////////////////////////////////////////
 				const bool timeLag = (millis() - last_time_data_recived > 100);
 
 				if (compass_onState())
-					aYaw_ = Commander.getYaw();
+					aYaw_ = Commander.get_yaw_minus_offset();
 				if (control_bits & Z_STAB){
 					smart++;
 					const float thr = timeLag ? MIDDLE_POSITION : Commander.getThrottle();
@@ -559,7 +574,7 @@ beep codes
 {0, B00001000, B00001001, B00001010, B00001011, B00001100, B00001101, B00001110, B00001111, B00000001, B00000010, B00000011, B00000100, B00000101, B00000110, B00000111 };//4 beeps. 0 short 1 long beep
 */
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-enum { WIND_X = 0, WIND_Y = 0, WIND_Z = 0 };
+
 bool AutopilotClass::motors_do_on(const bool start, const string msg){////////////////////////  M O T O R S  D O  ON  /////////////////////////////////////////////////////////////////////////
 	fprintf(Debug.out_stream,"%s - ",msg.c_str());
 	

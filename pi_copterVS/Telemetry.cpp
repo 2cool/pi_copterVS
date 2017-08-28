@@ -12,24 +12,17 @@
 #include "Stabilization.h"
 #include "Wi_Fi.h"
 #include "debug.h"
+#include "mpu_umulator.h"
 
-#define BAT_timeout 1000
-#define BAT_timeoutRep  2
-
-#define MAX_UPD_COUNTER 100
-
-
-//#define TEST_4_FULL_VOLTAGE
-
-
-//#define BAT_ZERO 370 //80 процентов разряд
-#define BAT_100P 422
+#define BALANCE_DELAY 120
+#define MAX_FLY_TIME 1200.0f
 #define BAT_ZERO (360.0f*3)
 #define BAT_50P (391.0f*3)
+#define BAT_timeout 1000
+#define BAT_timeoutRep  2
+#define BAT_100P 422
+#define MAX_UPD_COUNTER 100
 #define MAX_VOLTAGE_AT_START 406
-#define MAX_FLY_TIME 1200.0f
-//батареи хватает на 
-#define FALSE_TIME_TO_BATERY_OFF 1500.0f
 
 bool TelemetryClass::power_is_on() {
 #ifdef NO_BATTERY
@@ -134,7 +127,7 @@ void TelemetryClass::loop()
 	}
 	update_buf();
 }
-#define BALANCE_DELAY 120
+
 
 int TelemetryClass::check_time_left_if_go_to_home(){
 	float max_fly_time=0;
@@ -158,35 +151,10 @@ int TelemetryClass::check_time_left_if_go_to_home(){
 
 }
 
-
-#ifdef NO_BATTERY
-float false_time = 0;
-float false_voltage = BAT_100P;
-#endif
 void TelemetryClass::update_voltage(){
 #ifdef NO_BATTERY
-	float voltage_sag = 0;
-	if (false_time == 0 && Autopilot.motors_is_on()){
-		false_time = millis();
-		false_voltage = MAX_VOLTAGE_AT_START;
-	}
-	if (false_time>0){
-		float powerKl = (Balance.get_throttle() * 2);
+	voltage = Emu.battery(b);
 
-		powerKl *= powerKl;
-		voltage_sag = 16;
-		const float drawSpeed = 46.0 * powerKl / FALSE_TIME_TO_BATERY_OFF;
-		float dt = 0.001*(float)(millis() - false_time);
-		false_time = millis();
-		false_voltage -= drawSpeed*dt;
-	}
-	const float a = false_voltage - voltage_sag;
-	b[0] = a + 1-(2*(float)rand() / (float)RAND_MAX);
-	b[1] = a + 1-(2*(float)rand() / (float)RAND_MAX);
-	b[2] = a + 1-(2*(float)rand() / (float)RAND_MAX);
-	voltage = b[0] + b[1] + b[2];
-	//Debug.load(0,(a2-(360*3))/138,0);
-	//Debug.dump();
 #else
 
 	/*

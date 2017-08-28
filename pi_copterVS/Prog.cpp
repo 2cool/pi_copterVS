@@ -405,8 +405,10 @@ bool ProgClass::load_next(bool loadf){
 		lb[2] = prog[wi++];
 		lb[3] = prog[wi++];
 
-		if (loadf)
+		if (loadf) {
 			GPS.loc.setNeedLoc(lat, lon);
+			Stabilization.set_XY_2_GPS_XY();
+		}
 		//printf("lat %i, lon %i\n", lat, lon);
 		//Out.println(lat); Out.println(lon);  Out.println(advance_dist);
 	}

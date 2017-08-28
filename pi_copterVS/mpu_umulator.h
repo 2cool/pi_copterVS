@@ -19,7 +19,7 @@
 # define M_SQRT2	1.41421356237309504880	/* sqrt(2) */
 # define M_SQRT1_2	0.70710678118654752440	/* 1/sqrt(2) */
 enum { X, Y, Z };
-enum { YAW, PITCH, ROLL };
+enum { PITCH,ROLL,YAW };
 
 
 class EmuClass
@@ -29,7 +29,7 @@ private:
 
 	double fm[4] = { 0,0,0,0 };
 	double fmr[4] = { 0,0,0,0 };
-	double yaw = 0, pitch = 0, roll = 0;
+	double ang[3] = { 0,0,0 };
 	double gyro[3] = { 0,0,0 };
 	double pos[3] = { 0,0,0 };
 
@@ -41,6 +41,7 @@ private:
 	float wind[3];
 	float f[4][3];
 public:
+	float battery(float b[]);
 	void init(float wx, float wy, float wz, float yaw=0,float pitch=0,float roll=0);
 	float get_pitch();
 	float get_roll();
@@ -51,6 +52,11 @@ public:
 	float get_accX();
 	float get_accZ();
 	float get_accY();
+	float get_raccX();
+
+	float get_raccY();
+
+
 	float get_alt();
 	float get_speedZ();
 	float get_x();

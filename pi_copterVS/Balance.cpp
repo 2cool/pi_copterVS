@@ -7,7 +7,7 @@
 упал при смене коєфециентов стабилизации. когда поменя комп фильтри на 0.1 и 0.1 можность на двигатели стала -1 и квадрик упал. проверять что идет на двигатель. действительное ли єто число   - Зделанно
 
 на андроиде показівает хуйню пока еще домашнии координати неопределени
-
+?????????????????????????????
 
 */
 
@@ -268,12 +268,17 @@ void BalanceClass::escCalibration() {
 
 
 
-float total_ax = 0, total_ay = 0;
-float speedX=0, speedY=0;
+
+
+
+float break_ax = 0, break_ay = 0;
+float speedX = 0, speedY = 0;
+
+
 void BalanceClass::correct_c_pitch_c_roll() {
 
 
-	
+
 
 	c_pitch = constrain(c_pitch, -maxAngle, maxAngle);
 	c_roll = constrain(c_roll, -maxAngle, maxAngle);
@@ -290,40 +295,39 @@ void BalanceClass::correct_c_pitch_c_roll() {
 			c_roll *= k;
 		}
 	}
-
 	/*
-
-
-
 	if (Autopilot.motors_is_on()) {
 		float c_cosPitch, c_sinPitch, c_cosRoll, c_sinRoll;
+
+
+
+
 		sin_cos(c_pitch*GRAD2RAD, c_sinPitch, c_cosPitch);
 		sin_cos(c_roll*GRAD2RAD, c_sinRoll, c_cosRoll);
 		if (c_cosRoll == 0 || c_cosPitch == 0)
 			return;
-
+		speedX = GPS.loc.speedX;
+		speedY = -GPS.loc.speedY;
 #ifndef MOTORS_OFF
-		float rspeedX = Mpu.cosYaw*Stabilization.getSpeedX() - Mpu.sinYaw*Stabilization.getSpeedY();
-		float rspeedY = Mpu.cosYaw*Stabilization.getSpeedY() + Mpu.sinYaw*Stabilization.getSpeedX();
+		float rspeedX = Mpu.cosYaw*speedX - Mpu.sinYaw*speedY;
+		float rspeedY = Mpu.cosYaw*speedY + Mpu.sinYaw*speedX;
 
 #define CF 0.007f
 
 		//c_pitch
-		float break_fx = 0.5f*abs(rspeedX)*rspeedX*(cS + cS*abs(c_sinPitch));
-		float force_ax = c_sinPitch / c_cosPitch - break_fx;
-		total_ax += ((force_ax*c_cosPitch) - total_ax)*CF;
+		
+		float tbreak_ax = c_sinPitch-(0.5f*abs(rspeedX)*rspeedX*(cS + cS*abs(c_sinPitch)));
+		break_ax += ((tbreak_ax) -break_ax)*CF;
+		c_pitch = RAD2GRAD*(float)atan((c_sinPitch-break_ax)  / c_cosPitch);
+		
 
-		const float false_pitch = RAD2GRAD*(float)atan((total_ax - c_sinPitch) / c_cosPitch);
-		c_pitch = -false_pitch;
+
+
 
 		//c_roll
-		float break_fy = 0.5f*abs(rspeedY)*rspeedY*(cS + cS*abs(c_sinRoll));
-		float force_ay = c_sinRoll / c_cosRoll - break_fy;
 
-		total_ay += ((force_ay*c_cosRoll) - total_ay)*CF;
-
-		const float false_roll = RAD2GRAD*(float)atan((total_ay - c_sinRoll) / c_cosRoll);
-		c_roll = -false_roll;
+	//	c_roll = false_roll;
+		
 
 
 #endif
@@ -332,15 +336,23 @@ void BalanceClass::correct_c_pitch_c_roll() {
 	else {
 		c_pitch = Balance.c_pitch;
 		c_roll = Balance.c_roll;
-
-		total_ax = total_ay = 0;
+		speedY = speedX = 0;
+		break_ax = break_ax = 0;
 	}
 
+	
+	//Debug.load(0, total_ax, total_ay);
+	//Debug.load(1, speedX / 12, speedY / 12);
+
+
+	//Debug.dump();
+	//Debug.load(0, roll_max_angle / MAX_ANGLE, pitch_max_angle / MAX_ANGLE);
+
+	*/
 	c_pitch = constrain(c_pitch, -maxAngle, maxAngle);
 	c_roll = constrain(c_roll, -maxAngle, maxAngle);
-	*/
-}
 
+}
 
 uint64_t hmc_last_time = 0;
 
@@ -348,30 +360,16 @@ bool BalanceClass::loop()
 {
 	
 	if (!Mpu.loop()) {
-		//usleep(1000);
 		MS5611.loop();
-		//usleep(1000);
 		if (micros() - hmc_last_time > 10000) {
 			hmc_last_time = micros();
 			Hmc.loop();
 		}
-		//usleep(1000);
 		GPS.loop();
-		//usleep(3000);
 		return false;
 	}
 	else {
-
-		
-
-		// Do the magic
-		
-		if (Autopilot.motors_is_on()) {  // Throttle raised, turn on stablisation.
-			
-			
-
-				// Stablise PIDS
-
+		if (Autopilot.motors_is_on()) { 
 			float pK = powerK();
 			float min_throttle = pK*MIN_THROTTLE_;
 			maxAngle = _max_angle_;
@@ -390,8 +388,6 @@ bool BalanceClass::loop()
 						maxAngle=angle;
 						throttle = MAX_THROTTLE_;
 					}
-
-
 				}
 				else {
 					throttle = thr;
@@ -405,13 +401,6 @@ bool BalanceClass::loop()
 				throttle /= Mpu.tiltPower;
 				throttle = constrain(throttle, 0.3f, MAX_THROTTLE_);
 				//	Debug.load(0, throttle, f_[0]);
-				if (throttle < 0.3f) {
-					// reset yaw target so we maintain this on takeoff
-					// reset PID integrals whilst on the ground
-					pids[PID_PITCH_RATE].reset_I();
-					pids[PID_ROLL_RATE].reset_I();
-					pids[PID_YAW_RATE].reset_I();
-				}
 
 			}
 

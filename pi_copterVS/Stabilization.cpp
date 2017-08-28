@@ -86,10 +86,14 @@ void StabilizationClass::init_XY(const float sx,  const float sy){
 
 int cnnnnn = 0;
 
-
-
+#define MAX_A 1
+void StabilizationClass::set_XY_2_GPS_XY() {
+	sX = GPS.loc.dX;
+	sY = GPS.loc.dY;
+}
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+float _stabX = 0;
+float _stabY = 0;
 //float old_gps_bearing = 0, cos_bear = 1,  sin_bear = 0;
 void StabilizationClass::XY(float &pitch, float&roll,bool onlyUpdate){
 
@@ -143,8 +147,22 @@ void StabilizationClass::XY(float &pitch, float&roll,bool onlyUpdate){
 			stabY *= -1.0f;
 	}
 
-	const float glob_pitch = -pids[ACCX_SPEED].get_pid(stabX + speedX, Mpu.dt);
-	const float glob_roll = pids[ACCY_SPEED].get_pid(stabY + speedY, Mpu.dt);
+	float tax = (stabX - _stabX) *Mpu.rdt;
+	tax = constrain(tax, -MAX_A, MAX_A);
+	_stabX += tax*Mpu.dt;
+
+	float tay = (stabY - _stabY)*Mpu.rdt;
+	tay = constrain(tay, -MAX_A, MAX_A);
+	_stabY += tay*Mpu.dt;
+
+
+	_stabX = stabX;
+	_stabY = stabY;
+
+
+
+	const float glob_pitch = -pids[ACCX_SPEED].get_pid(_stabX + speedX, Mpu.dt);
+	const float glob_roll = pids[ACCY_SPEED].get_pid(_stabY + speedY, Mpu.dt);
 
 	//----------------------------------------------------------------преобр. в относительную систему координат
 	pitch = Mpu.cosYaw*glob_pitch - Mpu.sinYaw*glob_roll;

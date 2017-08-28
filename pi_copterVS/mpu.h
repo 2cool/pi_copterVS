@@ -34,7 +34,7 @@ class MpuClass
 {
 	friend class HmcClass;
  protected:
-
+	 void calc_corrected_ang();
 	 void log();
 	 float g_pitch;
 	 float g_roll;
@@ -82,8 +82,9 @@ class MpuClass
 	uint8_t gLPF;
 
 
-	  
+	  float r_pitch, r_roll;
 	  float pitch, roll;
+	  void calc_real_ang();
 	  void meansensors();
 	  void calibrationF(int16_t ar[]);
 	  void calibrationF0(int16_t ar[]);
@@ -105,8 +106,8 @@ class MpuClass
 	 void new_calibration(const bool onlyGyro);
 	 
 	 
-	 float get_pitch(){ return pitch; }
-	 float get_roll(){ return roll; }
+	 float get_pitch();
+	 float get_roll();
 	 bool mpu_calibrated,gyro_calibratioan;
 	float accZ,accY,accX,tiltPower,cosPitch,cosRoll,sinPitch,sinRoll;
 	float maccX, maccZ, maccY;

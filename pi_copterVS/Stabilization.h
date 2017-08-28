@@ -31,6 +31,7 @@ private:
 	AP_PID pids[STAB_PIDS];
 	float max_z_integrator;
 	float  sX, sY, speedX, speedY;
+	
 	//unsigned long gps_sec;
 	float speedZ, sZ;
 	float Z_CF_SPEED,Z_CF_DIST;
@@ -42,6 +43,7 @@ private:
 	
 	
 public:
+	void set_XY_2_GPS_XY();
 	void  resset_z();
 	void  resset_xy_integrator();
 	float getAltitude() { return sZ; }

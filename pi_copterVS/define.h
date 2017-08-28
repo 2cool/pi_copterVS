@@ -31,7 +31,7 @@
 
 #define BEEPS_ON 0
 
-//#define FALSE_WIRE
+#define FALSE_WIRE
 
 
 #define STEP_DEBAGING

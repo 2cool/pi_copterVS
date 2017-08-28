@@ -33,11 +33,12 @@ class CommanderClass
 	 void setThrottle(const float t){ throttle = t; }
 	 void setPitch(const float p){ pitch = p; }
 	 void setRoll(const float r){ roll = r; }
+	 float get_yaw_minus_offset();
 	 float getYaw();
 	 float getThrottle(){ return throttle; }
 	 float getPitch();
 	 float getRoll();
-	// float getYaw_offset(){ return yaw_offset; }
+
 	
 	 bool ret;
 	//short recived_counter;

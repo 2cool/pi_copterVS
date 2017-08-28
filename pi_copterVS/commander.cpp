@@ -257,9 +257,12 @@ int get16to8bMask(int v) {
 
 	return mask;
 }
-float CommanderClass::getYaw() { 
+float CommanderClass::get_yaw_minus_offset() {
 	float y = yaw - yaw_offset;
 	return wrap_180(y);
+}
+float CommanderClass::getYaw() {
+	return yaw; 
 }
 bool CommanderClass::input(){
 	if (data_size) {

@@ -36,17 +36,33 @@ static const float f_constrain(const float v, const float min, const float max){
 //WiFiClass wi_fi;
 
 
+//-----------------------------------------------------
 void  MpuClass::initYaw(const float angle){
 	yaw = angle;
 }
+//-----------------------------------------------------
+float MpuClass::get_pitch() { return r_pitch; }
+float MpuClass::get_roll() { return r_roll; }
+float gaccX = 0, gaccY = 0;
+void  MpuClass::calc_real_ang(){
+	double raccX = -(cosYaw*GPS.loc.accX + sinYaw*GPS.loc.accY);
+	raccX = constrain(raccX, -7, 7);
+	double raccY = -(cosYaw*GPS.loc.accY - sinYaw*GPS.loc.accX);
+	raccY = constrain(raccY, -7, 7);
 
+	gaccX += (raccX - gaccX)*0.007;
+	gaccY += (raccY - gaccY)*0.007;
+	r_pitch = RAD2GRAD*atan((sinPitch - gaccX*cosPitch / 9.8) / cosPitch);
+	r_roll = RAD2GRAD*atan((sinRoll + gaccY*cosRoll / 9.8) / cosRoll);
+}
+//-----------------------------------------------------
 void MpuClass::log() {
 	if (Log.writeTelemetry && Autopilot.motors_is_on()) {
 		Log.loadByte(LOG::MPU);
 		Log.loadByte((uint8_t)(dt * 1000));
 
-		Log.loadFloat(pitch);
-		Log.loadFloat(roll);
+		Log.loadFloat(r_pitch);
+		Log.loadFloat(r_roll);
 
 		Log.loadFloat(gyroPitch);
 		Log.loadFloat(gyroRoll);
@@ -59,6 +75,7 @@ void MpuClass::log() {
 
 
 }
+//-----------------------------------------------------
 int MpuClass::ms_open() {
 	dmpReady = 1;
 	initialized = 0;
@@ -142,6 +159,7 @@ int MpuClass::ms_open() {
 	initialized = 1;
 	return 0;
 }
+//-----------------------------------------------------
 void MpuClass::init()
 {
 
@@ -225,7 +243,7 @@ void MpuClass::init()
 #endif
 
 }
-
+//-----------------------------------------------------
 string MpuClass::get_set(){
 	float ang = atan(50*Balance.get_cS())*RAD2GRAD;
 	
@@ -237,7 +255,7 @@ string MpuClass::get_set(){
 	return string(ret);
 	
 }
-
+//-----------------------------------------------------
 void MpuClass::set(const float  *ar){
 
 	int i = 0;
@@ -274,13 +292,13 @@ void MpuClass::set(const float  *ar){
 		fprintf(Debug.out_stream,"ERROR\n");
 	}
 }
-
+//-----------------------------------------------------
 int16_t MpuClass::getGX(){
 	int16_t x, y, z;
 	accelgyro.getAcceleration(&x, &y, &z);
 	return x;
 }
-
+//-----------------------------------------------------
 const float n003 = 0.030517578f;
 const float n006 =  0.061035156f;
 //4g
@@ -295,6 +313,23 @@ const float to_98g = 0.0005981445312f;
 #ifdef FALSE_WIRE
 
 
+
+
+
+float real_pitch = 0, real_roll = 0;
+
+//-----------------------------------------------------
+void MpuClass::calc_corrected_ang(){
+
+	double raccX = cosYaw*GPS.loc.accX + sinYaw*GPS.loc.accY;
+	double raccY = cosYaw*GPS.loc.accY - sinYaw*GPS.loc.accX;
+
+
+
+
+
+
+}
 
 ///////////////////////////////////////////////////////////////////
 
@@ -316,22 +351,36 @@ bool MpuClass::loop(){
 
 	pitch=Emu.get_pitch();
 	roll = Emu.get_roll();
+
+	
+
 	yaw = Emu.get_yaw();
 	gyroPitch = Emu.get_gyroPitch();
 	gyroRoll = Emu.get_gyroRoll();
 	gyroYaw = Emu.get_gyroYaw();
-	accX = Emu.get_accX();
-	accY = Emu.get_accY();
+	accX = Emu.get_raccX();
+	accY = Emu.get_raccY();
 	accZ = Emu.get_accZ();
 
 
-	tiltPower = (cosPitch = cos(pitch*GRAD2RAD))*(cosRoll = cos(roll*GRAD2RAD));
+	sin_cos(pitch*GRAD2RAD, sinPitch, cosPitch);
+	sin_cos(roll*GRAD2RAD, sinRoll, cosRoll);
+
+
+	tiltPower = cosPitch*cosRoll;
 	cosYaw = cos(Mpu.yaw*GRAD2RAD);
 	sinYaw = sin(Mpu.yaw*GRAD2RAD);
+
+
+	calc_real_ang();
+
+
+
 	delay(4);
 	gyro_calibratioan = true;
 
 	log();
+
 
 	return true;
 }
@@ -593,7 +642,7 @@ bool MpuClass::loop(){//-------------------------------------------------L O O P
 	//Debug.load(1, (pitch), (roll));
 	//Debug.dump();
 
-
+	calc_real_ang();
 
 	log();
 

@@ -121,16 +121,22 @@ void LocationClass::xy(bool update_speed){
 	
 	if (update_speed) {
 		double t = form_lon2Y((double)(lon_home - lon_));
-		speedY = (t - y2home) *rdt;
+		double tspeedY = (t - y2home) *rdt;
 		y2home = t;
+
+		accY = (tspeedY - speedY)*rdt;
+		speedY = tspeedY;
 	}
 	dY = form_lon2Y((double)(lon_needV_ - (double)lon_)) + (speedY*0.5);
 
 	
 	if (update_speed) {
 		double t = from_lat2X((double)(lat_home - lat_));
-		speedX = (t - x2home) * rdt;
+		double tspeedX = (t - x2home) * rdt;
 		x2home = t;
+
+		accX = (tspeedX - speedX)*rdt;
+		speedX=tspeedX;
 	}
 	dX = from_lat2X((double)(lat_needV_ - (double)lat_)) + (speedX*0.5f);
 	
@@ -188,6 +194,9 @@ void LocationClass::updateXY(){
 
 	xy(true);
 	//Out.fprintf(Debug.out_stream,"N  "); Out.fprintf(Debug.out_stream,x2home); Out.fprintf(Debug.out_stream," "); Out.println(y2home);
+
+
+
 }
 
 

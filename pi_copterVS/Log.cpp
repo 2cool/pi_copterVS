@@ -108,6 +108,22 @@ void LogClass::loadGPS_full(NAV_POSLLH *gps) {
 	memcpy((uint8_t*)&log_buffer[log_bank][log_index], gps, sizeof(NAV_POSLLH));
 	log_index += sizeof(NAV_POSLLH);
 }
+
+
+void LogClass::loadGPS(long lat, long lon) {
+	uint8_t *fp = (uint8_t*)&lat;
+	log_buffer[log_bank][log_index++] = fp[0];
+	log_buffer[log_bank][log_index++] = fp[1];
+	log_buffer[log_bank][log_index++] = fp[2];
+	log_buffer[log_bank][log_index++] = fp[3];
+	fp = (uint8_t*)&lon;
+	log_buffer[log_bank][log_index++] = fp[0];
+	log_buffer[log_bank][log_index++] = fp[1];
+	log_buffer[log_bank][log_index++] = fp[2];
+	log_buffer[log_bank][log_index++] = fp[3];
+	log_buffer[log_bank][log_index++] = 1;
+	log_buffer[log_bank][log_index++] = 1;
+}
 void LogClass::loadGPS(NAV_POSLLH *gps) {
 	uint8_t *fp = (uint8_t*)&gps->lat;
 	log_buffer[log_bank][log_index++] = fp[0];
