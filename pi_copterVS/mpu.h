@@ -36,8 +36,7 @@ class MpuClass
  protected:
 	 void calc_corrected_ang();
 	 void log();
-	 float g_pitch;
-	 float g_roll;
+
 	 int ms_open();
 	 // MPU control/status vars
 	 uint8_t devStatus;      // return status after each device operation

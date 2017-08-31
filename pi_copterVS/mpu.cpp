@@ -45,15 +45,10 @@ float MpuClass::get_pitch() { return r_pitch; }
 float MpuClass::get_roll() { return r_roll; }
 float gaccX = 0, gaccY = 0;
 void  MpuClass::calc_real_ang(){
-	double raccX = -(cosYaw*GPS.loc.accX + sinYaw*GPS.loc.accY);
-	raccX = constrain(raccX, -7, 7);
-	double raccY = -(cosYaw*GPS.loc.accY - sinYaw*GPS.loc.accX);
-	raccY = constrain(raccY, -7, 7);
-
-	gaccX += (raccX - gaccX)*0.007;
-	gaccY += (raccY - gaccY)*0.007;
-	r_pitch = RAD2GRAD*atan((sinPitch - gaccX*cosPitch / 9.8) / cosPitch);
-	r_roll = RAD2GRAD*atan((sinRoll + gaccY*cosRoll / 9.8) / cosRoll);
+	double gaccX = -(cosYaw*GPS.loc.accX + sinYaw*GPS.loc.accY);
+	double gaccY = -(cosYaw*GPS.loc.accY - sinYaw*GPS.loc.accX);
+	r_pitch = RAD2GRAD*atan2((sinPitch - gaccX*cosPitch / 9.8) , cosPitch+abs(accX*sinPitch));
+	r_roll = RAD2GRAD*atan2((sinRoll + gaccY*cosRoll / 9.8) , cosRoll+abs(accY*sinRoll));
 }
 //-----------------------------------------------------
 void MpuClass::log() {
@@ -414,7 +409,11 @@ uint8_t GetGravity(VectorFloat *v, Quaternion *q) {
 
 
 
-
+void mull(double a[3][3], double b[3][3], double c[3][3]) {
+	c[0][0] = a[0][0] * b[0][0] + a[0][1] * b[1][0] + a[0][2] * b[2][0];    c[0][1] = a[0][0] * b[0][1] + a[0][1] * b[1][1] + a[0][2] * b[2][1];    c[0][2] = a[0][0] * b[0][2] + a[0][1] * b[1][2] + a[0][2] * b[2][2];
+	c[1][0] = a[1][0] * b[0][0] + a[1][1] * b[1][0] + a[1][2] * b[2][0];    c[1][1] = a[1][0] * b[0][1] + a[1][1] * b[1][1] + a[1][2] * b[2][1];    c[1][2] = a[1][0] * b[0][2] + a[1][1] * b[1][2] + a[1][2] * b[2][2];
+	c[2][0] = a[2][0] * b[0][0] + a[2][1] * b[1][0] + a[2][2] * b[2][0];    c[2][1] = a[2][0] * b[0][1] + a[2][1] * b[1][1] + a[2][2] * b[2][1];    c[2][2] = a[2][0] * b[0][2] + a[2][1] * b[1][2] + a[2][2] * b[2][2];
+}
 
 
 
@@ -427,24 +426,28 @@ float agpitch = 0, agroll = 0, agyaw = 0;
 uint64_t maxG_firs_time = 0;
 
 
-
+bool compas_flip = false;
 
 
 #define _2PI 6.283185307179586476925286766559
-bool MpuClass::loop(){//-------------------------------------------------L O O P-------------------------------------------------------------
+
+
+bool pitch_flag;
+bool set_yaw_flag = true;
+bool MpuClass::loop() {//-------------------------------------------------L O O P-------------------------------------------------------------
 
 	uint64_t mputime = micros();
 
 	//dmp
 	if (dmp_read_fifo(g, a, _q, &sensors, &fifoCount) != 0) //gyro and accel can be null because of being disabled in the efeatures
 		return false;
-		
+
 	dt = (float)(mputime - oldmpuTime)*0.000001f;// *div;
 	//if (dt > 0.015)
 	//	printf("MPU DT too long\n");
 
-	
-	
+
+
 
 	rdt = 1.0f / dt;
 	oldmpuTime = mputime;
@@ -457,7 +460,7 @@ bool MpuClass::loop(){//-------------------------------------------------L O O P
 	gravity.z = q.w*q.w - q.x*q.x - q.y*q.y + q.z*q.z;
 
 
-	
+
 
 	if ((abs(a[0]) > MAX_G || abs(a[1]) > MAX_G || abs(a[2]) > MAX_G)) {
 		max_g_cnt++;
@@ -479,140 +482,54 @@ bool MpuClass::loop(){//-------------------------------------------------L O O P
 		}
 	}
 
-	
-
-	gyroPitch = -n006*(float)g[1]-agpitch;  //in grad
-	gyroYaw = -n006*(float)g[2]-agyaw;
-	gyroRoll = n006*(float)g[0]-agroll;
-
-//	GetYawPitchRoll();
-//	float gyro_yaw = RAD2GRAD*2.0f*atan2(2.0 * q.x*q.y - 2.0 * q.w*q.z, 2.0 * q.w*q.w + 2.0 * q.x*q.x - 1);
-	float head = Hmc.heading*RAD2GRAD;
 
 
-	yaw += gyroYaw*dt;
-	
+	gyroPitch = -n006*(float)g[1] - agpitch;  //in grad
+	gyroYaw = -n006*(float)g[2] - agyaw;
+	gyroRoll = n006*(float)g[0] - agroll;
 
 
+	float head = Hmc.heading;
 
-	if (yaw >= 360)
-		yaw -= 360;
-	if (yaw <= -360)
-		yaw += 360;
+	yaw = yaw*GRAD2RAD;
+	yaw += GRAD2RAD*gyroYaw*dt;
+	yaw = wrap_PI(yaw);
 
+	//	GetYawPitchRoll();
+	//	float gyro_yaw = RAD2GRAD*2.0f*atan2(2.0 * q.x*q.y - 2.0 * q.w*q.z, 2.0 * q.w*q.w + 2.0 * q.x*q.x - 1);
+	pitch = atan(gravity.x / sqrt(gravity.y*gravity.y + gravity.z*gravity.z));
+	roll = atan(gravity.y / sqrt(gravity.x*gravity.x + gravity.z*gravity.z));
 
-	if ((head - yaw) > 180)
-		head -= 360;
-	if ((head - yaw) < -180)
-		head += 360;
-
-	yaw += (head- yaw)*0.0031f;
-
-
-
-	g_pitch += GRAD2RAD*gyroPitch*dt;
-	if (g_pitch >= _2PI)
-		g_pitch -= _2PI;
-	if (g_pitch <= -_2PI)
-		g_pitch += _2PI;
-
-	g_roll += GRAD2RAD*gyroRoll*dt;
-	if (g_roll >= _2PI)
-		g_roll -= _2PI;
-	if (g_roll <= -_2PI)
-		g_roll += _2PI;
-
-
-	//pitch = atan(gravity.x / sqrt(gravity.y*gravity.y + gravity.z*gravity.z));
-	//roll = tan(gravity.y / sqrt(gravity.x*gravity.x + gravity.z*gravity.z));
-	
-
-	if (millis() < 30000) {
-		pitch= atan(gravity.x / sqrt(gravity.y*gravity.y + gravity.z*gravity.z));
-		roll=  atan(gravity.y / sqrt(gravity.x*gravity.x + gravity.z*gravity.z));
-		g_pitch = pitch;
-		g_roll = roll;
+	if (set_yaw_flag) {
+		yaw = head;
+		set_yaw_flag = false;
 	}
-	else {
 
-		pitch = atan(gravity.x / sqrt(gravity.y*gravity.y + gravity.z*gravity.z));
-		if (gravity.z < 0)
-			pitch = -pitch;
+	if (gravity.z < 0) {
+		yaw = -Autopilot.get_yaw()*GRAD2RAD;
+		set_yaw_flag = true;
 
-
-		if (g_pitch > 0) {
-			if (g_pitch - pitch > M_PI_2) {
-				pitch += M_PI;
-				if (g_pitch - pitch > M_PI_2) {
-					pitch += M_PI;
-				}
-
+		if (abs(pitch) > 35 * GRAD2RAD) {
+			pitch_flag = true;
+			if (abs(roll) > abs(pitch))
+				pitch_flag = false;
+		}else
+			if (abs(roll) > 35 * GRAD2RAD) {
+				pitch_flag = false;
+				if (abs(pitch) > abs(roll))
+					pitch_flag = true;
 			}
-
-		}
-		else {
-			if (g_pitch - pitch < -M_PI_2) {
-				pitch -= M_PI;
-				if (g_pitch - pitch < -M_PI_2) {
-					pitch -= M_PI;
-				}
-
-			}
-		}
-		g_pitch += (pitch - g_pitch)*0.1;
-
-
-		roll = atan(gravity.y / sqrt(gravity.x*gravity.x + gravity.z*gravity.z));
-
-		if (gravity.z < 0)
-			roll = -roll;
-
-		
-		if (g_roll > 0) {
-			if (g_roll - roll > M_PI_2) {
-				roll += M_PI;
-				if (g_roll - roll > M_PI_2) {
-					roll += M_PI;
-				}
-
-			}
-
-		}
-		else {
-			if (g_roll - roll < -M_PI_2) {
-				roll -= M_PI;
-				if (g_roll - roll < -M_PI_2) {
-					roll -= M_PI;
-				}
-
-			}
-		}
-		g_roll += (roll - g_roll)*0.1;
-		
-	}
-	{
-		
-		float apitch = abs(pitch);
-		float aroll = abs(roll);
-
-		bool upside_p = (apitch > 1.745329251 && apitch < 4.53785605);
-		bool upside_r = (aroll > 1.745329251 && aroll <  4.53785605);
-
-		if (gravity.z>2.52497434e+009 && ( upside_p || upside_r)) {
-			if (upside_p)				
-				pitch-= (pitch > 0) ? M_PI : -M_PI;
-			if (upside_r)				
-				roll-= (roll > 0) ? M_PI : -M_PI;
-		}
-
-		
-	}
-	
+		if (pitch_flag)
+			pitch = ((pitch > 0) ? M_PI : -M_PI) - pitch;
+		else
+			roll = ((roll > 0) ? M_PI : -M_PI) - roll;
+	}else
+		yaw += (wrap_PI(head - yaw))*0.0031f;
 
 	float x = n122*(float)a[0];
 	float y = -n122*(float)a[1];  //
 	float z = n122*(float)a[2];
-	
+
 	sin_cos(pitch, sinPitch, cosPitch);
 	sin_cos(roll, sinRoll, cosRoll);
 
@@ -620,10 +537,10 @@ bool MpuClass::loop(){//-------------------------------------------------L O O P
 	tiltPower = constrain(tiltPower, 0.5f, 1);
 
 	accZ = z*cosPitch + sinPitch*x;
-	accZ = 9.8f*(accZ*cosRoll - sinRoll*y - 1)-ac_accZ;
+	accZ = 9.8f*(accZ*cosRoll - sinRoll*y - 1) - ac_accZ;
 
-	accX = 9.8f*(x*cosPitch - z*sinPitch)-ac_accX;
-	accY = 9.8f*(y*cosRoll + z*sinRoll)-ac_accY;
+	accX = 9.8f*(x*cosPitch - z*sinPitch) - ac_accX;
+	accY = 9.8f*(y*cosRoll + z*sinRoll) - ac_accY;
 
 
 	if (Autopilot.motors_is_on() == false) {
@@ -643,58 +560,38 @@ bool MpuClass::loop(){//-------------------------------------------------L O O P
 			agyaw += gyroYaw*0.01;
 		}
 	}
-	
+
 
 	//cosYaw = (float)cos(yaw*GRAD2RAD);
 	//sinYaw = (float)sin(yaw*GRAD2RAD);
-	sin_cos(yaw*GRAD2RAD, sinYaw, cosYaw);
+	sin_cos(yaw, sinYaw, cosYaw);
 
-	//yaw *= RAD2GRAD;
+
+	//	Debug.load(0, ceil(a_g_pitch*RAD2GRAD), ceil(a_g_roll*RAD2GRAD), ceil(a_yaw*RAD2GRAD));
+	//	Debug.load(0, ceil(pitch*RAD2GRAD), ceil(roll*RAD2GRAD), ceil(a_yaw*RAD2GRAD));
+		//Debug.load(1, g_roll*RAD2GRAD, roll*RAD2GRAD);
+		//	Debug.load(2, yaw*RAD2GRAD, head*RAD2GRAD);
+		//Debug.dump(true);
+
+
+
+	yaw *= RAD2GRAD;
 	pitch *= RAD2GRAD;
 	roll *= RAD2GRAD;
 
 
-	//Debug.load(1, (pitch), (roll));
+	//Debug.load(0, (pitch), (roll));
 	//Debug.dump();
 
 	calc_real_ang();
 
 	log();
 
-	
-	//float pk = pitch / c_pitch;
-	//float rk = roll / c_roll;
-
-
-	//Debug.load(2, a[1], gravity.x);
-	//Debug.load(1, a[1], gravity.y);
-	//Debug.load(0, a[2], gravity.z);
-//	Debug.load(2, gyro_yaw / 180, head / 180);
-/*	Debug.load(1, pitch / 40, ttPitch / 40);
-	Debug.load(2, yaw / 180, ttYaw / 180);
-
-
-	Debug.load(3, yaw / 180, Hmc.heading/PI);
-	Debug.load(4, accX*0.1, accY*0.1);
-	Debug.load(5, accZ*0.05, 0);
-	//Debug.load(6, pitch / M_2PI, accX/M_PI_2);
-	//Debug.load(7, roll / M_2PI, -accY / M_PI_2);
-*/	//Debug.load(6, roll / M_2PI, -accY / M_PI_2);
-	//Debug.dump();
-
-
-
-
-
-
-
-
-
-	
 
 
 	return true;
 }
+
 
 #endif
 

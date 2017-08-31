@@ -427,8 +427,8 @@ bool BalanceClass::loop()
 
 #define BCF 0.1
 
-			float pitch_stab_output = f_constrain(pitch_roll_stabKP*(Mpu.get_pitch() - c_pitch), -MAX_ANGLE_SPEED, MAX_ANGLE_SPEED);
-			float roll_stab_output = f_constrain(pitch_roll_stabKP*(Mpu.get_roll() - c_roll), -MAX_ANGLE_SPEED, MAX_ANGLE_SPEED);
+			float pitch_stab_output = f_constrain(pitch_roll_stabKP*(wrap_180(Mpu.get_pitch() - c_pitch)), -MAX_ANGLE_SPEED, MAX_ANGLE_SPEED);
+			float roll_stab_output = f_constrain(pitch_roll_stabKP*(wrap_180(Mpu.get_roll() - c_roll)), -MAX_ANGLE_SPEED, MAX_ANGLE_SPEED);
 			float yaw_stab_output = f_constrain(yaw_stabKP*wrap_180(-Autopilot.get_yaw() - Mpu.yaw), -MAX_YAW_SPEED, MAX_YAW_SPEED);
 			//ErrorLog.println(wrap_180(-Autopilot.get_Yaw() - Mpu.yaw));
 

@@ -285,8 +285,8 @@ void HmcClass::loop(){
 	float Xh = fmx * Mpu.cosPitch - fmz * Mpu.sinPitch;
 	float Yh = fmx * Mpu.sinRoll * Mpu.sinPitch + fmy * Mpu.cosRoll - fmz * Mpu.sinRoll * Mpu.cosPitch;
 	
-
-	heading = (float)atan2(Yh, Xh);
+	if (Xh!=0)
+		heading = (float)atan2(Yh, Xh);
 	//Out.println(fmx);
 	//Out.fprintf(Debug.out_stream,roll); Out.fprintf(Debug.out_stream," "); Out.fprintf(Debug.out_stream,pitch); Out.fprintf(Debug.out_stream," ");  Out.println(Hmc.heading / PI * 180);
 	

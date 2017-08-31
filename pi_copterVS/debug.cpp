@@ -10,7 +10,10 @@ void DebugClass::graphic(const int n, const float x, const float y) {
 	printf("%i,%f,%f\n", (unsigned int)n, x, y);
 
 }
- 
+void DebugClass::graphic(const int n, const float x, const float y,const float z) {
+	printf("%i,%f,%f,%f\n", (unsigned int)n, x, y, z);
+
+}
 	 void DebugClass::init() { i = 0; }
 	 void DebugClass::dump(const long f1, long f2, long f3, long f4) {
 		 printf("\n%i,%i,%i,%i\n", f1, f2, f3, f4);
@@ -30,7 +33,7 @@ void DebugClass::graphic(const int n, const float x, const float y) {
 	 uint64_t d_old_t = 0;
 
 
-	 int d_delay = 20;
+	 int d_delay = 50;
 	 double d_dt = (double)d_delay *0.001;
 
 	 void DebugClass::load(const uint8_t i, const float x, const float y) {
@@ -50,9 +53,31 @@ void DebugClass::graphic(const int n, const float x, const float y) {
 		 ar[i][0] += (x-ar[i][0])*F;
 		 ar[i][1] += (y-ar[i][1])*F;
 	 }
+
+
+	 void DebugClass::load(const uint8_t i, const float x, const float y,const float z) {
+		 if (d_old_t == 0) {
+			 d_old_t = micros();
+			 return;
+		 }
+		 uint64_t t = micros();
+		 double dt = (double)(t - d_old_t);
+		 d_old_t = t;
+		 dt *= 0.000001;
+
+
+		 double F = dt / d_dt;
+		 F = constrain(F, 0.1, 1);
+
+		 ar[i][0] += (x - ar[i][0])*F;
+		 ar[i][1] += (y - ar[i][1])*F;
+		 ar[i][2] += (z - ar[i][2])*F;
+
+
+	 }
 	// int cnt = 0;
 	 uint32_t old_time = 0;
-	 void DebugClass::dump() {//--------------------------------------------------------------
+	 void DebugClass::dump(bool thre) {//--------------------------------------------------------------
 		 if (n_debug > 9)
 			 return;
 		 uint32_t t = millis();
@@ -78,8 +103,10 @@ void DebugClass::graphic(const int n, const float x, const float y) {
 		 //if (((++cnt) & 7) == 0){
 		 */
 		 i = n_debug;
-
-		 graphic(i, ar[i][0], ar[i][1]);
+		 if (thre == false)
+			 graphic(i, ar[i][0], ar[i][1]);
+		 else
+			 graphic(i, ar[i][0], ar[i][1], ar[i][2]);
 		 // }
 		 // Out.println(Mpu.temp_deb);
 	 }

@@ -124,7 +124,8 @@ void LocationClass::xy(bool update_speed){
 		double tspeedY = (t - y2home) *rdt;
 		y2home = t;
 
-		accY = (tspeedY - speedY)*rdt;
+		accY += ((tspeedY - speedY)*rdt - accY)*0.07;
+		accX = constrain(accX, -3, 3);
 		speedY = tspeedY;
 	}
 	dY = form_lon2Y((double)(lon_needV_ - (double)lon_)) + (speedY*0.5);
@@ -135,7 +136,8 @@ void LocationClass::xy(bool update_speed){
 		double tspeedX = (t - x2home) * rdt;
 		x2home = t;
 
-		accX = (tspeedX - speedX)*rdt;
+		accX += ((tspeedX - speedX)*rdt - accX)*0.07;
+		accY = constrain(accY, -3, 3);
 		speedX=tspeedX;
 	}
 	dX = from_lat2X((double)(lat_needV_ - (double)lat_)) + (speedX*0.5f);
@@ -439,6 +441,8 @@ double LocationClass::set_cos_sin_dir(){
 double LocationClass::bearing_(const double lat, const double lon, const double lat2, const double lon2){
 	double x, y;
 	sin_cos(x, y, lat, lon, lat2, lon2);
+	if (x == 0)
+		x = 0.000000001;
 	return atan2(y, x);  //minus и как у гугла
 
 }
@@ -459,7 +463,10 @@ double LocationClass::distance_(const double lat, const double lon, const double
 	double dq = (lon2 - lon);
 
 	double a = (sin(df / 2)*sin(df / 2) + cos(f1)*cos(f2)*sin(dq / 2)*sin(dq / 2));
-	return R * 2 * atan2(sqrt(a), sqrt(1 - a));
+	if (a < 0 || a >= 1)
+		return 100;
+	else
+		return R * 2 * atan2(sqrt(a), sqrt(1 - a));
 
 }
 
