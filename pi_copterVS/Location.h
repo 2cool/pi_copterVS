@@ -34,6 +34,7 @@ public:
 	bool processGPS_1();
 	bool processGPS();
 	double cosDirection, sinDirection;
+	float dir_angle_GRAD;
 	double dt, rdt;
 	double add_lat_need, add_lon_need;
 	long lat_, lon_, lat_home, lon_home;

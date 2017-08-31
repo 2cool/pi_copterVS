@@ -31,7 +31,7 @@
 
 #define BEEPS_ON 0
 
-#define FALSE_WIRE
+//#define FALSE_WIRE
 
 
 #define STEP_DEBAGING
@@ -127,7 +127,7 @@
 
 #define MAX_G 32760  
 
-#define TELEMETRY_BUF_SIZE 1024
+#define TELEMETRY_BUF_SIZE 16384
 #define wrap_180(x) (x < -180 ? x+360 : (x > 180 ? x - 360: x))
 #define wrap_PI(x) (x < -PI ? x+TWO_PI : (x > PI ? x - TWO_PI: x))
 

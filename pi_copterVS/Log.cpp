@@ -2,7 +2,7 @@
 #include "debug.h"
 
 volatile  bool	run_loging = true;
-volatile int log_index, log_bank_, log_bank, old_bank, error_bansk = 0;
+volatile int log_index, log_bank_, log_bank, old_bank,net_bank, error_bansk = 0;
 volatile bool log_file_closed;
 #define mask 255
 uint8_t log_buffer[mask+1][1024];
@@ -12,7 +12,21 @@ ofstream logfile;
 string this_log_fname;
 
 
-
+uint8_t * LogClass::getNext(int &len, int &index) {
+	if (run_loging && log_bank_ == net_bank) {
+		index = -1;
+		len = 0;
+		return 0;
+	}
+	while (log_bank_ - net_bank > mask) {
+		net_bank++;
+	}
+	len = *((uint16_t*)log_buffer[net_bank & mask]);
+	uint8_t *ret=log_buffer[net_bank & mask];
+	index = net_bank;
+	net_bank++;
+	return ret;
+}
 void loger() {
 	while (run_loging) {
 		while (run_loging && log_bank_ == old_bank) {
@@ -76,7 +90,7 @@ bool LogClass::init(int counter_) {
 		fprintf(Debug.out_stream, "log 2 %s\n", this_log_fname.c_str());
 		logfile.open(this_log_fname.c_str(), fstream::in | fstream::out | fstream::trunc);
 		log_file_closed = false;
-		log_bank_ = old_bank = log_bank = 0;
+		log_bank_ = old_bank = log_bank = net_bank=0;
 		log_index = 2;
 		thread t(loger);
 		t.detach();

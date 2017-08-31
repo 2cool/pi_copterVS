@@ -20,6 +20,7 @@ class TelemetryClass
 	 uint8_t buf[TELEMETRY_BUF_SIZE];
 	 volatile int buffer_size;
 	 void loadBUF32(int &i, int32_t val);
+	 void loadBUF16(int &i, int16_t val);
 	 void loadBUF(int &i,  const float fval);
 	 void loadBUF8(int &i, const float val);
 

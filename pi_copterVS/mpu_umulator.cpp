@@ -9,7 +9,7 @@
 #include "Telemetry.h"
 
 
-#define NOISE_ON
+//#define NOISE_ON
 
 //#define TEST_4_FULL_VOLTAGE
 

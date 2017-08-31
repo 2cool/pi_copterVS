@@ -15,13 +15,14 @@ MS5=6b
 comm=1024
 
 */
-enum LOG { MPU, HMC, MS5, GpS, COMM, STABXY, STABZ, BAL, GPS_FULL,EMU };
+enum LOG { MPU, HMC, MS5, GpS, COMM, STABXY, STABZ, BAL, GPS_FULL,EMU,LOG_TIMER };
 class LogClass
 {
 private:
 	
 	
 public:
+	uint8_t * getNext(int &len, int &index);
 	bool writeTelemetry;
 	int counter = 0;
 	int run_counter;

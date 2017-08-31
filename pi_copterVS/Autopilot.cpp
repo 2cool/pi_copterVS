@@ -404,6 +404,7 @@ bool AutopilotClass::go2HomeProc(const float dt){
 	
 		
  switch (go2homeIndex){
+	 
 
 	case JUMP:{	
 #ifdef FALL_IF_STRONG_WIND
@@ -446,9 +447,12 @@ bool AutopilotClass::go2HomeProc(const float dt){
 			   // led_prog = 4;
 			   GPS.loc.setNeedLoc2HomeLoc();
 			   go2homeIndex = TEST4HOME_LOC;
+			   aYaw_ = -GPS.loc.dir_angle_GRAD - 180;
+			   aYaw_ = wrap_180(aYaw_);
 			   break;
 	}
 	case TEST4HOME_LOC:{//прилет на место старта
+			   
 			   const float accuracy = ACCURACY_XY + GPS.loc.accuracy_hor_pos_;
 			   if (fabs(GPS.loc.x2home) <= accuracy && fabs(GPS.loc.y2home) <= accuracy){
 				   go2homeIndex = START_FAST_DESENDING;

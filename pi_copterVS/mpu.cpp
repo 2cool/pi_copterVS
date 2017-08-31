@@ -61,8 +61,8 @@ void MpuClass::log() {
 		Log.loadByte(LOG::MPU);
 		Log.loadByte((uint8_t)(dt * 1000));
 
-		Log.loadFloat(r_pitch);
-		Log.loadFloat(r_roll);
+		Log.loadFloat(pitch);
+		Log.loadFloat(roll);
 
 		Log.loadFloat(gyroPitch);
 		Log.loadFloat(gyroRoll);
@@ -397,8 +397,6 @@ bool MpuClass::loop(){
 	gyro_calibratioan = true;
 
 	log();
-
-
 	return true;
 }
 

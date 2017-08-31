@@ -13,6 +13,7 @@
 #include "Wi_Fi.h"
 #include "debug.h"
 #include "mpu_umulator.h"
+#include "Log.h"
 
 #define BALANCE_DELAY 120
 #define MAX_FLY_TIME 1200.0f
@@ -271,6 +272,16 @@ void TelemetryClass::loadBUF32(int &i,  int32_t val)
 
 }
 
+void TelemetryClass::loadBUF16(int &i, int16_t val)
+{
+	buf[i++] = ((byte*)&val)[0];
+	buf[i++] = ((byte*)&val)[1];
+
+
+}
+
+
+
 void TelemetryClass::loadBUF8(int &i,  const float val){
 	int8_t t = (int8_t)(val);
 	buf[i++] = ((byte*)&t)[0];
@@ -348,11 +359,39 @@ void TelemetryClass::update_buf() {
 
 	loadBUF8(i, yaw * 0.705555555555f);
 
-	if (message.length() && i + message.length() < TELEMETRY_BUF_SIZE) {
+	if (message.length() && i + message.length() + 2 < TELEMETRY_BUF_SIZE) {
+		loadBUF16(i, message.length());
 		memcpy(&buf[i], message.c_str(), message.length());
 		i += message.length();
 		message = "";
 	}
+	else {
+		buf[i++] = 0;
+		buf[i++] = 0;
+	}
+
+	uint8_t *b;
+	int len, index;
+	do {
+		b = Log.getNext(len, index);
+		if (len == 0) {
+			buf[i++] = 0;
+			buf[i++] = 0;
+			break;
+		}
+		if (i + len + 6 < TELEMETRY_BUF_SIZE) {
+			loadBUF16(i, len);
+			loadBUF32(i, index);
+			memcpy(&buf[i], b, len);
+			i += len;
+		}
+		else
+			break;
+
+	} while (true);
+
+
+
 	buffer_size = i;
 }
 //nado echo peredat koordinaty starta i visoti ili luche ih androis socharanaet
