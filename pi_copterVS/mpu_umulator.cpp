@@ -143,9 +143,9 @@ void get_wind(float w[][4]) {
 }
 
 
-float  EmuClass::get_pitch() { return (float)(f_ang[PITCH]*RAD2GRAD); }
-float  EmuClass::get_roll() { return (float)(f_ang[ROLL]*RAD2GRAD); }
-float  EmuClass::get_yaw() { return (float)(ang[YAW]*RAD2GRAD); }
+float  EmuClass::get_pitch() { return (float)(f_ang[PITCH]); }
+float  EmuClass::get_roll() { return (float)(f_ang[ROLL]); }
+float  EmuClass::get_yaw() { return (float)(ang[YAW]); }
 
 #define wrap_PI(x) (x < -M_PI ? x+2*M_PI : (x > M_PI ? x - 2*M_PI: x))
 float  EmuClass::get_heading() {
@@ -322,21 +322,6 @@ void EmuClass::update(float fm_[4], double dt) {
 
 	}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 	gyro_res[YAW] = gyro[YAW] * abs(gyro[YAW])*f_gyro_k[Z];
 	gyro_res[ROLL] = gyro[ROLL] * abs(gyro[ROLL])*f_gyro_k[X];
 	gyro_res[PITCH] = gyro[PITCH] * abs(gyro[PITCH])*f_gyro_k[Y];
@@ -368,14 +353,9 @@ void EmuClass::update(float fm_[4], double dt) {
 	ang[ROLL] += gyro[ROLL] * dt;
 	ang[PITCH] += gyro[PITCH] * dt;
 
-	f_ang[ROLL] += gyro[ROLL] * dt;
-	f_ang[PITCH] += gyro[PITCH] * dt;
-
-
-	if (ang[YAW] > 6.2831853)
-		ang[YAW] -= 6.2831853;
-	if (ang[YAW] < -6.2831853)
-		ang[YAW] += 6.2831853;
+	ang[YAW] = wrap_PI(ang[YAW]);
+	ang[ROLL] = wrap_PI(ang[ROLL]);
+	ang[PITCH] = wrap_PI(ang[PITCH]);
 
 
 	double m[3][3];

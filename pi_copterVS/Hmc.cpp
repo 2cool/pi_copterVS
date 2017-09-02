@@ -180,7 +180,7 @@ void HmcClass::motTest(const float fmx, const float fmy, const float fmz){
 
 uint32_t comTime = 0;
 void HmcClass::loop(){
-#define wrap_180(x) (x < -180 ? x+360 : (x > 180 ? x - 360: x))
+///#define wrap_180(x) (x < -180 ? x+360 : (x > 180 ? x - 360: x))
 	if (millis() - comTime < 50)
 		return;
 	comTime = millis();
@@ -272,34 +272,13 @@ void HmcClass::loop(){
 			fmz -= kz;
 	}
 
-		//---------------------------------
-	
-	
-	//testtt(fmx, fmy, fmz, Autopilot.getThrottle());
-
-	
-	//--------------------------------
-
-
 	// Tilt compensation
 	float Xh = fmx * Mpu.cosPitch - fmz * Mpu.sinPitch;
 	float Yh = fmx * Mpu.sinRoll * Mpu.sinPitch + fmy * Mpu.cosRoll - fmz * Mpu.sinRoll * Mpu.cosPitch;
 	
 	if (Xh!=0)
 		heading = (float)atan2(Yh, Xh);
-	//Out.println(fmx);
-	//Out.fprintf(Debug.out_stream,roll); Out.fprintf(Debug.out_stream," "); Out.fprintf(Debug.out_stream,pitch); Out.fprintf(Debug.out_stream," ");  Out.println(Hmc.heading / PI * 180);
-	
-//	Out.println(Mpu.yaw); Out.fprintf(Debug.out_stream," "); Out.println(heading*RAD2GRAD);
-//	if (heading<0)
-//		heading += 2 * PI;
 
-
-
-	//if (heading > PI)
-	///	heading -= 2 * PI;
-	//if (heading <= -PI)
-	//	heading += 2 * PI;
 	log();
 	
 

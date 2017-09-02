@@ -15,20 +15,21 @@ MS5=6b
 comm=1024
 
 */
-enum LOG { MPU, HMC, MS5, GpS, COMM, STABXY, STABZ, BAL, GPS_FULL,EMU,LOG_TIMER };
+enum LOG { MPU, HMC, MS5, GpS, COMM, STABXY, STABZ, BAL,EMU};
 class LogClass
 {
 private:
 	
 	
 public:
-	uint8_t * getNext(int &len, int &index);
+	void write_bank_cnt();
+	uint8_t * getNext(int &len);
 	bool writeTelemetry;
 	int counter = 0;
 	int run_counter;
 	void end();
 	void loadGPS(NAV_POSLLH *gps);
-	void loadGPS(long lat, long lon);
+
 	void loadGPS_full(NAV_POSLLH *gps);
 	void loaduint32t(uint32_t ui);
 	void loadFloat(float f);

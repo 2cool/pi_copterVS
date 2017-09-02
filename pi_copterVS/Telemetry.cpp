@@ -321,7 +321,9 @@ int TelemetryClass::read_buf(byte *buffer) {
 }
 uint32_t last_update_time=0;
 void TelemetryClass::update_buf() {
-	bzero(buf, 32);
+	if (buffer_size > 0)
+		return;
+	//bzero(buf, 32);
 	//delay(1000);
 	int i = 0;
 	uint32_t mod = Autopilot.get_control_bits();
@@ -353,7 +355,7 @@ void TelemetryClass::update_buf() {
 	
 
 
-	float yaw=wrap_180(Mpu.yaw);
+	float yaw=Mpu.get_yaw();
 
 
 
@@ -371,9 +373,10 @@ void TelemetryClass::update_buf() {
 	}
 
 	uint8_t *b;
-	int len, index;
+	int len;
+
 	do {
-		b = Log.getNext(len, index);
+		b = Log.getNext(len);
 		if (len == 0) {
 			buf[i++] = 0;
 			buf[i++] = 0;
@@ -381,7 +384,6 @@ void TelemetryClass::update_buf() {
 		}
 		if (i + len + 6 < TELEMETRY_BUF_SIZE) {
 			loadBUF16(i, len);
-			loadBUF32(i, index);
 			memcpy(&buf[i], b, len);
 			i += len;
 		}
@@ -389,8 +391,6 @@ void TelemetryClass::update_buf() {
 			break;
 
 	} while (true);
-
-
 
 	buffer_size = i;
 }

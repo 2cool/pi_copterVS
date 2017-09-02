@@ -255,7 +255,7 @@ void AutopilotClass::loop(){////////////////////////////////////////////////////
 	uint8_t smart = 0;
 
 	if (control_bits&CONTROL_FALLING){
-		aYaw_ = Mpu.yaw;
+		aYaw_ = Mpu.get_yaw();
 		off_throttle(false,"cntr_fall");
 	}
 	else{
@@ -637,7 +637,7 @@ bool AutopilotClass::motors_do_on(const bool start, const string msg){//////////
 			holdLocation(GPS.loc.lat_, GPS.loc.lon_);
 			Stabilization.resset_z();
 			Stabilization.resset_xy_integrator();
-			aYaw_ = -Mpu.yaw;
+			aYaw_ = -Mpu.get_yaw();
 			//fflush(Debug.out_stream);
 			start_time = millis();
 			if (Telemetry.power_is_on())

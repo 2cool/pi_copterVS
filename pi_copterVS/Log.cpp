@@ -1,51 +1,65 @@
 #include "Log.h"
 #include "debug.h"
+#include "Autopilot.h"
 
 volatile  bool	run_loging = true;
 volatile int log_index, log_bank_, log_bank, old_bank,net_bank, error_bansk = 0;
 volatile bool log_file_closed;
-#define mask 255
+
+
+#define max_blocks_2_send 4
+#define mask 127
 uint8_t log_buffer[mask+1][1024];
 
 
 ofstream logfile;
 string this_log_fname;
 
+void LogClass::write_bank_cnt() {
+	uint8_t *fp = (uint8_t*)&log_bank_;
+	log_buffer[log_bank][log_index++] = fp[0];
+	log_buffer[log_bank][log_index++] = fp[1];
+	log_buffer[log_bank][log_index++] = fp[2];
+	log_buffer[log_bank][log_index++] = fp[3];
 
-uint8_t * LogClass::getNext(int &len, int &index) {
-	if (run_loging && log_bank_ == net_bank) {
-		index = -1;
+}
+uint8_t * LogClass::getNext(int &len) {
+
+	if (millis() - Autopilot.last_time_data_recived > 500 || run_loging == false || log_bank_ <= net_bank) {
 		len = 0;
 		return 0;
 	}
-	while (log_bank_ - net_bank > mask) {
-		net_bank++;
+
+	if (log_bank_ - net_bank > max_blocks_2_send) {
+		net_bank = log_bank_ - max_blocks_2_send;
+		//printf("net_err\n");
 	}
+
+
 	len = *((uint16_t*)log_buffer[net_bank & mask]);
 	uint8_t *ret=log_buffer[net_bank & mask];
-	index = net_bank;
 	net_bank++;
 	return ret;
 }
 void loger() {
 	while (run_loging) {
-		while (run_loging && log_bank_ == old_bank) {
-			usleep(2000);
+		while (run_loging && log_bank_ <= old_bank) {
+			usleep(1000);
 		}
 		
 		//printf("%i\n",log_bank_ - old_bank);
-		bool print = true;
-		while (log_bank_ - old_bank > mask) {
-			if (print)
-				fprintf(Debug.out_stream, "log sync error! %i\n",log_bank_);
-			print = false;
-			old_bank++;
-			error_bansk++;
+		
+		if (log_bank_ - old_bank > mask) {
+			fprintf(Debug.out_stream, "log sync error! %i\n", log_bank_);
+			error_bansk += log_bank_ - old_bank - mask;
+			old_bank = log_bank_ - mask;
+			
 		}
+		
 		if (logfile.is_open()) {
 			int len = *((uint16_t*)log_buffer[old_bank & mask]);
 			logfile.write((char*)log_buffer[old_bank & mask], len);
-			//logfile.flush();
+			logfile.flush();
 			old_bank++;
 		}else{
 			fprintf(Debug.out_stream, "LOG ERROR\n");
@@ -124,20 +138,6 @@ void LogClass::loadGPS_full(NAV_POSLLH *gps) {
 }
 
 
-void LogClass::loadGPS(long lat, long lon) {
-	uint8_t *fp = (uint8_t*)&lat;
-	log_buffer[log_bank][log_index++] = fp[0];
-	log_buffer[log_bank][log_index++] = fp[1];
-	log_buffer[log_bank][log_index++] = fp[2];
-	log_buffer[log_bank][log_index++] = fp[3];
-	fp = (uint8_t*)&lon;
-	log_buffer[log_bank][log_index++] = fp[0];
-	log_buffer[log_bank][log_index++] = fp[1];
-	log_buffer[log_bank][log_index++] = fp[2];
-	log_buffer[log_bank][log_index++] = fp[3];
-	log_buffer[log_bank][log_index++] = 1;
-	log_buffer[log_bank][log_index++] = 1;
-}
 void LogClass::loadGPS(NAV_POSLLH *gps) {
 	uint8_t *fp = (uint8_t*)&gps->lat;
 	log_buffer[log_bank][log_index++] = fp[0];

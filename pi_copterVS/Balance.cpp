@@ -429,7 +429,7 @@ bool BalanceClass::loop()
 
 			float pitch_stab_output = f_constrain(pitch_roll_stabKP*(wrap_180(Mpu.get_pitch() - c_pitch)), -MAX_ANGLE_SPEED, MAX_ANGLE_SPEED);
 			float roll_stab_output = f_constrain(pitch_roll_stabKP*(wrap_180(Mpu.get_roll() - c_roll)), -MAX_ANGLE_SPEED, MAX_ANGLE_SPEED);
-			float yaw_stab_output = f_constrain(yaw_stabKP*wrap_180(-Autopilot.get_yaw() - Mpu.yaw), -MAX_YAW_SPEED, MAX_YAW_SPEED);
+			float yaw_stab_output = f_constrain(yaw_stabKP*wrap_180(-Autopilot.get_yaw() - Mpu.get_yaw()), -MAX_YAW_SPEED, MAX_YAW_SPEED);
 			//ErrorLog.println(wrap_180(-Autopilot.get_Yaw() - Mpu.yaw));
 
 		//	Out.fprintf(Debug.out_stream,-Autopilot.get_Yaw()); Out.fprintf(Debug.out_stream," "); Out.println(Mpu.yaw);
@@ -484,6 +484,7 @@ bool BalanceClass::loop()
 				Log.loadFloat(c_pitch);
 				Log.loadFloat(c_roll);
 				Log.loadFloat(throttle);
+				Log.write_bank_cnt();
 				Log.loadMem((uint8_t*)f_, 16);
 			}
 

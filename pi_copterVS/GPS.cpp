@@ -101,8 +101,21 @@ void GPSClass::loop(){
 		loc.updateXY();
 
 			if (Log.writeTelemetry && Autopilot.motors_is_on()) {
+
+				NAV_POSLLH posllh;
+				posllh.lat = lat;
+				posllh.lon = lon;
 				Log.loadByte(LOG::GpS);
-				Log.loadGPS(lat,lon);
+				Log.loadGPS_full(&posllh);
+				Log.loadFloat((float)loc.x2home);
+				Log.loadFloat((float)loc.y2home);
+				Log.loadFloat((float)loc.dX);
+				Log.loadFloat((float)loc.dY);
+				Log.loadFloat((float)loc.speedX);
+				Log.loadFloat((float)loc.speedY);
+				Log.loadFloat((float)loc.accX);
+				Log.loadFloat((float)loc.accY);
+
 			}
 
 

@@ -59,7 +59,7 @@ class MpuClass
 	 int16_t sensors;
 	 Quaternion q;
 	 uint8_t rate;
-
+	 float gaccX, gaccY;
 	 //calibration offsets for MPU6050
 	 ///////////////////////////////////   CONFIGURATION   /////////////////////////////
 	 //Change this 3 variables if you want to fine tune the skecth to your needs.
@@ -88,7 +88,7 @@ class MpuClass
 	  void calibrationF(int16_t ar[]);
 	  void calibrationF0(int16_t ar[]);
 	  void calibrationPrint(int16_t ar[],const bool onlyGyro);
-
+	  float yaw;
 	  uint64_t acc_callibr_time;
  public:
 	 float cor_c_pitch, cor_c_roll;
@@ -104,7 +104,7 @@ class MpuClass
 	
 	 void new_calibration(const bool onlyGyro);
 	 
-	 
+	 float get_yaw();
 	 float get_pitch();
 	 float get_roll();
 	 bool mpu_calibrated,gyro_calibratioan;
@@ -112,7 +112,7 @@ class MpuClass
 	float maccX, maccZ, maccY;
 	
 	
-	 float yaw,  gyroPitch, gyroYaw, gyroRoll;
+	 float  gyroPitch, gyroYaw, gyroRoll;
 
 
 	 string get_set();

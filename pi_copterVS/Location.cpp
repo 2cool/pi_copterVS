@@ -123,8 +123,9 @@ void LocationClass::xy(bool update_speed){
 		double t = form_lon2Y((double)(lon_home - lon_));
 		double tspeedY = (t - y2home) *rdt;
 		y2home = t;
-
-		accY += ((tspeedY - speedY)*rdt - accY)*0.07;
+		double taccY = (tspeedY - speedY)*rdt;
+		taccY = constrain(taccY, -6, 6);
+		accY += (taccY - accY)*0.07;
 		accX = constrain(accX, -3, 3);
 		speedY = tspeedY;
 	}
@@ -135,8 +136,9 @@ void LocationClass::xy(bool update_speed){
 		double t = from_lat2X((double)(lat_home - lat_));
 		double tspeedX = (t - x2home) * rdt;
 		x2home = t;
-
-		accX += ((tspeedX - speedX)*rdt - accX)*0.07;
+		double taccX = (tspeedX - speedX)*rdt;
+		taccX = constrain(taccX, -6, 6);
+		accX += (taccX - accX)*0.07;
 		accY = constrain(accY, -3, 3);
 		speedX=tspeedX;
 	}
@@ -257,21 +259,20 @@ bool LocationClass::processGPS_1() {
 					accuracy_ver_pos_ = DELTA_ANGLE_C*(double)posllh.vAcc;
 					if (accuracy_ver_pos_ > 99)accuracy_ver_pos_ = 99;
 
-					//	if (Log.writeTelemetry && Autopilot.motors_is_on()) {
-					//		Log.loadByte(LOG::GpS);
-					//		Log.loadGPS(&posllh);
-					//	}
-
 					if (Log.writeTelemetry && Autopilot.motors_is_on()) {
-						Log.loadByte(LOG::GPS_FULL);
+						Log.loadByte(LOG::GpS);
 						Log.loadGPS_full(&posllh);
+						Log.loadFloat((float)x2home);
+						Log.loadFloat((float)y2home);
+						Log.loadFloat((float)dX);
+						Log.loadFloat((float)dY);
+						Log.loadFloat((float)speedX);
+						Log.loadFloat((float)speedY);
+						Log.loadFloat((float)accX);
+						Log.loadFloat((float)accY);
+
+
 					}
-
-
-
-
-
-
 
 					mseconds = posllh.iTOW;
 					if (old_iTOW == 0)
