@@ -276,8 +276,7 @@ void HmcClass::loop(){
 	float Xh = fmx * Mpu.cosPitch - fmz * Mpu.sinPitch;
 	float Yh = fmx * Mpu.sinRoll * Mpu.sinPitch + fmy * Mpu.cosRoll - fmz * Mpu.sinRoll * Mpu.cosPitch;
 	
-	if (Xh!=0)
-		heading = (float)atan2(Yh, Xh);
+	heading = (float)atan2(Yh, Xh);
 
 	log();
 	

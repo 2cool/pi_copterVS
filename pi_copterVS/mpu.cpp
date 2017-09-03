@@ -425,6 +425,38 @@ bool compas_flip = false;
 bool pitch_flag;
 bool set_yaw_flag = true;
 
+
+
+
+static void toEulerianAngle(const Quaternion& q, float& roll, float& pitch, float& yaw)
+{
+	// roll (x-axis rotation)
+	double sinr = +2.0 * (q.w * q.x + q.y * q.z);
+	double cosr = +1.0 - 2.0 * (q.x * q.x + q.y * q.y);
+
+	roll = atan2(sinr, cosr);
+
+	// pitch (y-axis rotation)
+	double sinp = +2.0 * (q.w * q.y - q.z * q.x);
+	if (fabs(sinp) >= 1)
+		pitch = copysign(M_PI / 2, sinp); // use 90 degrees if out of range
+	else
+		pitch = asin(sinp);
+
+	// yaw (z-axis rotation)
+	double siny = +2.0 * (q.w * q.z + q.x * q.y);
+	double cosy = +1.0 - 2.0 * (q.y * q.y + q.z * q.z);
+	yaw = atan2(siny, cosy);
+}
+
+
+
+
+
+
+
+
+float yaw_off = 0;
 bool MpuClass::loop() {//-------------------------------------------------L O O P-------------------------------------------------------------
 
 	uint64_t mputime = micros();
@@ -444,35 +476,28 @@ bool MpuClass::loop() {//-------------------------------------------------L O O 
 	oldmpuTime = mputime;
 
 	q = _q;
-
-	//GetGravity();
-	gravity.x = 2 * (q.x*q.z - q.w*q.y);
-	gravity.y = 2 * (q.w*q.x + q.y*q.z);
-	gravity.z = q.w*q.w - q.x*q.x - q.y*q.y + q.z*q.z;
-
+	q.x  /= 65535;
+	q.y  /= 65535;
+	q.z /= 65535;
+	q.w /= 65535;
 
 
 
-	if ((abs(a[0]) > MAX_G || abs(a[1]) > MAX_G || abs(a[2]) > MAX_G)) {
-		max_g_cnt++;
-		//printf("%i  %i\n", max_g_cnt, micros() - maxG_firs_time);
-		if (maxG_firs_time == 0)
-			maxG_firs_time = mputime;
-	}
-	if (maxG_firs_time > 0) {
-		if ((mputime - maxG_firs_time) < 500000) {
-			if (max_g_cnt >= 15) {
-				Autopilot.off_throttle(true, e_MAX_ACCELERATION);
-				//Debug.run_main = false;
-			}
-		}
-		else {
-			//printf("clear %i  %i\n", max_g_cnt, micros() - maxG_firs_time);
-			maxG_firs_time = 0;
-			max_g_cnt = 0;
-		}
-	}
+	float g_yaw;
+	toEulerianAngle(q, roll, pitch, g_yaw);
+	pitch = -pitch;
+	g_yaw = -g_yaw;
 
+	
+
+
+	sin_cos(pitch, sinPitch, cosPitch);
+	sin_cos(roll, sinRoll, cosRoll);
+
+
+
+	float gravityZ = cosPitch*cosRoll;
+	tiltPower = constrain(gravityZ, 0.5f, 1);
 
 
 	gyroPitch = -n006*(float)g[1] - agpitch;  //in grad
@@ -480,27 +505,15 @@ bool MpuClass::loop() {//-------------------------------------------------L O O 
 	gyroRoll = n006*(float)g[0] - agroll;
 
 
-	float headG = RAD2GRAD*Hmc.heading;
-
-
-	//	GetYawPitchRoll();
-//	float g_yaw = 2.0f*atan2(2.0 * q.x*q.y - 2.0 * q.w*q.z, 2.0 * q.w*q.w + 2.0 * q.x*q.x - 1);  //glychnaya funkciya
-
-
-
-	pitch = atan(gravity.x / sqrt(gravity.y*gravity.y + gravity.z*gravity.z));
-	roll = atan(gravity.y / sqrt(gravity.x*gravity.x + gravity.z*gravity.z));
-	yaw += gyroYaw*dt;
-	yaw = wrap_180(yaw);
-
+	
 
 
 	if (set_yaw_flag) {
-		yaw = headG;
+		yaw_off = g_yaw-Hmc.heading;
 		set_yaw_flag = false;
 	}
 
-	if (gravity.z < 0) {
+	if (gravityZ < 0) {
 		yaw = -Autopilot.get_yaw();
 		set_yaw_flag = true;
 
@@ -520,8 +533,8 @@ bool MpuClass::loop() {//-------------------------------------------------L O O 
 		else
 			roll = ((roll > 0) ? M_PI : -M_PI) - roll;
 	}
-	else 
-		yaw += (wrap_180(headG - yaw))*0.0031f;
+	else
+		yaw_off += ( wrap_PI( wrap_PI(g_yaw - Hmc.heading) - yaw_off) )*0.0031f;
 
 	
 
@@ -529,11 +542,7 @@ bool MpuClass::loop() {//-------------------------------------------------L O O 
 	float y = -n122*(float)a[1]; 
 	float z = n122*(float)a[2];
 
-	sin_cos(pitch, sinPitch, cosPitch);
-	sin_cos(roll, sinRoll, cosRoll);
-
-	tiltPower = cosPitch*cosRoll;
-	tiltPower = constrain(tiltPower, 0.5f, 1);
+	
 
 	accZ = z*cosPitch + sinPitch*x;
 	accZ = 9.8f*(accZ*cosRoll - sinRoll*y - 1) - ac_accZ;
@@ -561,13 +570,14 @@ bool MpuClass::loop() {//-------------------------------------------------L O O 
 		}
 	}
 
-	
-
-	sin_cos(yaw*GRAD2RAD, sinYaw, cosYaw);
+	yaw = wrap_PI(g_yaw - yaw_off);
+	//yaw = g_yaw;
+	//yaw = Hmc.heading;
+	sin_cos(yaw, sinYaw, cosYaw);
 
 	pitch *= RAD2GRAD;
 	roll *= RAD2GRAD;
-	;
+	yaw*=RAD2GRAD;
 	
 //	Debug.load(0, (g_yaw*RAD2GRAD), (g_yaw-head)*RAD2GRAD);
 //	Debug.dump();

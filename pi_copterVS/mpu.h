@@ -50,7 +50,6 @@ class MpuClass
 	 int32_t t;
 	 int16_t c[3];
 
-	 VectorFloat gravity;    // [x, y, z]            gravity vector
 
 	 int r;
 	 int initialized = 0;

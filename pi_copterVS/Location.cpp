@@ -442,8 +442,6 @@ double LocationClass::set_cos_sin_dir(){
 double LocationClass::bearing_(const double lat, const double lon, const double lat2, const double lon2){
 	double x, y;
 	sin_cos(x, y, lat, lon, lat2, lon2);
-	if (x == 0)
-		x = 0.000000001;
 	return atan2(y, x);  //minus и как у гугла
 
 }
@@ -464,10 +462,7 @@ double LocationClass::distance_(const double lat, const double lon, const double
 	double dq = (lon2 - lon);
 
 	double a = (sin(df / 2)*sin(df / 2) + cos(f1)*cos(f2)*sin(dq / 2)*sin(dq / 2));
-	if (a < 0 || a >= 1)
-		return 100;
-	else
-		return R * 2 * atan2(sqrt(a), sqrt(1 - a));
+	return R * 2 * atan2(sqrt(a), sqrt(1 - a));
 
 }
 

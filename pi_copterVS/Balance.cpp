@@ -502,7 +502,7 @@ bool BalanceClass::loop()
 						//Autopilot.motors_do_on(false, e_ESK_ERROR);
 				//	}
 				//	else {
-						f_[0] = MIN_THROTTLE_;
+						f_[0] = MIN_THROTTLE_;почему при макс 0.6 квадр заваорачивало прти часовой
 						f_[1] = MIN_THROTTLE_;
 						f_[2] = MIN_THROTTLE_;
 						f_[3] = MIN_THROTTLE_;
