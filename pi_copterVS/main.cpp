@@ -1,4 +1,4 @@
-#define PROG_VERSION "ver 2.170825\n"
+#define PROG_VERSION "ver 2.170904\n"
 
 #define ONLY_ONE_RUN
 

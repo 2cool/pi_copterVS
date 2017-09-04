@@ -26,6 +26,9 @@ private:
 
 	float accXY_stabKP, accXY_stabKP_Rep;
 	float accZ_stabKP, accZ_stabKP_Rep;
+
+	float accxy_stab(float dist, float maxA, float timeL);
+	float accxy_stab_rep(float speed, float maxA, float timeL);
 	//float throttle;
 #define STAB_PIDS 3
 	AP_PID pids[STAB_PIDS];

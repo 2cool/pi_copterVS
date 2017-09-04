@@ -58,7 +58,15 @@ void StabilizationClass::init(){
 }
 //bool flx = false, fly = false;
 
+float StabilizationClass::accxy_stab(float dist, float maxA, float timeL) {
+	
+	return sqrt(2 * maxA*dist) - maxA*timeL;
 
+}
+float StabilizationClass::accxy_stab_rep(float speed, float maxA, float timeL) {
+	float t = speed / maxA + timeL;
+	return 0.5*maxA*t*t;
+}
 
 
 
