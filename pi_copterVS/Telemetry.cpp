@@ -188,6 +188,12 @@ void TelemetryClass::update_voltage(){
 		b[2] = 0;
 		voltage = 0;
 	}
+
+	if (Log.writeTelemetry && Autopilot.motors_is_on()) {
+		Log.loadByte(LOG::TELE);
+		Log.loadMem((uint8_t*)buf, 6, false);
+
+	}
 	
 	//Serial.println("bat");
 	//Serial.println(a2);
@@ -221,7 +227,7 @@ void TelemetryClass::testBatteryVoltage(){
 
 
 	if (timeAtStart == 0){
-		if (Autopilot.motors_is_on()){
+		if (Autopilot.motors_is_on() && voltage>900){
 			timeAtStart = millis();
 		}
 		else {

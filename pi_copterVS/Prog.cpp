@@ -6,6 +6,8 @@
 //добавить слежение за точкой.
 
 
+//писал что батареи недостаточно чтоби пролететь 300 метров
+
 #include "Prog.h"
 #include "GPS.h"
 #include "Autopilot.h"
@@ -433,10 +435,10 @@ bool ProgClass::load_next(bool loadf){
 
 
 	if (prog[prog_data_index] & CAMERA_ANGLE){
-		old_cam_angle = -1.4173228f*(int8_t)prog[wi++];
+		old_cam_angle = 1.4173228f*(int8_t)prog[wi++];
 		//printf("camera ang=%f\n", old_cam_angle);
 		if (loadf)
-			Pwm.gimagl_pitch(old_cam_angle);
+			Pwm.gimagl(old_cam_angle,Autopilot.gimBalRoll);
 	}
 
 	if (prog[prog_data_index] & LED_CONTROL) {

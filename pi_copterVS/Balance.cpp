@@ -1,22 +1,4 @@
 
-/*
-можность для взлета при низком заряде уже равна не 0.5 а 0.6   - Зделанно
-Также коєфециенти балансировки возможно надо менять при уменьшении напряжения на батарее   - Зделанно
-
-
-упал при смене коєфециентов стабилизации. когда поменя комп фильтри на 0.1 и 0.1 можность на двигатели стала -1 и квадрик упал. проверять что идет на двигатель. действительное ли єто число   - Зделанно
-
-на андроиде показівает хуйню пока еще домашнии координати неопределени
-?????????????????????????????
-
-*/
-
-
-
-
-
-
-
 #include "Balance.h"
 #include "MPU6050.h"
 #include "define.h"
@@ -46,11 +28,6 @@ void correct(float & f){
 63 грама
 
 2.24-3.01 за 108.088 милесекунды
-
-
-
-
-
 
 */
 
@@ -124,26 +101,26 @@ void BalanceClass::init()
 	//pitch_roll_rateIMAX = 0.05;
 	
 
-	pids[PID_PITCH_RATE].kP(0.0014f);//0.001
-	pids[PID_PITCH_RATE].kI(0.002f);//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	pids[PID_PITCH_RATE].imax(0.2);
+	pids[PID_PITCH_RATE].kP(0.001);
+	pids[PID_PITCH_RATE].kI(0.002);
+	pids[PID_PITCH_RATE].imax(0.1);
 
-	pids[PID_ROLL_RATE].kP(0.0014f);//0.001
-	pids[PID_ROLL_RATE].kI(0.002f);
-	pids[PID_ROLL_RATE].imax(0.2);
+	pids[PID_ROLL_RATE].kP(0.001);
+	pids[PID_ROLL_RATE].kI(0.002);
+	pids[PID_ROLL_RATE].imax(0.1);
 
 	yaw_stabKP = 2;
 
 	pids[PID_YAW_RATE].kP(0.0017f);
 	pids[PID_YAW_RATE].kI(0.0017f);
 	pids[PID_YAW_RATE].imax(0.1);
-	
-
 
 	Mpu.init();
 	Hmc.init();
 	Hmc.loop();
 	Mpu.initYaw(Hmc.heading*RAD2GRAD);
+	mid_powerK = 1;
+	power_K = 1;
 #ifdef DEBUG_MODE
 	fprintf(Debug.out_stream, "Heading :%i\n", (int)Hmc.get_headingGrad());
 	
@@ -156,15 +133,17 @@ void BalanceClass::init()
 string BalanceClass::get_set(){
 	
 	ostringstream convert;
-	convert<<\
-	pids[PID_PITCH_RATE].kP()<<","<<\
-	pids[PID_PITCH_RATE].kI()<<","<<\
-	pids[PID_PITCH_RATE].imax()<<","<<\
-	pitch_roll_stabKP<<","<<\
-	pids[PID_YAW_RATE].kP()<<","<<\
-	pids[PID_YAW_RATE].kI()<<","<<\
-	pids[PID_YAW_RATE].imax()<<","<<\
-	yaw_stabKP<<","<<_max_angle_;
+	convert << \
+		pids[PID_PITCH_RATE].kP() << "," << \
+		pids[PID_PITCH_RATE].kI() << "," << \
+		pids[PID_PITCH_RATE].imax() << "," << \
+		pitch_roll_stabKP << "," << \
+		pids[PID_YAW_RATE].kP() << "," << \
+		pids[PID_YAW_RATE].kI() << "," << \
+		pids[PID_YAW_RATE].imax() << "," << \
+		yaw_stabKP << "," << \
+		_max_angle_ << "," << \
+		power_K << ",";
 	string ret = convert.str();
 	return string(ret);
 }
@@ -208,12 +187,23 @@ void BalanceClass::set(const float *ar){
 		if ((error += Commander._set(ar[i++], t))==0){
 			pids[PID_YAW_RATE].imax(t);
 		}
+		t = yaw_stabKP;
+		if ((error += Commander._set(ar[i++], t)) == 0) {
+			yaw_stabKP = t;
+		}
+		t = _max_angle_;
+		if ((error += Commander._set(ar[i++], t)) == 0) {
+			_max_angle_ = constrain(t,15,35);
+		}
 
+		t = power_K;
+		if ((error += Commander._set(ar[i++], t))==0){
+
+			power_K=constrain(t,1,1.2);
+		}
 		error += Commander._set(ar[i++], yaw_stabKP);
 
 		error += Commander._set(ar[i], _max_angle_);
-	
-		
 
 	//	error += Commander._set(ar[i], stop_throttle);
 
@@ -235,14 +225,9 @@ void BalanceClass::set(const float *ar){
 	}
 }
 
-
-
-
-
 float BalanceClass::powerK(){
-	float pk = Telemetry.powerK*MS5611.powerK;
-	
-	return pk;
+	mid_powerK +=(Telemetry.powerK*MS5611.powerK- mid_powerK)*0.001;
+	return mid_powerK;
 }
 /////////////////////////////////////////////////////////////////////////////////////////
 int motors_off_i = 0;
@@ -267,93 +252,6 @@ void BalanceClass::escCalibration() {
 
 
 
-
-
-
-
-float break_ax = 0, break_ay = 0;
-float speedX = 0, speedY = 0;
-
-
-void BalanceClass::correct_c_pitch_c_roll() {
-
-
-
-
-	c_pitch = constrain(c_pitch, -maxAngle, maxAngle);
-	c_roll = constrain(c_roll, -maxAngle, maxAngle);
-	const float maxAngle07 = maxAngle*0.7f;
-	if (abs(c_pitch) > maxAngle07 || abs(c_roll) > maxAngle07) {
-		//	c_pitch = constrain(c_pitch, -maxAngle, maxAngle);
-		//c_roll = constrain(c_roll, -maxAngle, maxAngle);
-		float k = (float)(RAD2GRAD*acos(cos(c_pitch*GRAD2RAD)*cos(c_roll*GRAD2RAD)));
-		if (k == 0)
-			k = maxAngle;
-		if (k > maxAngle) {
-			k = maxAngle / k;
-			c_pitch *= k;
-			c_roll *= k;
-		}
-	}
-	/*
-	if (Autopilot.motors_is_on()) {
-		float c_cosPitch, c_sinPitch, c_cosRoll, c_sinRoll;
-
-
-
-
-		sin_cos(c_pitch*GRAD2RAD, c_sinPitch, c_cosPitch);
-		sin_cos(c_roll*GRAD2RAD, c_sinRoll, c_cosRoll);
-		if (c_cosRoll == 0 || c_cosPitch == 0)
-			return;
-		speedX = GPS.loc.speedX;
-		speedY = -GPS.loc.speedY;
-#ifndef MOTORS_OFF
-		float rspeedX = Mpu.cosYaw*speedX - Mpu.sinYaw*speedY;
-		float rspeedY = Mpu.cosYaw*speedY + Mpu.sinYaw*speedX;
-
-#define CF 0.007f
-
-		//c_pitch
-		
-		float tbreak_ax = c_sinPitch-(0.5f*abs(rspeedX)*rspeedX*(cS + cS*abs(c_sinPitch)));
-		break_ax += ((tbreak_ax) -break_ax)*CF;
-		c_pitch = RAD2GRAD*(float)atan((c_sinPitch-break_ax)  / c_cosPitch);
-		
-
-
-
-
-		//c_roll
-
-	//	c_roll = false_roll;
-		
-
-
-#endif
-
-	}
-	else {
-		c_pitch = Balance.c_pitch;
-		c_roll = Balance.c_roll;
-		speedY = speedX = 0;
-		break_ax = break_ax = 0;
-	}
-
-	
-	//Debug.load(0, total_ax, total_ay);
-	//Debug.load(1, speedX / 12, speedY / 12);
-
-
-	//Debug.dump();
-	//Debug.load(0, roll_max_angle / MAX_ANGLE, pitch_max_angle / MAX_ANGLE);
-
-	*/
-	c_pitch = constrain(c_pitch, -maxAngle, maxAngle);
-	c_roll = constrain(c_roll, -maxAngle, maxAngle);
-
-}
-
 uint64_t hmc_last_time = 0;
 
 bool BalanceClass::loop()
@@ -370,28 +268,22 @@ bool BalanceClass::loop()
 	}
 	else {
 		if (Autopilot.motors_is_on()) { 
-			float pK = powerK();
-			float min_throttle = pK*MIN_THROTTLE_;
+			const float pK = powerK();
+			const float min_throttle = constrain(MIN_THROTTLE_*pK*power_K, MIN_THROTTLE_,0.47);
+			const float max_throttle = constrain(MAX_THROTTLE_*pK*power_K, MAX_THROTTLE_,0.9);
+
 			maxAngle = _max_angle_;
 			if (Autopilot.z_stabState()) {
-				throttle = Stabilization.Z(false);
-				throttle = constrain(throttle, min_throttle, MAX_THROTTLE_);
+				throttle = pK*power_K*Stabilization.Z(false);
+				throttle = constrain(throttle, min_throttle, max_throttle);
 
 				const float thr = throttle / Mpu.tiltPower;
-				if (thr > MAX_THROTTLE_) {
-					const float angle = RAD2GRAD * (float)acos(throttle / MAX_THROTTLE_);
-					if (angle < MIN_ANGLE) {
-						maxAngle = MIN_ANGLE;
-						throttle = COS_MIN_ANGLE*MAX_THROTTLE_;
-					}
-					else {
-						maxAngle=angle;
-						throttle = MAX_THROTTLE_;
-					}
+				if (thr > max_throttle) {
+					maxAngle = constrain(RAD2GRAD*acos(throttle/ max_throttle),MIN_ANGLE, _max_angle_);
+					throttle = max_throttle;
 				}
 				else {
 					throttle = thr;
-					maxAngle=_max_angle_;
 				}
 			}
 			else {
@@ -399,7 +291,7 @@ bool BalanceClass::loop()
 				Stabilization.Z(true);
 				throttle = Autopilot.get_throttle();
 				throttle /= Mpu.tiltPower;
-				throttle = constrain(throttle, 0.3f, MAX_THROTTLE_);
+				throttle = constrain(throttle, 0.3f, max_throttle);
 				//	Debug.load(0, throttle, f_[0]);
 
 			}
@@ -412,56 +304,41 @@ bool BalanceClass::loop()
 				c_pitch = Autopilot.get_Pitch();
 				c_roll = Autopilot.get_Roll();
 			}
-		//	float oc_roll = c_roll;
-			//float oc_pitch = c_pitch;
 
-			float t_c_pitch = c_pitch;
-			float t_c_roll = c_roll;
-			correct_c_pitch_c_roll();
+			c_pitch = constrain(c_pitch, -maxAngle, maxAngle);
+			c_roll = constrain(c_roll, -maxAngle, maxAngle);
+			const float maxAngle07 = maxAngle*0.7f;
+			if (abs(c_pitch) > maxAngle07 || abs(c_roll) > maxAngle07) {
+				//	c_pitch = constrain(c_pitch, -maxAngle, maxAngle);
+				//c_roll = constrain(c_roll, -maxAngle, maxAngle);
+				float k = (float)(RAD2GRAD*acos(cos(c_pitch*GRAD2RAD)*cos(c_roll*GRAD2RAD)));
+				if (k == 0)
+					k = maxAngle;
+				if (k > maxAngle) {
+					k = maxAngle / k;
+					c_pitch *= k;
+					c_roll *= k;
+				}
+			}
 
-
-			//Debug.load(0, oc_pitch / 30, oc_roll / 30);
-			//Debug.load(0, c_pitch / 30, oc_pitch / 30);
-			//Debug.load(1, c_roll / 30, oc_roll / 30);
-			//Debug.dump();
+		
 
 #define BCF 0.1
 
 			float pitch_stab_output = f_constrain(pitch_roll_stabKP*(wrap_180(Mpu.get_pitch() - c_pitch)), -MAX_ANGLE_SPEED, MAX_ANGLE_SPEED);
 			float roll_stab_output = f_constrain(pitch_roll_stabKP*(wrap_180(Mpu.get_roll() - c_roll)), -MAX_ANGLE_SPEED, MAX_ANGLE_SPEED);
 			float yaw_stab_output = f_constrain(yaw_stabKP*wrap_180(-Autopilot.get_yaw() - Mpu.get_yaw()), -MAX_YAW_SPEED, MAX_YAW_SPEED);
-			//ErrorLog.println(wrap_180(-Autopilot.get_Yaw() - Mpu.yaw));
-
-		//	Out.fprintf(Debug.out_stream,-Autopilot.get_Yaw()); Out.fprintf(Debug.out_stream," "); Out.println(Mpu.yaw);
-			//Out.println(wrap_180(Autopilot.get_Yaw() - Mpu.yaw));
-			//	Out.fprintf(Debug.out_stream,"\t"); 
-			//	Out.println(yaw_stab_output);
-
-			// is pilot asking for yaw change - if so feed directly to rate pid (overwriting yaw stab output)
-
-
-			//Out.fprintf(Debug.out_stream,pitch_stab_output); Out.fprintf(Debug.out_stream,"\t"); Out.println(roll_stab_output);
-
 
 			// rate PIDS
 
 			const float max_delta = 0.5;// (throttle < 0.6f) ? 0.3f : MAX_DELTA;
 
-
-
-			float pitch_output = pK * pids[PID_PITCH_RATE].get_pid(pitch_stab_output + Mpu.gyroPitch, Mpu.dt);
+			float pitch_output = pK*pids[PID_PITCH_RATE].get_pid(pitch_stab_output + Mpu.gyroPitch, Mpu.dt);
 			pitch_output = constrain(pitch_output, -max_delta, max_delta);
-			float roll_output = pK * pids[PID_ROLL_RATE].get_pid(roll_stab_output + Mpu.gyroRoll, Mpu.dt);
+			float roll_output = pK*pids[PID_ROLL_RATE].get_pid(roll_stab_output + Mpu.gyroRoll, Mpu.dt);
 			roll_output = constrain(roll_output, -max_delta, max_delta);
-			float yaw_output = pK * pids[PID_YAW_RATE].get_pid(yaw_stab_output - Mpu.gyroYaw, Mpu.dt);
+			float yaw_output = pK*pids[PID_YAW_RATE].get_pid(yaw_stab_output - Mpu.gyroYaw, Mpu.dt);
 			yaw_output = constrain(yaw_output, -0.1f, 0.1f);
-
-
-
-
-			//yaw_output = 0;
-
-
 
 			float m_yaw_output = -yaw_output;  //антираскачивание при низкой мощности на плече
 			if ((throttle + yaw_output) < min_throttle)
@@ -469,18 +346,18 @@ bool BalanceClass::loop()
 			if ((throttle + m_yaw_output) < min_throttle)
 				m_yaw_output = min_throttle - throttle;
 
-
+			
 			f_[3] = f_constrain((throttle + roll_output + pitch_output + m_yaw_output), STOP_THROTTLE_, FULL_THROTTLE_);
 			f_[1] = f_constrain((throttle + roll_output - pitch_output + yaw_output), STOP_THROTTLE_, FULL_THROTTLE_);
 			f_[2] = f_constrain((throttle - roll_output + pitch_output + yaw_output), STOP_THROTTLE_, FULL_THROTTLE_);
 			f_[0] = f_constrain((throttle - roll_output - pitch_output + m_yaw_output), STOP_THROTTLE_, FULL_THROTTLE_);
 
-
+			//сделать коєфиц умнажения к примеру на 1.2 при полете с камерой.
 
 			if (Log.writeTelemetry) {
 				Log.loadByte(LOG::BAL);
-				Log.loadFloat(t_c_pitch);
-				Log.loadFloat(t_c_roll);
+				Log.loadFloat(0);
+				Log.loadFloat(0);
 				Log.loadFloat(c_pitch);
 				Log.loadFloat(c_roll);
 				Log.loadFloat(throttle);

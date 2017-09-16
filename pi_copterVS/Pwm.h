@@ -116,8 +116,8 @@ class PwmClass
  public:
 	 static int on(const uint16_t COUNTER, const uint16_t throthle );
 
-	 static bool gimbal_roll(float angle);
-	 static bool gimagl_pitch(float angle);
+	
+	 static bool gimagl(float pitch, float roll);
 	 static void get_analog(int16_t[]);
 
 

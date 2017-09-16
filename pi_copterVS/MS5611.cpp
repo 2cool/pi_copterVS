@@ -419,10 +419,9 @@ void MS5611Class::phase3() {
 	log();
 
 
-	powerK = PRESSURE_AT_0 / pressure;
+	powerK = constrain(PRESSURE_AT_0 / pressure, 1, 1.2);
 
-	if (powerK>1.4)
-		powerK = 1.4;
+
 
 	const float dt = (micros() - old_time)*0.000001;
 	old_time = micros();

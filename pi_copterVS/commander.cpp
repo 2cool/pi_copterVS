@@ -81,8 +81,9 @@ uint8_t data_errors = 0;
 
 static float ar_t333[SETTINGS_ARRAY_SIZE+1];
 float * load(const string  buf, const uint8_t  * filds){
+
 	ar_t333[SETTINGS_ARRAY_SIZE] = SETTINGS_IS_OK;
-	for (int i = 0; i < SETTINGS_ARRAY_SIZE; i++){
+	for (int i = 0; i <SETTINGS_ARRAY_SIZE; i++){
 		float val= (float)stod(buf.substr(filds[i], filds[i + 1]- filds[i] - 1));
 		if (val != 0 || buf.substr(filds[i], filds[i + 1]- filds[i] - 1).find("0.0")==0)
 			ar_t333[i] = val;
@@ -120,7 +121,6 @@ uint8_t CommanderClass::_set(const float  val, float &set, bool secure){
 }
 
 bool CommanderClass::Settings(string buf){
-
 	fprintf(Debug.out_stream,"settings\n");
 	uint8_t filds[11];
 	uint8_t fi = 0;
@@ -326,15 +326,10 @@ bool CommanderClass::input(){
 					else if (msg.find(m_SETTINGS) == 0) {
 							Settings(string((char*)(buf+i)));
 					}
-					else if (msg.find("UPS") == 0) {
+					else if (msg.find(m_UPLOAD_SETTINGS) == 0) {
 						Telemetry.getSettings(buf[i++]);
 					}
-					else if (msg.find(m_RESET) == 0) {
-						if (Autopilot.motors_is_on() == false) {
-							fprintf(Debug.out_stream, "RST \n");
-							Debug.run_main = false;
-						}
-					}
+				
 				}
 			}
 			else {

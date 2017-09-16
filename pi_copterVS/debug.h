@@ -28,6 +28,7 @@ class DebugClass
 	 FILE * out_stream;
 
 	 bool run_main;
+	 bool reboot;
 	 void init();
 	 void dump(const long f1, long f2, long f3, long f4);
 	 void dump(const float f1, float f2, float f3, float f4);

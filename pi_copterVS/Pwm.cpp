@@ -162,18 +162,6 @@ int PwmClass::on(const uint16_t COUNTER, const uint16_t throthle)
 	//TCNT1 = 0;	     //счетчик
 
 }
-static float old_g_roll = 0;
-static float old_g_pitch = 0;
-bool PwmClass::gimbal_roll( float angle){
-
-	if (old_g_roll != angle && abs(angle) <= 45){
-		old_g_roll = angle;
-		angle = angle*(1.0f / 180.0f)*(pwm_OFF_THROTTLE / 2) + ((pwm_OFF_THROTTLE / 2)) + pwm_OFF_THROTTLE;
-		//OCR5B = angle;
-		return true;
-	}
-	return false;
-}
 
 void PwmClass::beep_code(uint8_t c) {
 	char buf[1];
@@ -185,18 +173,16 @@ void PwmClass::beep_code(uint8_t c) {
 }
 
 
-bool PwmClass::gimagl_pitch( float angle){
+bool PwmClass::gimagl(float pitch, float roll){
 
 
-	if (old_g_pitch != angle && angle >= -90 && angle <= 10) {
-		angle = -angle;
-		old_g_pitch = angle;
+	if (pitch <= 90 && pitch >= -10 && abs(roll)<=45) {
 		//Serial.fprintf(Debug.out_stream,"camAng="); Serial.println(angle);
-		angle = angle*(1.0f / 180.0f)*(63) + (63) + 127;
-
+		pitch = pitch*(1.0f / 180.0f)*(63) + (63) + 127;
+		roll = roll*(1.0f / 180.0f)*(63) + (63) + 127;
 		char buf[2];
-		((int8_t*)buf)[0] = (int8_t)angle;
-		((int8_t*)buf)[1] = 127;
+		((int8_t*)buf)[1] = (int8_t)pitch;
+		((int8_t*)buf)[0] = (int8_t)roll;
 		write(fd, buf,2);
 		return true;
 	}

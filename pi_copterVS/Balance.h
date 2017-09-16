@@ -33,7 +33,8 @@
 class BalanceClass
 {
  protected:
-
+	 float power_K;
+	 float mid_powerK;
 	 float cS;
 	 void escCalibration();
 	 
@@ -43,9 +44,10 @@ class BalanceClass
 	float yaw_stabKP, pitch_roll_stabKP;
 
 	float f_[4];
-	void correct_c_pitch_c_roll();
+
 	float _max_angle_= MAX_ANGLE_;
 	float maxAngle;
+
  public:
 	 float get_max_angle() { return _max_angle_; }
 	 void set_cS(float f) { cS = f; }

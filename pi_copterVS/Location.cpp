@@ -25,6 +25,7 @@
 #include "Stabilization.h"
 #include "Autopilot.h"
 #include "Log.h"
+
 #define gps Serial2
 #define DELTA_ANGLE_C 0.001
 #define DELTA_A_RAD (DELTA_ANGLE_C*GRAD2RAD)
@@ -118,30 +119,23 @@ void LocationClass::xy(bool update_speed){
 		return;
 	}
 
-	
 	if (update_speed) {
+
 		double t = form_lon2Y((double)(lon_home - lon_));
 		double tspeedY = (t - y2home) *rdt;
 		y2home = t;
-		double taccY = (tspeedY - speedY)*rdt;
-		taccY = constrain(taccY, -6, 6);
-		accY += (taccY - accY)*0.07;
-		accX = constrain(accX, -3, 3);
+		accY = (tspeedY - speedY)*rdt;
+		accY = constrain(accY, -MAX_ACC, MAX_ACC);
 		speedY = tspeedY;
-	}
-	dY = form_lon2Y((double)(lon_needV_ - (double)lon_)) + (speedY*0.5);
-
 	
-	if (update_speed) {
-		double t = from_lat2X((double)(lat_home - lat_));
+		t = from_lat2X((double)(lat_home - lat_));
 		double tspeedX = (t - x2home) * rdt;
 		x2home = t;
-		double taccX = (tspeedX - speedX)*rdt;
-		taccX = constrain(taccX, -6, 6);
-		accX += (taccX - accX)*0.07;
-		accY = constrain(accY, -3, 3);
+		accX = (tspeedX - speedX)*rdt;
+		accX = constrain(accX, -MAX_ACC, MAX_ACC);
 		speedX=tspeedX;
 	}
+	dY = form_lon2Y((double)(lon_needV_ - (double)lon_)) + (speedY*0.5);
 	dX = from_lat2X((double)(lat_needV_ - (double)lat_)) + (speedX*0.5f);
 	
 	set_cos_sin_dir();

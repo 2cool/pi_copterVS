@@ -34,6 +34,7 @@ class MpuClass
 {
 	friend class HmcClass;
  protected:
+	 void do_magic();
 	 void calc_corrected_ang();
 	 void log();
 
@@ -78,18 +79,26 @@ class MpuClass
 	MPU6050 accelgyro;
 	 float h_yaw;
 	uint8_t gLPF;
+	//-----------------
+	float m7_accX, m7_accY;
+	float windFX, windFY;
+	float e_speedX, e_speedY;
+	
+	float w_accX, w_accY;
+	//------------------
+	float yaw_off;
+	float f_pitch, f_roll;
+	float pitch, roll;
 
-
-	  float r_pitch, r_roll;
-	  float pitch, roll;
-	  void calc_real_ang();
-	  void meansensors();
-	  void calibrationF(int16_t ar[]);
-	  void calibrationF0(int16_t ar[]);
-	  void calibrationPrint(int16_t ar[],const bool onlyGyro);
-	  float yaw;
-	  uint64_t acc_callibr_time;
+	void meansensors();
+	void calibrationF(int16_t ar[]);
+	void calibrationF0(int16_t ar[]);
+	void calibrationPrint(int16_t ar[],const bool onlyGyro);
+	float yaw,yaw_offset;
+	uint64_t acc_callibr_time;
+	float gpsACC_F = 0.1;
  public:
+	float e_accX, e_accY;
 	 float cor_c_pitch, cor_c_roll;
 	 uint64_t oldmpuTime;
 

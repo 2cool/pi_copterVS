@@ -1,4 +1,4 @@
-#define PROG_VERSION "ver 2.170916_magic \n"
+#define PROG_VERSION "ver 2.170906e\n"
 
 #define ONLY_ONE_RUN
 
@@ -339,7 +339,6 @@ int main(int argc, char *argv[]) {
 		old_time4loop = micros();
 		float dfr = 100;
 		Debug.run_main = true;
-		Debug.reboot = false;
 		while (Debug.run_main && flag == 0) {
 
 			if (loop()) {
@@ -371,7 +370,7 @@ int main(int argc, char *argv[]) {
 	fflush(Debug.out_stream);
 	fclose(Debug.out_stream);
 	usleep(3000000);
-	system(Debug.reboot?"reboot":"shutdown now");
+	system("shutdown now");
 
 #ifdef ONLY_ONE_RUN
 

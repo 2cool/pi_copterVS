@@ -46,13 +46,13 @@ class AutopilotClass
 
 	 float aPitch, aRoll,aYaw_;
 
-
+	 uint32_t old_control_bits;
 	 float throttle;
 	 
 	 uint32_t control_bits;
-	 float gimBalPitch, tflyAtAltitude;
+	 float tflyAtAltitude;
 
-
+	 void log();
 
 	 void smart_commander(const float dt);
 	// void setNextGeoDot();
@@ -61,7 +61,7 @@ class AutopilotClass
 	 float lowest_height;
 	
 	enum {MOTORS_ON=1,CONTROL_FALLING=2,Z_STAB=4,XY_STAB=8,GO2HOME=0x10,PROGRAM=0x20,COMPASS_ON=0x40,HORIZONT_ON=0x80,
-		MPU_ACC_CALIBR=0x100, MPU_GYRO_CALIBR = 0x200, COMPASS_CALIBR=0x400, COMPASS_MOTOR_CALIBR=0x800, RESETING=0x1000, GIMBAL_PLUS=0x2000,GIMBAL_MINUS=0x4000
+		MPU_ACC_CALIBR=0x100, MPU_GYRO_CALIBR = 0x200, COMPASS_CALIBR=0x400, COMPASS_MOTOR_CALIBR=0x800, SHUTDOWN=0x1000, GIMBAL_PLUS=0x2000,GIMBAL_MINUS=0x4000,REBOOT=0x8000
 	};
 
 	 
@@ -112,7 +112,7 @@ class AutopilotClass
 
 	// bool get_smart_cntr_flag(){ return smart_ctrl; }
 	 bool connected;
-	
+	 float gimBalPitch, gimBalRoll;
 	 float height_to_lift_to_fly_to_home;
 
 	 bool going2HomeON(const bool hower);

@@ -9,6 +9,15 @@
 #define DEFINE_H
 
 
+//------------------------------------------------
+//#define FALSE_WIRE
+
+
+
+
+
+
+
 #define TEST_GPS_CCURACY
 
 //#define XY_SAFE_AREA 200
@@ -17,7 +26,8 @@
 #define RAD2GRAD 57.29578
 #define GRAD2RAD 0.0174533
 
-
+#define G 9.8
+#define MAX_ACC 7
 #define DEBUG_MODE
 
 
@@ -31,7 +41,7 @@
 
 #define BEEPS_ON 0
 
-//#define FALSE_WIRE
+
 
 
 #define STEP_DEBAGING
@@ -106,17 +116,11 @@
 #define MAX_THROTTLE_ (FULL_THROTTLE_-MAX_DELTA)
 
 
-#ifdef PLUS_CAMERA
-#define HOVER_THROTHLE 0.6
-#define MIN_THROTTLE_ 0.5
-#define FALLING_THROTTLE 0.55
-#else
-#define HOVER_THROTHLE 0.5f
-#define MIN_THROTTLE_ 0.4f
-#define FALLING_THROTTLE 0.45f
-#endif
 
 
+#define HOVER_THROTHLE 0.5
+#define MIN_THROTTLE_ 0.4
+#define FALLING_THROTTLE 0.45
 
 #define STOP_THROTTLE_ 0.2f
 
@@ -153,6 +157,7 @@
 #define e_LOST_CONNECTION "LST"
 #define e_SYSTEM_MALFUNCTION "WDT"
 #define e_ESK_ERROR			"ESK"
+#define e_CALIBRATING		"CLB"
 #define i_OFF_MOTORS     "MD0"
 #define i_CONTROL_FALL   "CNF"
 #define i_MAX_THR        "MXT"
@@ -166,7 +171,7 @@
 #define m_MAX_THR     "MAX"
 #define m_OFF_THR     "OFF"
 #define m_MPU_NEW_CAL "HOR"
-#define m_RESET       "RST"
+
 #define m_GIMBAL_PA   "CDN"
 #define m_GIMBAL_PS   "CUP"
 #define m_DIRECTION_C "CMP"
@@ -174,6 +179,7 @@
 #define m_MOTOR_COMP_C "MCC"
 #define m_START_PROG   "SRP"
 #define m_SETTINGS	   "SET"
+#define m_UPLOAD_SETTINGS "UPS"
 #define m_PROGRAM	   "PRG"
 
 #endif

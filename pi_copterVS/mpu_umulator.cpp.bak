@@ -81,11 +81,11 @@ double tracc[3] = { 0,0,0 };
 
 double f_ang[3] = { 0,0,0 };
 double wind_f[3][4];
-const double f_speed_k[3] = { 0.021,0.021,0.24 };  //12.5  grad pri 10/m/s
+const double f_speed_k[3] = { 0.033,0.033,0.24 };  //20  grad pri 10/m/s
 
 const double f_gyro_k[3] = { 0.05,0.05,3.8 };
 
-
+const double G = 9.8;
 
 
 int rand_w_cnt;

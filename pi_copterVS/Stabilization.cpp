@@ -17,7 +17,7 @@
 #include "Log.h"
 void StabilizationClass::init(){
 
-	
+
 	accXY_stabKP = 0.2f;//0.5
 	accXY_stabKP_Rep = 1.0f / accXY_stabKP;
 	set_acc_xy_speed_kp(5);
@@ -100,9 +100,10 @@ void StabilizationClass::set_XY_2_GPS_XY() {
 	sY = GPS.loc.dY;
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-float _stabX = 0;
-float _stabY = 0;
 //float old_gps_bearing = 0, cos_bear = 1,  sin_bear = 0;
+
+
+
 void StabilizationClass::XY(float &pitch, float&roll,bool onlyUpdate){
 
 //#ifdef FALSE_WIRE
@@ -155,22 +156,14 @@ void StabilizationClass::XY(float &pitch, float&roll,bool onlyUpdate){
 			stabY *= -1.0f;
 	}
 
-	float tax = (stabX - _stabX) *Mpu.rdt;
-	tax = constrain(tax, -MAX_A, MAX_A);
-	_stabX += tax*Mpu.dt;
+	float glob_pitch, glob_roll;
 
-	float tay = (stabY - _stabY)*Mpu.rdt;
-	tay = constrain(tay, -MAX_A, MAX_A);
-	_stabY += tay*Mpu.dt;
+	float need_acx = constrain((stabX + speedX), -7, 7);
+	float need_acy = constrain((stabY + speedY), -7, 7);
 
-
-	_stabX = stabX;
-	_stabY = stabY;
-
-
-
-	const float glob_pitch = -pids[ACCX_SPEED].get_pid(_stabX + speedX, Mpu.dt);
-	const float glob_roll = pids[ACCY_SPEED].get_pid(_stabY + speedY, Mpu.dt);
+	glob_pitch = -pids[ACCX_SPEED].get_pid(need_acx + Mpu.e_accX, Mpu.dt);
+	glob_roll = pids[ACCY_SPEED].get_pid(need_acy + Mpu.e_accY, Mpu.dt);
+	
 
 	//----------------------------------------------------------------преобр. в относительную систему координат
 	pitch = Mpu.cosYaw*glob_pitch - Mpu.sinYaw*glob_roll;

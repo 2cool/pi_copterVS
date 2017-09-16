@@ -149,7 +149,7 @@ void AutopilotClass::init(){////////////////////////////////////////////////////
 	camera_mode = CAMMERA_OFF;
 	lowest_height = Debug.lowest_altitude_to_fly;
 	last_time_data_recived = 0;
-	
+	gimBalPitch = 0;
 	Balance.init();
 	MS5611.init();
 
@@ -175,10 +175,6 @@ void AutopilotClass::init(){////////////////////////////////////////////////////
 //		delay(10);
 
 	controlDeltaTime = millis();
-
-	gimBalPitch = gimBalRoll=0;
-
-	Pwm.gimagl(gimBalPitch, gimBalRoll);
 
 }
 
@@ -214,9 +210,6 @@ void AutopilotClass::add_2_need_altitude(float speed, const float dt){
 			flyAtAltitude = lowest_height;
 
 		//fprintf(Debug.out_stream,"f@alt %f\n", flyAtAltitude);
-	}
-	else {
-		flyAtAltitude = tflyAtAltitude;
 	}
 }
 //-------------------------------------------------------------------------
@@ -612,7 +605,6 @@ bool AutopilotClass::motors_do_on(const bool start, const string msg){//////////
 #endif
 		if (Telemetry.power_is_on() == false) {
 			fprintf(Debug.out_stream,"!!! power is off !!!\n");
-			Telemetry.addMessage(e_CALIBRATING);
 			Pwm.beep_code(BEEPS_ON+(1<<1));
 		}
 #define MAX_MACC 0.1f
@@ -870,7 +862,7 @@ bool AutopilotClass::selfTest(){////////////////////////////////////////////////
 
 void AutopilotClass::gimBalPitchADD(const float add){
 	if (!progState())
-		if (Pwm.gimagl(-(gimBalPitch + add), gimBalRoll))
+		if (Pwm.gimagl_pitch(gimBalPitch + add))
 			gimBalPitch += add;
 
 }
@@ -959,23 +951,8 @@ bool AutopilotClass::set_control_bits(uint32_t bits) {
 		Hmc.calibration(true);
 		control_bits &= ~COMPASS_CALIBR;
 	}
-	if (bits & SHUTDOWN)
-	{
-		if (motors_is_on() == false) {
-			fprintf(Debug.out_stream, "SHUTD \n");
-			Debug.reboot = false;
-			Debug.run_main = false;
-		}
-	}
-	if (bits & REBOOT)
-	{
-		if (motors_is_on() == false) {
-			fprintf(Debug.out_stream, "REBOOT \n");
-			Debug.reboot = true;
-			Debug.run_main = false;
-		}
-	}
-
+	if (bits & RESETING) 
+	{}
 	if (bits & GIMBAL_PLUS)
 		gimBalPitchADD(5);
 	if (bits & GIMBAL_MINUS)

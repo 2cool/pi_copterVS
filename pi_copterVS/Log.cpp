@@ -153,10 +153,12 @@ void LogClass::loadGPS(NAV_POSLLH *gps) {
 	log_buffer[log_bank][log_index++] = gps->vAcc;
 }
 
-void LogClass::loadMem(uint8_t*src, int len) {
-	uint8_t *fp = (uint8_t*)&len;
-	log_buffer[log_bank][log_index++] = fp[0];
-	log_buffer[log_bank][log_index++] = fp[1];
+void LogClass::loadMem(uint8_t*src, int len,bool write_mem_size) {
+	if (write_mem_size) {
+		uint8_t *fp = (uint8_t*)&len;
+		log_buffer[log_bank][log_index++] = fp[0];
+		log_buffer[log_bank][log_index++] = fp[1];
+	}
 	memcpy(&(log_buffer[log_bank][log_index]), src, len);
 	log_index += len;
 }

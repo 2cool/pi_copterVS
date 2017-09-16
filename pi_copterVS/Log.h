@@ -15,7 +15,7 @@ MS5=6b
 comm=1024
 
 */
-enum LOG { MPU, HMC, MS5, GpS, COMM, STABXY, STABZ, BAL,EMU};
+enum LOG { MPU, HMC, MS5, GpS, COMM, STABXY, STABZ, BAL,EMU,AUTO,TELE,MPU_M};
 class LogClass
 {
 private:
@@ -34,7 +34,7 @@ public:
 	void loaduint32t(uint32_t ui);
 	void loadFloat(float f);
 	void loadInt16t(int16_t i);
-	void loadMem(uint8_t*buf, int len);
+	void loadMem(uint8_t*buf, int len,bool write_mem_size=true);
 	void loadByte(uint8_t b);
 	bool init(int counter);
 	bool close();
