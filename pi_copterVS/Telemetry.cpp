@@ -187,6 +187,7 @@ void TelemetryClass::update_voltage(){
 	else {
 		b[2] = 0;
 		voltage = 0;
+		Autopilot.starts_cnt_after_powers_on = 0;
 	}
 
 	if (Log.writeTelemetry && Autopilot.motors_is_on()) {

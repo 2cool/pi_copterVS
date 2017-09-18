@@ -1,4 +1,4 @@
-#define PROG_VERSION "ver 2.170916_magic \n"
+#define PROG_VERSION "ver 2.170918_magic \n"
 
 #define ONLY_ONE_RUN
 
@@ -255,7 +255,7 @@ int main(int argc, char *argv[]) {
 
 		if (argc >= 6) {
 			int t = atoi(argv[1]);
-			t = constrain(t, 0, 300);
+			t = constrain(t, 300, 300);/////
 			Debug.fly_at_start = 0.01f*(float)t;
 
 			t=atoi(argv[2]);

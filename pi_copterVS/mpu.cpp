@@ -46,15 +46,70 @@ float MpuClass::get_roll() { return roll; }
 
 
 
+//float DRAG_K =0.022;
 
+void MpuClass::do_magic() {
+	if (Autopilot.motors_is_on() == false) {
+		e_accX = e_accY = e_speedX = e_speedY = w_accX = w_accY = m7_accX=m7_accY=0;
+		f_pitch = pitch;
+		f_roll = roll;
+		return;
+	}
+	//---calc acceleration on angels------
+	
+
+#define WIND_SPEED_X sqrt(abs(w_accX / DRAG_K))*((w_accX>=0)?1:-1)
+#define WIND_SPEED_Y sqrt(abs(w_accY / DRAG_K))*((w_accY>=0)?1:-1)
+
+//	float windX = e_speedX + WIND_SPEED_X;
+//	float windY = e_speedY + WIND_SPEED_Y;
+
+
+	e_accX = -G*(-cosYaw*sinPitch - sinYaw*sinRoll) - e_speedX*abs(e_speedX)*DRAG_K-w_accX;
+	e_accX = constrain(e_accX, -MAX_ACC, MAX_ACC);
+	e_accY = G*(-cosYaw*sinRoll + sinYaw*sinPitch) - e_speedY*abs(e_speedY)*DRAG_K-w_accY;
+	e_accY = constrain(e_accY, -MAX_ACC, MAX_ACC);
+	w_accX += (e_accX - GPS.loc.accX - w_accX)*0.01;
+	w_accY += (e_accY - GPS.loc.accY - w_accY)*0.01;
+
+	e_speedX += e_accX*dt;
+	e_speedX += (GPS.loc.speedX - e_speedX)*0.1;
+
+	e_speedY += e_accY*dt;
+	e_speedY += (GPS.loc.speedY - e_speedY)*0.1;
+
+	//-----calc real angels------
+	m7_accX += ((cosYaw*e_accX + sinYaw*e_accY) - m7_accX)*_0007;// 0.007;
+	m7_accX = constrain(m7_accX, -MAX_ACC / 2, MAX_ACC / 2);
+	m7_accY += ((cosYaw*e_accY - sinYaw*e_accX) - m7_accY)*_0007;// 0.007;
+	m7_accY = constrain(m7_accY, -MAX_ACC / 2, MAX_ACC / 2);
+
+	f_pitch = pitch;
+	f_roll = roll;
+
+	pitch = atan2((sinPitch + m7_accX*cosPitch / G), cosPitch);// +abs(gaccX*sinPitch));
+	roll = atan2((sinRoll - m7_accY*cosRoll / G), cosRoll);// +abs(gaccY*sinRoll));
+
+
+
+	if (Log.writeTelemetry && Autopilot.motors_is_on()) {
+		Log.loadByte(LOG::MPU_M);
+
+		Log.loadFloat(w_accX);
+		Log.loadFloat(w_accY);
+		Log.loadFloat(e_accX);
+		Log.loadFloat(e_accY);
+	}
+
+}
 
 //-----------------------------------------------------
 void MpuClass::log() {
 	if (Log.writeTelemetry && Autopilot.motors_is_on()) {
 		Log.loadByte(LOG::MPU);
 		Log.loadByte((uint8_t)(dt * 1000));
-		Log.loadFloat(f_pitch);
-		Log.loadFloat(f_roll);
+		Log.loadFloat(f_pitch * RAD2GRAD);
+		Log.loadFloat(f_roll * RAD2GRAD);
 		Log.loadFloat(pitch);
 		Log.loadFloat(roll);
 		Log.loadFloat(yaw);
@@ -157,7 +212,9 @@ int MpuClass::ms_open() {
 //-----------------------------------------------------
 void MpuClass::init()
 {
-	gpsACC_F = 0.1;
+	DRAG_K = 0.0052;
+	//DRAG_K = 0.022;
+	_0007=0.007;
 	gaccX =  gaccY =0;
 	acc_callibr_time = 0;
 	rate = 100;
@@ -178,7 +235,7 @@ void MpuClass::init()
 	yaw_offset = yaw = pitch = roll = gyroPitch = gyroRoll = gyroYaw = accX = accY = accZ = 0;
 	sinPitch = sinRoll = 0;
 	tiltPower = cosPitch = cosRoll = 1;
-
+	mputime = 0;
 	//COMP_FILTR = 0;// 0.003;
 
 	fprintf(Debug.out_stream,"Initializing MPU6050\n");
@@ -248,7 +305,7 @@ string MpuClass::get_set(){
 	
 	ostringstream convert;
 	convert<<
-		gpsACC_F <<",";
+		DRAG_K <<","<< _0007;
 	
 	string ret = convert.str();
 	return string(ret);
@@ -263,10 +320,12 @@ void MpuClass::set(const float  *ar){
 
 		float t;
 
-		t = gpsACC_F;
+		t = DRAG_K;
 		if (error += Commander._set(ar[i++], t) == 0)
-			gpsACC_F = t;
-
+			DRAG_K = t;
+		t = _0007;
+		if (error += Commander._set(ar[i++], t) == 0)
+			_0007 = t;
 
 		fprintf(Debug.out_stream,"mpu set:\n");
 		//int ii;
@@ -374,13 +433,13 @@ bool MpuClass::loop(){
 	cosYaw = cos(yaw);
 	sinYaw = sin(yaw);
 
+	do_magic();
+
 	yaw *= RAD2GRAD;
 	pitch *= RAD2GRAD;
 	roll *= RAD2GRAD;
 
-	calc_real_ang();
-	mgaccX += (GPS.loc.accX - mgaccX)*0.1;
-	mgaccY += (GPS.loc.accY - mgaccY)*0.1;
+	
 	//r_pitch = RAD2GRAD*pitch;
 	//r_roll = RAD2GRAD*roll;
 
@@ -448,64 +507,14 @@ static void toEulerianAngle(const Quaternion& q, float& roll, float& pitch, floa
 
 
 
-#define DRAG_K 0.022
 
-void MpuClass::do_magic() {
-	//---calc acceleration on angels------
-	sin_cos(pitch, sinPitch, cosPitch);
-	sin_cos(roll, sinRoll, cosRoll);
-
-#define WIND_SPEED_X sqrt(abs(w_accX / DRAG_K))*((w_accX>=0)?1:-1)
-#define WIND_SPEED_Y sqrt(abs(w_accY / DRAG_K))*((w_accY>=0)?1:-1)
-
-	float windX = e_speedX+ WIND_SPEED_X;
-	float windY = e_speedY+ WIND_SPEED_Y;
-
-
-	e_accX = -G*(-cosYaw*sinPitch - sinYaw*sinRoll) -  windX*abs(windX)*DRAG_K;
-	e_accX = constrain(e_accX, -MAX_ACC, MAX_ACC);
-	e_accY = G*(-cosYaw*sinRoll + sinYaw*sinPitch) -  windY*abs(windY)*DRAG_K;
-	e_accY = constrain(e_accY, -MAX_ACC, MAX_ACC);
-	w_accX += (e_accX - GPS.loc.accX - w_accX)*0.01;
-	w_accY += (e_accY - GPS.loc.accY - w_accY)*0.01;
-
-	e_speedX += e_accX*dt;
-	e_speedX += (GPS.loc.speedX - e_speedX)*0.1;
-
-	e_speedY += e_accY*dt;
-	e_speedY += (GPS.loc.speedY - e_speedY)*0.1;
-
-	//-----calc real angels------
-	m7_accX += ((cosYaw*e_accX + sinYaw*e_accY) - m7_accX)*0.007;
-	m7_accX = constrain(m7_accX, -MAX_ACC/2, MAX_ACC/2);
-	m7_accY += ((cosYaw*e_accY - sinYaw*e_accX) - m7_accY)*0.007;
-	m7_accY = constrain(m7_accY, -MAX_ACC/2, MAX_ACC/2);
-
-	f_pitch = pitch;
-	f_roll = roll;
-
-	pitch = atan2((sinPitch + m7_accX*cosPitch / G), cosPitch);// +abs(gaccX*sinPitch));
-	roll = atan2((sinRoll - m7_accY*cosRoll / G), cosRoll);// +abs(gaccY*sinRoll));
-
-
-
-	if (Log.writeTelemetry && Autopilot.motors_is_on()) {
-		Log.loadByte(LOG::MPU_M);
-
-		Log.loadFloat(w_accX);
-		Log.loadFloat(w_accY);
-		Log.loadFloat(e_accX);
-		Log.loadFloat(e_accY);
-	}
-
-}
 
 
 
 
 bool MpuClass::loop() {//-------------------------------------------------L O O P-------------------------------------------------------------
 
-	uint64_t mputime = micros();
+	mputime = micros();
 
 	//dmp
 	if (dmp_read_fifo(g, a, _q, &sensors, &fifoCount) != 0) //gyro and accel can be null because of being disabled in the efeatures
@@ -568,16 +577,12 @@ bool MpuClass::loop() {//-------------------------------------------------L O O 
 	yaw = wrap_PI(g_yaw - yaw_off);
 
 	sin_cos(yaw, sinYaw, cosYaw);
-
-
-	
-
+	sin_cos(pitch, sinPitch, cosPitch);
+	sin_cos(roll, sinRoll, cosRoll);
 	if (abs(pitch)<=65*GRAD2RAD && abs(roll)<=65*GRAD2RAD)
 		do_magic();
 
 
-	sin_cos(pitch, sinPitch, cosPitch);
-	sin_cos(roll, sinRoll, cosRoll);
 
 	tiltPower = constrain(cosPitch*cosRoll, 0.5f, 1);
 

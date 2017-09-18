@@ -80,7 +80,6 @@ void BalanceClass::init()
 	//speed = sqrt(2f / cS)
 	//cS = 0.00536;//15 град 
 //	0.00357
-	cS = (float)tan(NEED_ANGLE_4_SPEED_10_MS * GRAD2RAD)*0.02f;
 
 	f_[0] = f_[1] = f_[2] = f_[3] = 0;
 	fprintf(Debug.out_stream,"BALANCE INIT\n");
@@ -101,13 +100,13 @@ void BalanceClass::init()
 	//pitch_roll_rateIMAX = 0.05;
 	
 
-	pids[PID_PITCH_RATE].kP(0.001);
+	pids[PID_PITCH_RATE].kP(0.0014);
 	pids[PID_PITCH_RATE].kI(0.002);
-	pids[PID_PITCH_RATE].imax(0.1);
+	pids[PID_PITCH_RATE].imax(0.2);
 
-	pids[PID_ROLL_RATE].kP(0.001);
+	pids[PID_ROLL_RATE].kP(0.0014);
 	pids[PID_ROLL_RATE].kI(0.002);
-	pids[PID_ROLL_RATE].imax(0.1);
+	pids[PID_ROLL_RATE].imax(0.2);
 
 	yaw_stabKP = 2;
 
@@ -374,7 +373,7 @@ bool BalanceClass::loop()
 			}
 #ifndef FALSE_WIRE
 			else {
-				if (Autopilot.starts_cnt == 1) {
+				if (Autopilot.starts_cnt_after_powers_on == 1) {
 				//	if (acos(Mpu.cosPitch*Mpu.cosRoll)>0.122) {
 						//Autopilot.motors_do_on(false, e_ESK_ERROR);
 				//	}
@@ -405,66 +404,21 @@ bool BalanceClass::loop()
 			Log.end();            //               Nepishetca poslednie secundy loga?..  filtruemye dannye proverat na oshibku
 
 
-
-
-		//	int tt = micros();
-
-
-
 #ifdef MOTORS_OFF
 		Pwm.throttle(0, 0, 0, 0);  //670 micros
 #else
-	//	f_[0] = f_[3] = 0;
-		//Debug.load(1, f_[1], f_[2]);
-		//Debug.dump();
+		Pwm.throttle(f_[0], f_[1], f_[2], f_[3]);  //670 micros
+#endif
+
+
 #ifdef FALSE_WIRE
 		Emu.update(f_, Mpu.dt);
 #endif
-		Pwm.throttle(f_[0], f_[1], f_[2], f_[3]);  //670 micros
-		//Pwm.throttle(f_[0], 0, 0, f_[3]);  //670 micros
-
-	//	Debug.load(0, f_[0], f_[3]);
-	//	Debug.dump();
-
-		//Pwm.throttle(throttle, throttle, throttle, throttle);  //400 micros
-
-#endif
-//	Debug.load(1, f_[0], f_[3]);
-//	Debug.load(0, f_[1], f_[2]);
-//	Debug.dump();
-	//Pwm.gimagl_pitch(-40);
+		
 
 
-//	int ttt = micros() - tt;
-//	ttt = tt;
-	/*
-	int tttttttttttttt = millis();
-
-	if (tttttttttttttt>oldtttttttttttt){
-		oldtttttttttttt = tttttttttttttt + 100;
-
-		switch (cntttttttttt & 3)
-		{
-
-		case 0:
-			Out.fprintf(Debug.out_stream,f_[0]); Out.fprintf(Debug.out_stream,"\t");
-			break;
-		case 1:
-			Out.println(f_[1]);
-			break;
-		case 2:
-			Out.fprintf(Debug.out_stream,f_[2]); Out.fprintf(Debug.out_stream,"\t");
-			break;
-
-		default:
-			Out.println(f_[3]); Out.println(" ");
-			break;
 
 
-		}
-		cntttttttttt++;
-	}
-	*/
 	}
 	return true;
 }

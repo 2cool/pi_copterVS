@@ -55,7 +55,12 @@ long CONV_read(int DA, char CONV_CMD)
 }
 	char RESET = 0x1E;
 #define ALT_NOT_SET 0
+
+
+
 int MS5611Class::init(){
+	oldAltt = 100000;
+
 	old_time = micros();
 	bar_task = 0;
 	bar_zero = 0x0;
@@ -360,6 +365,8 @@ void MS5611Class::phase2() {
 	}
 }
 
+int cntt=0;
+double maxxx = 0;
 void MS5611Class::phase3() {
 
 	dT = D2 - (uint32_t)C[5] * 256;
@@ -391,24 +398,40 @@ void MS5611Class::phase3() {
 		OFF -= OFF1;
 		SENS -= SENS1;
 	}
-
-	//nado proverat na korektnost' vysoty 
 	P = ((((int64_t)D1*SENS) / 2097152 - OFF) / 32768);
-	if (P < 50000) {
-		bar_task = 0;
-		close(fd4S);
-		fprintf(Debug.out_stream,"H error\n");
-		return;
-	}
 
+	const float dt = (micros() - old_time)*0.000001;
+	old_time = micros();
+
+
+	{
+		cntt++;
+		if (oldAltt == 100000)
+			oldAltt = getAltitude(P);
+		float alt = getAltitude(P);
+		float deltaS = abs(alt - oldAltt) / dt;
+		
+		//Debug.load(0, deltaS, 0);
+		//Debug.dump();
+		if (maxxx < deltaS)
+		{
+			maxxx = deltaS;
+		//	printf("%f %i\n", maxxx,cntt);
+		}
+		if (deltaS > 22) {
+			bar_task = 0;
+			fprintf(Debug.out_stream, "%f %i\n", deltaS, cntt);
+			close(fd4S);
+			oldAltt = 100000;
+			return;
+		}
+		oldAltt = alt;
+	}
 
 	if (pressure == PRESSURE_AT_0) {
 		pressure = (float)P;
 	}
-	if (P < 0) {
-		pressure = P;
-		fprintf(Debug.out_stream,"P error\n");
-	}
+	
 	i_readTemperature = ((int8_t)(TEMP * 0.01));
 
 
@@ -423,10 +446,10 @@ void MS5611Class::phase3() {
 
 
 
-	const float dt = (micros() - old_time)*0.000001;
-	old_time = micros();
+
 	//fprintf(Debug.out_stream,"%f\n", dt);
 	const float new_altitude = getAltitude(pressure);
+
 
 	speed = (new_altitude - altitude_) / dt;
 	altitude_ = new_altitude;
@@ -442,6 +465,7 @@ void MS5611Class::phase3() {
 	//Debug.load(0, MS_errors, 0);
 	//Debug.dump();
 
+	close(fd4S);
 }
 void MS5611Class::update(){}
 

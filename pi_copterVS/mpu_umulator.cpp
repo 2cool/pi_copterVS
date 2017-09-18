@@ -9,7 +9,7 @@
 #include "Telemetry.h"
 
 
-//#define NOISE_ON
+#define NOISE_ON
 
 //#define TEST_4_FULL_VOLTAGE
 
@@ -439,7 +439,7 @@ void EmuClass::update(float fm_[4], double dt) {
 	}
 	//Debug.load(0, pos[X], pos[Y]);
 	//Debug.dump();
-	if (Log.writeTelemetry) {
+	if (Log.writeTelemetry && Autopilot.motors_is_on()) {
 		Log.loadByte(LOG::EMU);
 		Log.loadByte(8);
 		Log.loadFloat(RAD2GRAD*ang[PITCH]);

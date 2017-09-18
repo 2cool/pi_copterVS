@@ -23,7 +23,7 @@ class StabilizationClass{
 
 private:
 	
-
+	float XY_FILTER,mc_pitch,mc_roll;
 	float accXY_stabKP, accXY_stabKP_Rep;
 	float accZ_stabKP, accZ_stabKP_Rep;
 

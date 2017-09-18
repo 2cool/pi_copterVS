@@ -66,7 +66,7 @@ class AutopilotClass
 
 	 
  public:
-	 int starts_cnt;
+	 int starts_cnt_after_powers_on;
 	 bool busy() { return (control_bits & (MPU_ACC_CALIBR | MPU_GYRO_CALIBR | COMPASS_CALIBR)); }
 	 uint32_t last_time_data_recived;
 	 void setYaw(const float yaw){aYaw_ = yaw;}

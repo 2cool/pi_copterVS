@@ -51,8 +51,10 @@ void StabilizationClass::init(){
 	max_stab_z_P =  MAX_VER_SPEED_PLUS;
 	max_stab_z_M = MAX_VER_SPEED_MINUS;
 
+
+	XY_FILTER = 0.06;
 	sX=sY=sZ = 0;
-	speedZ = speedX = speedY = 0;
+	speedZ = speedX = speedY = mc_pitch=mc_roll=0;
 	fprintf(Debug.out_stream,"stab init\n");
 
 }
@@ -136,8 +138,10 @@ void StabilizationClass::XY(float &pitch, float&roll,bool onlyUpdate){
 		Log.loadFloat(speedY);
 	}
 
-	if (onlyUpdate)
+	if (onlyUpdate) {
+		mc_pitch = mc_roll = 0;
 		return;
+	}
 
 
 	float stabX, stabY;
@@ -161,13 +165,17 @@ void StabilizationClass::XY(float &pitch, float&roll,bool onlyUpdate){
 	float need_acx = constrain((stabX + speedX), -7, 7);
 	float need_acy = constrain((stabY + speedY), -7, 7);
 
-	glob_pitch = -pids[ACCX_SPEED].get_pid(need_acx + Mpu.e_accX, Mpu.dt);
-	glob_roll = pids[ACCY_SPEED].get_pid(need_acy + Mpu.e_accY, Mpu.dt);
+	mc_pitch += ((need_acx + Mpu.e_accX) - mc_pitch)*XY_FILTER;
+	mc_roll += ((need_acy + Mpu.e_accY) - mc_roll)*XY_FILTER;;
+
+
+	glob_pitch = -pids[ACCX_SPEED].get_pid(mc_pitch, Mpu.dt);
+	glob_roll = pids[ACCY_SPEED].get_pid(mc_roll, Mpu.dt);
 	
 
 	//----------------------------------------------------------------преобр. в относительную систему координат
 	pitch = Mpu.cosYaw*glob_pitch - Mpu.sinYaw*glob_roll;
-	roll = Mpu.cosYaw*glob_roll + Mpu.sinYaw*glob_pitch;
+	roll = Mpu.cosYaw*glob_roll + Mpu.sinYaw*glob_pitch ;
 
 	
 	/*
@@ -336,7 +344,7 @@ string StabilizationClass::get_xy_set(){
 	convert<<\
 	accXY_stabKP<<","<<pids[ACCX_SPEED].kP()<<","<<\
 	pids[ACCX_SPEED].kI()<<","<<pids[ACCX_SPEED].imax()<<","<<\
-	max_speed_xy<<","<<XY_KF_SPEED<<","<<XY_KF_DIST;
+	max_speed_xy<<","<<XY_KF_SPEED<<","<<XY_KF_DIST<<","<< XY_FILTER;
 	string ret = convert.str();
 	return string(ret);
 }
@@ -365,11 +373,13 @@ void StabilizationClass::setXY(const float  *ar){
 		t = pids[ACCX_SPEED].imax();
 		if ((error += Commander._set(ar[i++], t))==0)
 			set_acc_xy_speed_imax(t);
-
+		
 		error += Commander._set(ar[i++], max_speed_xy);
 		error += Commander._set(ar[i++], XY_KF_SPEED);
 		error += Commander._set(ar[i++], XY_KF_DIST);
-
+		t = XY_FILTER;
+		if ((error += Commander._set(ar[i++], t))==0)
+			XY_FILTER=t;
 
 		//resset_xy_integrator();
 		fprintf(Debug.out_stream,"Stabilization XY set:\n");

@@ -49,19 +49,17 @@
 
 
 //#define FASLE_GPS_STILL
-//#define MOTORS_OFF
+
 //#define NO_BATTERY
 
 #ifdef FALSE_WIRE
 
 //#define FASLE_GPS_STILL
-
-
-
+#define MOTORS_OFF
 #define COMPAS_MOTORS_OFF  
 #define NO_BATTERY
 
-//#define MOTORS_OFF
+
 #define FALSE_ALTITUDE 30
 
 #else
@@ -69,10 +67,6 @@
 //#define GYRO_CALIBR
 //#define ON_MAX_G_MOTORS_OFF
 #endif
-
-
-
-#define NEED_ANGLE_4_SPEED_10_MS 20.0f
 
 #define FALL_IF_STRONG_WIND
 
@@ -99,8 +93,8 @@
 #define MIN_ANGLE 15
 #define COS_MIN_ANGLE 0.966f
 
-#define HIGHT_TO_LIFT_ON_TO_FLY_TO_HOME 30
-#define FAST_DESENDING_TO_HIGH 15
+#define HIGHT_TO_LIFT_ON_TO_FLY_TO_HOME 50
+#define FAST_DESENDING_TO_HIGH 20
 
 #define MAX_HOR_SPEED 10
 #define MAX_VER_SPEED_PLUS 5

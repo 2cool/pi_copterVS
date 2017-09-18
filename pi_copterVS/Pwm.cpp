@@ -172,16 +172,18 @@ void PwmClass::beep_code(uint8_t c) {
 
 }
 
-
+//0.35555555555555555555555555555556 = 1град
 bool PwmClass::gimagl(float pitch, float roll){
 
+	
+	if (pitch <= 90 && pitch >= -45 && abs(roll)<=45) {
 
-	if (pitch <= 90 && pitch >= -10 && abs(roll)<=45) {
 		//Serial.fprintf(Debug.out_stream,"camAng="); Serial.println(angle);
-		pitch = pitch*(1.0f / 180.0f)*(63) + (63) + 127;
-		roll = roll*(1.0f / 180.0f)*(63) + (63) + 127;
+
+		pitch = 181 + pitch*0.355;
+		roll = 191 + roll*0.355;
 		char buf[2];
-		((int8_t*)buf)[1] = (int8_t)pitch;
+		((int8_t*)buf)[1] = (int8_t)(pitch);
 		((int8_t*)buf)[0] = (int8_t)roll;
 		write(fd, buf,2);
 		return true;

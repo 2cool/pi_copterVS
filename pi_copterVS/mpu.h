@@ -96,8 +96,9 @@ class MpuClass
 	void calibrationPrint(int16_t ar[],const bool onlyGyro);
 	float yaw,yaw_offset;
 	uint64_t acc_callibr_time;
-	float gpsACC_F = 0.1;
+	float DRAG_K,_0007;
  public:
+	 uint64_t mputime;
 	float e_accX, e_accY;
 	 float cor_c_pitch, cor_c_roll;
 	 uint64_t oldmpuTime;

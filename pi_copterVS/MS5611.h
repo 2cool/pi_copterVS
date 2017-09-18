@@ -52,6 +52,8 @@
 class MS5611Class {
 	
 protected:
+
+
 	void log();
 	 int ct;
 	 float altitude_error;
@@ -64,6 +66,7 @@ protected:
 
 	float altitude_;
 public:
+
 	float altitude();
 
 	uint8_t ms5611_count;
@@ -102,7 +105,7 @@ private:
 	int64_t OFF;
 	int64_t SENS;
 	int32_t P;
-
+	float oldAltt;
 	int bar_task;
 	uint64_t b_timeDelay,old_time;
 	uint8_t bar_D[3];
