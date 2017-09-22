@@ -3,19 +3,20 @@
 #define _FILTER_h
 
 
-
-class FilterClass
+class MYfILTER
 {
- protected:
-	 float max, min, ret,T,tt;
-	 bool rise;
-	
- public:
-	void init(float t); 
-	float get(float v,float dt);
-};
 
-extern FilterClass Filter;
+private:
+	float max_delta = 0.15;
+	float acum = 0;
+	float old_val = 0;
+public:
+	void setMax(float val) { max_delta = val; }
+	float update(float val);
+	MYfILTER(float f);
+	MYfILTER();
+	~MYfILTER();
+};
 
 #endif
 

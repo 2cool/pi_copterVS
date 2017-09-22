@@ -418,7 +418,7 @@ void MS5611Class::phase3() {
 			maxxx = deltaS;
 		//	printf("%f %i\n", maxxx,cntt);
 		}
-		if (deltaS > 22) {
+		if (deltaS > 50) {
 			bar_task = 0;
 			fprintf(Debug.out_stream, "%f %i\n", deltaS, cntt);
 			close(fd4S);

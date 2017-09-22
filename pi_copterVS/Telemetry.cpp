@@ -45,7 +45,7 @@ void TelemetryClass::addMessage(const string msg){
 
 void TelemetryClass::getSettings(int n){
 	fprintf(Debug.out_stream,"up set\n");
-	if (n > 4 || n < 0)
+	if (n > 7 || n < 0)
 		return;
 
 	ostringstream convert;
@@ -71,6 +71,9 @@ void TelemetryClass::getSettings(int n){
 	case 5:
 		message += Hmc.get_set();
 		break;		
+	case 6:
+		message += Balance.get_set(1);
+		break;
 	}
 	
 /*	uint8_t o = (message.length()+1) % 3;  //чтобы длина сообщения была кратная трем.

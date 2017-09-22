@@ -53,8 +53,9 @@ void StabilizationClass::init(){
 
 
 	XY_FILTER = 0.06;
+	Z_FILTER = 0.2;
 	sX=sY=sZ = 0;
-	speedZ = speedX = speedY = mc_pitch=mc_roll=0;
+	speedZ = speedX = speedY = mc_pitch=mc_roll=mc_z=0;
 	fprintf(Debug.out_stream,"stab init\n");
 
 }
@@ -240,13 +241,15 @@ float StabilizationClass::Z(bool onlyUpdate){///////////////////////////////////
 		Log.loadFloat(speedZ);
 
 	}
-	if (onlyUpdate)
+	if (onlyUpdate) {
+		mc_z = 0;
 		return 0;
+	}
 	
 	float stab = getSpeed_Z(Autopilot.fly_at_altitude() - sZ);
 	stab = constrain(stab, max_stab_z_M, max_stab_z_P);
-
-	float fZ = HOVER_THROTHLE + pids[ACCZ_SPEED].get_pid(stab - speedZ, Mpu.dt)*Balance.powerK();
+	mc_z += (stab - speedZ - mc_z)*Z_FILTER;
+	float fZ = HOVER_THROTHLE + pids[ACCZ_SPEED].get_pid(mc_z, Mpu.dt)*Balance.powerK();
 	
 	
 	//	if (++tttcnt == 3){
@@ -286,7 +289,7 @@ string StabilizationClass::get_z_set(){
 	accZ_stabKP<<","<<pids[ACCZ_SPEED].kP()<<","<<\
 	pids[ACCZ_SPEED].kI()<<","<<pids[ACCZ_SPEED].imax()<<","<<\
 	max_stab_z_P<<","<<max_stab_z_M<<","<<\
-	Z_CF_SPEED<<","<<Z_CF_DIST;
+	Z_CF_SPEED<<","<<Z_CF_DIST<<","<< Z_FILTER;
 	string ret = convert.str();
 	return string(ret);
 
@@ -322,8 +325,10 @@ void StabilizationClass::setZ(const float  *ar){
 		error += Commander._set(ar[i++], max_stab_z_P);
 		error += Commander._set(ar[i++], max_stab_z_M);
 		error += Commander._set(ar[i++], Z_CF_SPEED);
-		error += Commander._set(ar[i], Z_CF_DIST);
-
+		error += Commander._set(ar[i++], Z_CF_DIST);
+		t = Z_FILTER;
+		if ((error += Commander._set(ar[i++], t)) == 0)
+			Z_FILTER=t;
 
 		//resset_z();
 		fprintf(Debug.out_stream,"Stabilization Z set:\n");

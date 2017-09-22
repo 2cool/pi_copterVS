@@ -155,6 +155,9 @@ bool CommanderClass::Settings(string buf){
 	case 5:
 		Hmc.set(load(buf, filds));
 		break;
+	case 6:
+		Balance.set(load(buf, filds), 1);
+		break;
 	default:
 		return false;
 	}

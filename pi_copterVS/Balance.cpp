@@ -100,12 +100,12 @@ void BalanceClass::init()
 	//pitch_roll_rateIMAX = 0.05;
 	
 
-	pids[PID_PITCH_RATE].kP(0.0014);
-	pids[PID_PITCH_RATE].kI(0.002);
+	pids[PID_PITCH_RATE].kP(0.0007);  //if >=0.001 No gyro filters? yes noise
+	pids[PID_PITCH_RATE].kI(0.001);
 	pids[PID_PITCH_RATE].imax(0.2);
 
-	pids[PID_ROLL_RATE].kP(0.0014);
-	pids[PID_ROLL_RATE].kI(0.002);
+	pids[PID_ROLL_RATE].kP(0.0007);
+	pids[PID_ROLL_RATE].kI(0.001);
 	pids[PID_ROLL_RATE].imax(0.2);
 
 	yaw_stabKP = 2;
@@ -125,89 +125,96 @@ void BalanceClass::init()
 	
 #endif
 
-	
 }
 
 
-string BalanceClass::get_set(){
+string BalanceClass::get_set(int n){
 	
 	ostringstream convert;
-	convert << \
-		pids[PID_PITCH_RATE].kP() << "," << \
-		pids[PID_PITCH_RATE].kI() << "," << \
-		pids[PID_PITCH_RATE].imax() << "," << \
-		pitch_roll_stabKP << "," << \
-		pids[PID_YAW_RATE].kP() << "," << \
-		pids[PID_YAW_RATE].kI() << "," << \
-		pids[PID_YAW_RATE].imax() << "," << \
-		yaw_stabKP << "," << \
-		_max_angle_ << "," << \
-		power_K << ",";
+	if (n == 0) {
+		convert << \
+			pids[PID_PITCH_RATE].kP() << "," << \
+			pids[PID_PITCH_RATE].kI() << "," << \
+			pids[PID_PITCH_RATE].imax() << "," << \
+			pitch_roll_stabKP << "," << \
+			pids[PID_YAW_RATE].kP() << "," << \
+			pids[PID_YAW_RATE].kI() << "," << \
+			pids[PID_YAW_RATE].imax() << "," << \
+			yaw_stabKP << "," << \
+			_max_angle_ << "," << \
+			power_K << ",";
+	}
+	else {
+		
+	}
 	string ret = convert.str();
 	return string(ret);
 }
 
 
 
-void BalanceClass::set(const float *ar){
+void BalanceClass::set(const float *ar, int n){
 	int i = 0;
 	if (ar[SETTINGS_ARRAY_SIZE] == SETTINGS_IS_OK){
 		int error=0;
 		
 		float t;
+		if (n == 0) {
+			t = pids[PID_PITCH_RATE].kP();
+			if ((error += Commander._set(ar[i++], t)) == 0) {
+				pids[PID_PITCH_RATE].kP(t);
+				pids[PID_ROLL_RATE].kP(t);
+			}
+			t = pids[PID_PITCH_RATE].kI();
+			if ((error += Commander._set(ar[i++], t)) == 0) {
+				pids[PID_PITCH_RATE].kI(t);
+				pids[PID_ROLL_RATE].kI(t);
+			}
+			t = pids[PID_PITCH_RATE].imax();
+			if ((error += Commander._set(ar[i++], t)) == 0) {
+				pids[PID_PITCH_RATE].imax(t);
+				pids[PID_ROLL_RATE].imax(t);
+			}
 
-		t = pids[PID_PITCH_RATE].kP();
-		if ((error += Commander._set(ar[i++], t))==0){
-			pids[PID_PITCH_RATE].kP(t);
-			pids[PID_ROLL_RATE].kP(t);
-		}
-		t = pids[PID_PITCH_RATE].kI();
-		if ((error += Commander._set(ar[i++], t))==0){
-			pids[PID_PITCH_RATE].kI(t);
-			pids[PID_ROLL_RATE].kI(t);
-		}
-		t = pids[PID_PITCH_RATE].imax();
-		if ((error += Commander._set(ar[i++], t))==0){
-			pids[PID_PITCH_RATE].imax(t);
-			pids[PID_ROLL_RATE].imax(t);
-		}
+			error += Commander._set(ar[i++], pitch_roll_stabKP);
 
-		error += Commander._set(ar[i++], pitch_roll_stabKP);
+			t = pids[PID_YAW_RATE].kP();
+			if ((error += Commander._set(ar[i++], t)) == 0) {
+				pids[PID_YAW_RATE].kP(t);
+			}
+			t = pids[PID_YAW_RATE].kI();
+			if ((error += Commander._set(ar[i++], t)) == 0) {
+				pids[PID_YAW_RATE].kI(t);
+			}
+			t = pids[PID_YAW_RATE].imax();
+			if ((error += Commander._set(ar[i++], t)) == 0) {
+				pids[PID_YAW_RATE].imax(t);
+			}
+			t = yaw_stabKP;
+			if ((error += Commander._set(ar[i++], t)) == 0) {
+				yaw_stabKP = t;
+			}
+			t = _max_angle_;
+			if ((error += Commander._set(ar[i++], t)) == 0) {
+				_max_angle_ = constrain(t, 15, 35);
+			}
 
-		t = pids[PID_YAW_RATE].kP();
-		if ((error += Commander._set(ar[i++], t))==0){
-			pids[PID_YAW_RATE].kP(t);
-		}
-		t = pids[PID_YAW_RATE].kI();
-		if ((error += Commander._set(ar[i++], t))==0){
-			pids[PID_YAW_RATE].kI(t);
-		}
-		t = pids[PID_YAW_RATE].imax();
-		if ((error += Commander._set(ar[i++], t))==0){
-			pids[PID_YAW_RATE].imax(t);
-		}
-		t = yaw_stabKP;
-		if ((error += Commander._set(ar[i++], t)) == 0) {
-			yaw_stabKP = t;
-		}
-		t = _max_angle_;
-		if ((error += Commander._set(ar[i++], t)) == 0) {
-			_max_angle_ = constrain(t,15,35);
-		}
+			t = power_K;
+			if ((error += Commander._set(ar[i++], t)) == 0) {
 
-		t = power_K;
-		if ((error += Commander._set(ar[i++], t))==0){
+				power_K = constrain(t, 1, 1.2);
+			}
+			error += Commander._set(ar[i++], yaw_stabKP);
 
-			power_K=constrain(t,1,1.2);
+			error += Commander._set(ar[i], _max_angle_);
+
+			//	error += Commander._set(ar[i], stop_throttle);
+
+			fprintf(Debug.out_stream, "balance set:\n");
 		}
-		error += Commander._set(ar[i++], yaw_stabKP);
-
-		error += Commander._set(ar[i], _max_angle_);
-
-	//	error += Commander._set(ar[i], stop_throttle);
-
-		fprintf(Debug.out_stream,"balance set:\n");
-		
+		else {
+			
+			}
 		if (error == 0){
 			//for (ii = 0; ii < i; ii++){
 			//	Out.fprintf(Debug.out_stream,ar[ii]); Out.fprintf(Debug.out_stream,",");
@@ -248,8 +255,6 @@ void BalanceClass::escCalibration() {
 #define MAX_ANGLE_SPEED 360
 #define MAX_YAW_SPEED 60
 //#define MAX_POWER_K_IF_MAX_ANGLE_30 1.12
-
-
 
 uint64_t hmc_last_time = 0;
 
@@ -332,6 +337,7 @@ bool BalanceClass::loop()
 
 			const float max_delta = 0.5;// (throttle < 0.6f) ? 0.3f : MAX_DELTA;
 
+
 			float pitch_output = pK*pids[PID_PITCH_RATE].get_pid(pitch_stab_output + Mpu.gyroPitch, Mpu.dt);
 			pitch_output = constrain(pitch_output, -max_delta, max_delta);
 			float roll_output = pK*pids[PID_ROLL_RATE].get_pid(roll_stab_output + Mpu.gyroRoll, Mpu.dt);
@@ -345,7 +351,6 @@ bool BalanceClass::loop()
 			if ((throttle + m_yaw_output) < min_throttle)
 				m_yaw_output = min_throttle - throttle;
 
-			
 			f_[3] = f_constrain((throttle + roll_output + pitch_output + m_yaw_output), STOP_THROTTLE_, FULL_THROTTLE_);
 			f_[1] = f_constrain((throttle + roll_output - pitch_output + yaw_output), STOP_THROTTLE_, FULL_THROTTLE_);
 			f_[2] = f_constrain((throttle - roll_output + pitch_output + yaw_output), STOP_THROTTLE_, FULL_THROTTLE_);

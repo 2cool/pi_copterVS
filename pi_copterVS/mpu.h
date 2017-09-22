@@ -118,6 +118,7 @@ class MpuClass
 	 float get_roll();
 	 bool mpu_calibrated,gyro_calibratioan;
 	float accZ,accY,accX,tiltPower,cosPitch,cosRoll,sinPitch,sinRoll;
+	float tiltPower_CF;
 	float maccX, maccZ, maccY;
 	
 	

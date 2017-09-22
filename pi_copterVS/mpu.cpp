@@ -64,10 +64,12 @@ void MpuClass::do_magic() {
 //	float windX = e_speedX + WIND_SPEED_X;
 //	float windY = e_speedY + WIND_SPEED_Y;
 
+	const float _p = sinPitch / cosPitch;
+	const float _r = sinRoll / cosRoll;
 
-	e_accX = -G*(-cosYaw*sinPitch - sinYaw*sinRoll) - e_speedX*abs(e_speedX)*DRAG_K-w_accX;
+	e_accX = -G*(-cosYaw*_p - sinYaw*_r) - e_speedX*abs(e_speedX)*DRAG_K-w_accX;
 	e_accX = constrain(e_accX, -MAX_ACC, MAX_ACC);
-	e_accY = G*(-cosYaw*sinRoll + sinYaw*sinPitch) - e_speedY*abs(e_speedY)*DRAG_K-w_accY;
+	e_accY = G*(-cosYaw*_r + sinYaw*_p) - e_speedY*abs(e_speedY)*DRAG_K-w_accY;
 	e_accY = constrain(e_accY, -MAX_ACC, MAX_ACC);
 	w_accX += (e_accX - GPS.loc.accX - w_accX)*0.01;
 	w_accY += (e_accY - GPS.loc.accY - w_accY)*0.01;
@@ -218,6 +220,7 @@ void MpuClass::init()
 	gaccX =  gaccY =0;
 	acc_callibr_time = 0;
 	rate = 100;
+	tiltPower_CF = 0.05;
 
 	f_pitch = f_roll = 0;
 
@@ -305,7 +308,7 @@ string MpuClass::get_set(){
 	
 	ostringstream convert;
 	convert<<
-		DRAG_K <<","<< _0007;
+		DRAG_K <<","<< _0007<<","<< tiltPower_CF;
 	
 	string ret = convert.str();
 	return string(ret);
@@ -326,7 +329,9 @@ void MpuClass::set(const float  *ar){
 		t = _0007;
 		if (error += Commander._set(ar[i++], t) == 0)
 			_0007 = t;
-
+		t = tiltPower_CF;
+		if (error += Commander._set(ar[i++], t) == 0)
+			tiltPower_CF = t;
 		fprintf(Debug.out_stream,"mpu set:\n");
 		//int ii;
 		if (error == 0){
@@ -510,7 +515,8 @@ static void toEulerianAngle(const Quaternion& q, float& roll, float& pitch, floa
 
 
 
-
+float old_gyro_pitch = 0;
+float old_gyro_roll = 0;
 
 bool MpuClass::loop() {//-------------------------------------------------L O O P-------------------------------------------------------------
 
@@ -584,11 +590,25 @@ bool MpuClass::loop() {//-------------------------------------------------L O O 
 
 
 
-	tiltPower = constrain(cosPitch*cosRoll, 0.5f, 1);
+	tiltPower+=(constrain(cosPitch*cosRoll, 0.5f, 1)-tiltPower)*tiltPower_CF;
 
-	gyroPitch = -n006*(float)g[1] - agpitch;  //in grad
+	if (Balance.pids[PID_PITCH_RATE].kP() >= 0.001) {
+		gyroPitch = -n006*(float)g[1] - agpitch;
+		gyroRoll = n006*(float)g[0] - agroll;
+	}
+	else {
+		float t_gyroPitch = -n006*(float)g[1] - agpitch;  //in grad
+		gyroPitch = (t_gyroPitch + old_gyro_pitch)*0.5;
+		old_gyro_pitch = t_gyroPitch;
+		float t_gyroRoll = n006*(float)g[0] - agroll;
+		gyroRoll = (t_gyroRoll + old_gyro_roll)*0.5;
+		old_gyro_roll = t_gyroRoll;
+	}
+
 	gyroYaw = -n006*(float)g[2] - agyaw;
-	gyroRoll = n006*(float)g[0] - agroll;
+
+
+	
 
 	float x = n122*(float)a[0];
 	float y = -n122*(float)a[1]; 
