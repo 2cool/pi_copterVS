@@ -6,6 +6,7 @@ volatile  bool	run_loging = true;
 volatile int log_index, log_bank_, log_bank, old_bank,net_bank, error_bansk = 0;
 volatile bool log_file_closed;
 
+volatile int counter = 0;
 
 #define max_blocks_2_send 4
 #define mask 127
@@ -69,18 +70,34 @@ void loger() {
 	}
 	logfile.close();
 
-	
 
-	std::ifstream in(this_log_fname, std::ifstream::ate | std::ifstream::binary);
-	int filesize = in.tellg();
-	//printf("file size %i\n", filesize);
-	if (filesize == 0) {
-		remove(this_log_fname.c_str());
+
+	//remove old logs
+
+	int errors = 0;
+
+	for (int cnt = counter - 20;  cnt>10000; cnt--) {
+		ostringstream c_log, c_txt;
+		c_log << "/home/igor/logs/tel_log" << cnt<< ".log";
+		c_txt << "/home/igor/logs/log_out" << cnt << ".txt";
+		string t_log = c_log.str();
+		string t_txt = c_txt.str();
+
+		errors+=(remove(t_log.c_str())!=0);
+		(remove(t_txt.c_str())!=0);
+		if (errors > 50)
+			break;
 	}
+
+
+	
 	log_file_closed = true;
 
 
 }
+
+int LogClass::counter_() { return counter; }
+
 bool LogClass::close() {
 	fprintf(Debug.out_stream, "close tel log\n");
 	fprintf(Debug.out_stream, "banks: %i\twrited banks: %i\terrors:%i\n", log_bank_, old_bank, error_bansk);
@@ -111,6 +128,13 @@ bool LogClass::init(int counter_) {
 	}
 	return logfile.is_open();
 }
+
+
+void LogClass::loadSEND_I2C(SEND_I2C *p) {
+	memcpy((uint8_t*)&log_buffer[log_bank][log_index], p, sizeof(SEND_I2C));
+	log_index += sizeof(SEND_I2C);
+
+}
 void LogClass::loadFloat(float f) {
 	uint8_t *fp = (uint8_t*)&f;
 	log_buffer[log_bank][log_index++] = fp[0];
@@ -132,26 +156,7 @@ void LogClass::loadInt16t(int16_t i) {
 }
 
 
-void LogClass::loadGPS_full(NAV_POSLLH *gps) {
-	memcpy((uint8_t*)&log_buffer[log_bank][log_index], gps, sizeof(NAV_POSLLH));
-	log_index += sizeof(NAV_POSLLH);
-}
 
-
-void LogClass::loadGPS(NAV_POSLLH *gps) {
-	uint8_t *fp = (uint8_t*)&gps->lat;
-	log_buffer[log_bank][log_index++] = fp[0];
-	log_buffer[log_bank][log_index++] = fp[1];
-	log_buffer[log_bank][log_index++] = fp[2];
-	log_buffer[log_bank][log_index++] = fp[3];
-	fp = (uint8_t*)&gps->lon;
-	log_buffer[log_bank][log_index++] = fp[0];
-	log_buffer[log_bank][log_index++] = fp[1];
-	log_buffer[log_bank][log_index++] = fp[2];
-	log_buffer[log_bank][log_index++] = fp[3];
-	log_buffer[log_bank][log_index++] = gps->hAcc;
-	log_buffer[log_bank][log_index++] = gps->vAcc;
-}
 
 void LogClass::loadMem(uint8_t*src, int len,bool write_mem_size) {
 	if (write_mem_size) {

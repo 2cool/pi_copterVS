@@ -73,6 +73,9 @@ static const float f_constrain(const float v, const float min, const float max){
 	return constrain(v, min, max);
 }
 
+
+#define I_MAX 0.4
+
 void BalanceClass::init()
 {
 //f/speed^2/0.5=cS;
@@ -81,7 +84,7 @@ void BalanceClass::init()
 	//cS = 0.00536;//15 град 
 //	0.00357
 
-	f_[0] = f_[1] = f_[2] = f_[3] = 0;
+	f_[0] = f_[1] = f_[2] = f_[3] =  0;
 	fprintf(Debug.out_stream,"BALANCE INIT\n");
 	
 	c_pitch = c_roll = 0;
@@ -99,14 +102,31 @@ void BalanceClass::init()
 	//pitch_roll_rateKI = 0.001;
 	//pitch_roll_rateIMAX = 0.05;
 	
-
-	pids[PID_PITCH_RATE].kP(0.0007);  //if >=0.001 No gyro filters? yes noise
-	pids[PID_PITCH_RATE].kI(0.001);
+/*
+	pids[PID_PITCH_RATE].kP(0.001);  //if >=0.001 No gyro filters? yes noise
+	pids[PID_PITCH_RATE].kI(0.003);
 	pids[PID_PITCH_RATE].imax(0.2);
 
-	pids[PID_ROLL_RATE].kP(0.0007);
-	pids[PID_ROLL_RATE].kI(0.001);
+	pids[PID_ROLL_RATE].kP(0.001);
+	pids[PID_ROLL_RATE].kI(0.003);
 	pids[PID_ROLL_RATE].imax(0.2);
+	*/
+
+
+	pids[PID_PITCH_RATE].kP(0.0007);  //if >=0.001 No gyro filters? yes noise
+	pids[PID_PITCH_RATE].kI(0.003);
+	pids[PID_PITCH_RATE].imax(I_MAX);
+
+	pids[PID_ROLL_RATE].kP(0.0007);
+	pids[PID_ROLL_RATE].kI(0.003);
+	pids[PID_ROLL_RATE].imax(I_MAX);
+
+
+
+
+
+
+
 
 	yaw_stabKP = 2;
 
@@ -236,41 +256,43 @@ float BalanceClass::powerK(){
 	return mid_powerK;
 }
 /////////////////////////////////////////////////////////////////////////////////////////
-int motors_off_i = 0;
-void BalanceClass::escCalibration() {
-	if (motors_off_i == 0 && Telemetry.power_is_on() == false) {
-		throttle = f_[0] = f_[1] = f_[2] = f_[3] = 1;
-		fprintf(Debug.out_stream,"!!!max power!!!\n");
-		motors_off_i++;
-	}else
-		if (motors_off_i == 1 && Telemetry.power_is_on()) {
-			throttle = f_[0] = f_[1] = f_[2] = f_[3] = 0;
-			fprintf(Debug.out_stream,"!!!off power!!!\n");
-			motors_off_i++;
-		}
-}
 
-
-
-#define MAX_ANGLE_SPEED 360
+#define MAX_ANGLE_SPEED 150
 #define MAX_YAW_SPEED 60
 //#define MAX_POWER_K_IF_MAX_ANGLE_30 1.12
 
 uint64_t hmc_last_time = 0;
 
+
+
+int proc_cnt = 0;
 bool BalanceClass::loop()
 {
+
+	int64_t past = micros() - Mpu.mputime;
+	if (past < 7500)
+		usleep(7500 - past);
+	while (Mpu.loop() == false)
+		;
 	
-	if (!Mpu.loop()) {
+	switch (proc_cnt) {
+	case 0:
 		MS5611.loop();
+		proc_cnt++;
+		break;
+	case 1:
 		if (micros() - hmc_last_time > 10000) {
 			hmc_last_time = micros();
 			Hmc.loop();
 		}
+		proc_cnt++;
+		break;
+	default:
 		GPS.loop();
-		return false;
+		proc_cnt=0;
+		break;
 	}
-	else {
+
 		if (Autopilot.motors_is_on()) { 
 			const float pK = powerK();
 			const float min_throttle = constrain(MIN_THROTTLE_*pK*power_K, MIN_THROTTLE_,0.47);
@@ -283,7 +305,8 @@ bool BalanceClass::loop()
 
 				const float thr = throttle / Mpu.tiltPower;
 				if (thr > max_throttle) {
-					maxAngle = constrain(RAD2GRAD*acos(throttle/ max_throttle),MIN_ANGLE, _max_angle_);
+					maxAngle = RAD2GRAD*acos(throttle / max_throttle);
+					maxAngle = constrain(maxAngle,MIN_ANGLE, _max_angle_);
 					throttle = max_throttle;
 				}
 				else {
@@ -295,10 +318,11 @@ bool BalanceClass::loop()
 				Stabilization.Z(true);
 				throttle = Autopilot.get_throttle();
 				throttle /= Mpu.tiltPower;
-				throttle = constrain(throttle, 0.3f, max_throttle);
+				throttle = constrain(throttle, 0.2f, max_throttle);
 				//	Debug.load(0, throttle, f_[0]);
 
 			}
+
 
 			if (Autopilot.xy_stabState()) {
 				Stabilization.XY(c_pitch, c_roll,false);
@@ -311,6 +335,18 @@ bool BalanceClass::loop()
 
 			c_pitch = constrain(c_pitch, -maxAngle, maxAngle);
 			c_roll = constrain(c_roll, -maxAngle, maxAngle);
+
+			if (throttle < MIN_THROTTLE_) {
+				pids[PID_PITCH_RATE].reset_I();
+				pids[PID_ROLL_RATE].reset_I();
+				pids[PID_YAW_RATE].reset_I();
+				c_pitch = c_roll = 0;
+				Stabilization.resset_xy_integrator();
+				Stabilization.resset_z();
+			}
+
+
+
 			const float maxAngle07 = maxAngle*0.7f;
 			if (abs(c_pitch) > maxAngle07 || abs(c_roll) > maxAngle07) {
 				//	c_pitch = constrain(c_pitch, -maxAngle, maxAngle);
@@ -333,11 +369,10 @@ bool BalanceClass::loop()
 			float roll_stab_output = f_constrain(pitch_roll_stabKP*(wrap_180(Mpu.get_roll() - c_roll)), -MAX_ANGLE_SPEED, MAX_ANGLE_SPEED);
 			float yaw_stab_output = f_constrain(yaw_stabKP*wrap_180(-Autopilot.get_yaw() - Mpu.get_yaw()), -MAX_YAW_SPEED, MAX_YAW_SPEED);
 
+
 			// rate PIDS
 
 			const float max_delta = 0.5;// (throttle < 0.6f) ? 0.3f : MAX_DELTA;
-
-
 			float pitch_output = pK*pids[PID_PITCH_RATE].get_pid(pitch_stab_output + Mpu.gyroPitch, Mpu.dt);
 			pitch_output = constrain(pitch_output, -max_delta, max_delta);
 			float roll_output = pK*pids[PID_ROLL_RATE].get_pid(roll_stab_output + Mpu.gyroRoll, Mpu.dt);
@@ -345,13 +380,15 @@ bool BalanceClass::loop()
 			float yaw_output = pK*pids[PID_YAW_RATE].get_pid(yaw_stab_output - Mpu.gyroYaw, Mpu.dt);
 			yaw_output = constrain(yaw_output, -0.1f, 0.1f);
 
+		//	yaw_output = 0;
+
 			float m_yaw_output = -yaw_output;  //антираскачивание при низкой мощности на плече
 			if ((throttle + yaw_output) < min_throttle)
 				yaw_output = min_throttle - throttle;//???????????????????????????????????????????????????
 			if ((throttle + m_yaw_output) < min_throttle)
 				m_yaw_output = min_throttle - throttle;
 
-			f_[3] = f_constrain((throttle + roll_output + pitch_output + m_yaw_output), STOP_THROTTLE_, FULL_THROTTLE_);
+			f_[3] =  f_constrain((throttle + roll_output + pitch_output + m_yaw_output), STOP_THROTTLE_, FULL_THROTTLE_);
 			f_[1] = f_constrain((throttle + roll_output - pitch_output + yaw_output), STOP_THROTTLE_, FULL_THROTTLE_);
 			f_[2] = f_constrain((throttle - roll_output + pitch_output + yaw_output), STOP_THROTTLE_, FULL_THROTTLE_);
 			f_[0] = f_constrain((throttle - roll_output - pitch_output + m_yaw_output), STOP_THROTTLE_, FULL_THROTTLE_);
@@ -378,18 +415,7 @@ bool BalanceClass::loop()
 			}
 #ifndef FALSE_WIRE
 			else {
-				if (Autopilot.starts_cnt_after_powers_on == 1) {
-				//	if (acos(Mpu.cosPitch*Mpu.cosRoll)>0.122) {
-						//Autopilot.motors_do_on(false, e_ESK_ERROR);
-				//	}
-				//	else {
-						f_[0] = MIN_THROTTLE_;
-						f_[1] = MIN_THROTTLE_;
-						f_[2] = MIN_THROTTLE_;
-						f_[3] = MIN_THROTTLE_;
-						throttle = MIN_THROTTLE_;
-				//	}
-				}
+				
 			}
 #endif
 
@@ -401,8 +427,16 @@ bool BalanceClass::loop()
 			pids[PID_YAW_RATE].reset_I();
 			c_pitch = c_roll = 0;
 
-			if (Debug.escCalibr>0)
-				escCalibration();
+			if (Log.writeTelemetry) {
+				Log.loadByte(LOG::BAL);
+				Log.loadFloat(0);
+				Log.loadFloat(0);
+				Log.loadFloat(0);
+				Log.loadFloat(0);
+				Log.loadFloat(0);
+				Log.write_bank_cnt();
+				Log.loadMem((uint8_t*)f_, 16);
+			}
 
 		}
 		if (Log.writeTelemetry)
@@ -410,9 +444,10 @@ bool BalanceClass::loop()
 
 
 #ifdef MOTORS_OFF
-		Pwm.throttle(0, 0, 0, 0);  //670 micros
+		mega_i2c.throttle(0, 0, 0, 0);  //670 micros
 #else
-		Pwm.throttle(f_[0], f_[1], f_[2], f_[3]);  //670 micros
+		//mega_i2c.throttle(0, 0, 0, 0);  //670 micros
+		mega_i2c.throttle(f_[0], f_[1], f_[2], f_[3]);  //670 micros
 #endif
 
 
@@ -424,19 +459,19 @@ bool BalanceClass::loop()
 
 
 
-	}
+	
 	return true;
 }
 
 
 
 void BalanceClass::set_off_th_() { 
-	f_[0] = f_[1] = f_[2] = f_[3] = 0; 
+	f_[0] = f_[1] = f_[2] = f_[3]  = 0; 
 	throttle = 0; 
 #ifdef FALSE_WIRE
 	Emu.update(f_, Mpu.dt);
 #endif
-	Pwm.throttle(f_[0], f_[1], f_[2], f_[3]);
+	mega_i2c.throttle(f_[0], f_[1], f_[2], f_[3]);
 }
 
 

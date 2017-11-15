@@ -44,17 +44,7 @@ THE SOFTWARE.
 ===============================================
 */
 
-#include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <string.h>
-#include <errno.h>
-#include <sys/ioctl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <linux/i2c-dev.h>
+
 #include "I2Cdev.h"
 #include "debug.h"
 
@@ -181,7 +171,7 @@ int8_t readBytes(uint8_t devAddr, uint8_t regAddr, uint8_t length, uint8_t *data
 #ifdef DEBUG
     fprintf(Debug.out_stream,"read %#x %#x %u\n",devAddr,regAddr,length);
 #endif
-    int fd = open("/dev/i2c-1", O_RDWR);
+    int fd = open("/dev/i2c-0", O_RDWR);
 
     if (fd < 0) {
         fprintf(stderr, "Failed to open device: %s\n", strerror(errno));
@@ -356,7 +346,7 @@ int writeBytes(uint8_t devAddr, uint8_t regAddr, uint8_t length, uint8_t* data) 
         return -1;
     }
 
-    fd = open("/dev/i2c-1", O_RDWR);
+    fd = open("/dev/i2c-0", O_RDWR);
     if (fd < 0) {
         fprintf(stderr, "Failed to open device: %s\n", strerror(errno));
         return -1;
@@ -403,7 +393,7 @@ int writeWords(uint8_t devAddr, uint8_t regAddr, uint8_t length, uint16_t* data)
         return -1;
     }
 
-    fd = open("/dev/i2c-1", O_RDWR);
+    fd = open("/dev/i2c-0", O_RDWR);
     if (fd < 0) {
         fprintf(stderr, "Failed to open device: %s\n", strerror(errno));
         return -1;

@@ -94,7 +94,7 @@ void MpuClass::do_magic() {
 
 
 
-	if (Log.writeTelemetry && Autopilot.motors_is_on()) {
+	if (Log.writeTelemetry) {
 		Log.loadByte(LOG::MPU_M);
 
 		Log.loadFloat(w_accX);
@@ -107,7 +107,7 @@ void MpuClass::do_magic() {
 
 //-----------------------------------------------------
 void MpuClass::log() {
-	if (Log.writeTelemetry && Autopilot.motors_is_on()) {
+	if (Log.writeTelemetry) {
 		Log.loadByte(LOG::MPU);
 		Log.loadByte((uint8_t)(dt * 1000));
 		Log.loadFloat(f_pitch * RAD2GRAD);
@@ -227,6 +227,7 @@ void MpuClass::init()
 	windFX = windFY = e_speedX = e_speedY = e_accX=e_accY=m7_accX=m7_accY=w_accX=w_accY=0;
 	yaw_off = 0;
 	maccX = maccY = maccZ = 0;
+
 	max_g_cnt = 0;
 	cosYaw = 1;
 	sinYaw = 0;
@@ -471,7 +472,7 @@ uint8_t GetGravity(VectorFloat *v, Quaternion *q) {
 #define ROLL_COMPENSATION_IN_YAW_ROTTATION 0.02
 #define PITCH_COMPENSATION_IN_YAW_ROTTATION 0.025
 
-float ac_accX = 0, ac_accY = 0, ac_accZ = -0.3664f;
+float ac_accX = 0, ac_accY = 0, ac_accZ = 0.91209;
 float agpitch = 0, agroll = 0, agyaw = 0;
 
 uint64_t maxG_firs_time = 0;
@@ -520,12 +521,13 @@ float old_gyro_roll = 0;
 
 bool MpuClass::loop() {//-------------------------------------------------L O O P-------------------------------------------------------------
 
-	mputime = micros();
+	
 
 	//dmp
 	if (dmp_read_fifo(g, a, _q, &sensors, &fifoCount) != 0) //gyro and accel can be null because of being disabled in the efeatures
 		return false;
 
+	mputime = micros();
 	dt = (float)(mputime - oldmpuTime)*0.000001f;// *div;
 	//if (dt > 0.015)
 	//	printf("MPU DT too long\n");
@@ -585,6 +587,8 @@ bool MpuClass::loop() {//-------------------------------------------------L O O 
 	sin_cos(yaw, sinYaw, cosYaw);
 	sin_cos(pitch, sinPitch, cosPitch);
 	sin_cos(roll, sinRoll, cosRoll);
+
+
 	if (abs(pitch)<=65*GRAD2RAD && abs(roll)<=65*GRAD2RAD)
 		do_magic();
 
@@ -592,7 +596,7 @@ bool MpuClass::loop() {//-------------------------------------------------L O O 
 
 	tiltPower+=(constrain(cosPitch*cosRoll, 0.5f, 1)-tiltPower)*tiltPower_CF;
 
-	if (Balance.pids[PID_PITCH_RATE].kP() >= 0.001) {
+	if (true){//Balance.pids[PID_PITCH_RATE].kP() >= 0.0012) {
 		gyroPitch = -n006*(float)g[1] - agpitch;
 		gyroRoll = n006*(float)g[0] - agroll;
 	}
@@ -621,11 +625,11 @@ bool MpuClass::loop() {//-------------------------------------------------L O O 
 	accY = 9.8f*(y*cosRoll + z*sinRoll) - ac_accY;
 
 	if (Autopilot.motors_is_on() == false) {
+
 		if (mputime > 20000000) {
-			maccX += (accX - maccX)*0.01f;
-			maccY += (accY - maccY)*0.01f;
-			maccZ += (accZ - maccZ)*0.01f;
-			
+			//maccX += (accX - maccX)*0.01f;
+			//maccY += (accY - maccY)*0.01f;
+			//maccZ += (accZ - maccZ)*0.01f;
 		}
 
 		if (mputime > 30000000 && acc_callibr_time > mputime) {
@@ -635,16 +639,13 @@ bool MpuClass::loop() {//-------------------------------------------------L O O 
 			agpitch += gyroPitch*0.01;
 			agroll += gyroRoll*0.01;
 			agyaw += gyroYaw*0.01;
-			
 		}
 	}
-
 
 
 	pitch *= RAD2GRAD;
 	roll *= RAD2GRAD;
 	yaw*=RAD2GRAD;
-
 
 	
 //	mgaccX += (GPS.loc.accX - mgaccX)*gpsACC_F;

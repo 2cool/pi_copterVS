@@ -1,5 +1,14 @@
 // GPS.h
-#include "Location.h"
+
+
+
+
+
+
+
+
+
+
 #ifndef _GPS_h
 #define _GPS_h
 
@@ -9,6 +18,9 @@
 	#include "WProgram.h"
 #endif
 
+
+
+#include "mi2c.h"
 #include "Location.h"
 
 

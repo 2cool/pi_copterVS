@@ -1,4 +1,4 @@
-// Pwm.h
+// mega_i2c.h
 
 
 /*
@@ -68,7 +68,7 @@ timer5 	16 		C 			- 				46
 
 
 
-
+#include "define.h"
 
 
 
@@ -108,7 +108,7 @@ timer5 	16 		C 			- 				46
 
 
 //10000
-class PwmClass
+class Megai2c
 {
  protected:
 	 
@@ -124,34 +124,24 @@ class PwmClass
 	 static void sound(const float);
 	 static void beep_code(uint8_t);
 	 static void throttle(const float n0, const float n1, const float n2, const float n3);
-	static void throttle_0(const float n);
-	static void throttle_1(const float n);
-	static void throttle_2(const float n);
-	static void throttle_3(const float n);
 
+	void getiiiiv(char *iiiiv);
 
-	static void setAll_(const uint16_t n){
-		throttle_0(n);
-		throttle_1(n);
-		throttle_2(n);
-		throttle_3(n);
-	}
+	int get_gps(SEND_I2C *gps_d);
 
-	static void throttle_0(const uint16_t n);
-	static void throttle_1(const uint16_t n);
-	static void throttle_2(const uint16_t n);
-	static void throttle_3(const uint16_t n);
 	static void Buzzer(const bool on);
 
+	int gsm_loop();
 
 
 private:
 
 	static uint16_t correct(const float n);
-
+	int send2sim(char *str, int len);
+	int getsim(char * str);
 };
 
-extern PwmClass Pwm;
+extern Megai2c mega_i2c;
 
 #endif
 

@@ -41,19 +41,19 @@ void StabilizationClass::init(){
 
 
 
-	accZ_stabKP = 0.2f;
+	accZ_stabKP = 1;//єто било ошибочное решение. било 0.2 в прошлом году стояло 0.5. короче он улетел.
 	accZ_stabKP_Rep = 1.0f / accZ_stabKP;
 
 
-	pids[ACCZ_SPEED].kP(0.15f);
-	pids[ACCZ_SPEED].kI(0.25f);
+	pids[ACCZ_SPEED].kP(0.1f);
+	pids[ACCZ_SPEED].kI(0.06f);
 	pids[ACCZ_SPEED].imax(MAX_THROTTLE_-HOVER_THROTHLE);
 	max_stab_z_P =  MAX_VER_SPEED_PLUS;
 	max_stab_z_M = MAX_VER_SPEED_MINUS;
 
 
 	XY_FILTER = 0.06;
-	Z_FILTER = 0.2;
+	Z_FILTER = 0.1;
 	sX=sY=sZ = 0;
 	speedZ = speedX = speedY = mc_pitch=mc_roll=mc_z=0;
 	fprintf(Debug.out_stream,"stab init\n");
@@ -131,7 +131,7 @@ void StabilizationClass::XY(float &pitch, float&roll,bool onlyUpdate){
 	sY += (GPS.loc.dY - sY)*XY_KF_DIST;
 	speedY += (GPS.loc.speedY - speedY)*XY_KF_SPEED;
 
-	if (Log.writeTelemetry && Autopilot.motors_is_on()) {
+	if (Log.writeTelemetry) {
 		Log.loadByte(LOG::STABXY);
 		Log.loadFloat(sX);
 		Log.loadFloat(speedX);
@@ -235,7 +235,7 @@ float StabilizationClass::Z(bool onlyUpdate){///////////////////////////////////
 	speedZ += Mpu.accZ*Mpu.dt;
 	speedZ += (MS5611.speed - speedZ)*Z_CF_SPEED;
 
-	if (Log.writeTelemetry && Autopilot.motors_is_on()) {
+	if (Log.writeTelemetry) {
 		Log.loadByte(LOG::STABZ);
 		Log.loadFloat(sZ);
 		Log.loadFloat(speedZ);
@@ -245,10 +245,14 @@ float StabilizationClass::Z(bool onlyUpdate){///////////////////////////////////
 		mc_z = 0;
 		return 0;
 	}
+	//добавить плавний старт
+
+	//float accZ = Autopilot.get_throttle();
 	
 	float stab = getSpeed_Z(Autopilot.fly_at_altitude() - sZ);
 	stab = constrain(stab, max_stab_z_M, max_stab_z_P);
 	mc_z += (stab - speedZ - mc_z)*Z_FILTER;
+
 	float fZ = HOVER_THROTHLE + pids[ACCZ_SPEED].get_pid(mc_z, Mpu.dt)*Balance.powerK();
 	
 	

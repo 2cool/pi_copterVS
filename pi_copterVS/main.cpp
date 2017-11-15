@@ -1,4 +1,4 @@
-#define PROG_VERSION "ver 2.170921_f_1_magic \n"
+#define PROG_VERSION "ver 2.170926_magic \n"
 
 #define ONLY_ONE_RUN
 
@@ -17,7 +17,8 @@
 #include "Filter.h"
 #include "define.h"
 #include "debug.h"
-
+#include "I2Cdev.h"
+#include "mi2c.h"
 
 
 #include "WProgram.h"
@@ -32,8 +33,7 @@
 
 #include "Autopilot.h"
 
-#include "Pwm.h"
-#include "I2Cdev.h"
+
 #include "MPU6050.h"
 #include "Balance.h"
 
@@ -111,11 +111,10 @@ bool is_clone(char *argv0) {
 
 
 
-uint16_t oldCounter = 1000;
 
 int setup(int cnt) {////--------------------------------------------- SETUP ------------------------------
 	Log.init(cnt);
-	Pwm.on(0, pwm_MAX_THROTTLE);
+	
 
 	Settings.read();
 
@@ -135,7 +134,7 @@ int setup(int cnt) {////--------------------------------------------- SETUP ----
 	Telemetry.init_();
 	Telemetry.testBatteryVoltage();
 	fprintf(Debug.out_stream,"telemetry init OK \n");
-	Pwm.beep_code(BEEPS_ON);
+	mega_i2c.beep_code(BEEPS_ON);
 	GPS.init();
 	return 0;
 
@@ -174,6 +173,39 @@ int er_cnt = 0;
 long dt_sum=0;
 int max_dt = 0;
 int old_debug = 0;
+
+//---------------------------------------------
+
+
+void gsm() {
+	int in = open("/dev/tnt0", O_RDWR | O_NONBLOCK | O_NDELAY);
+	if (in < 0)
+	{
+		fprintf(Debug.out_stream, "/dev/tnt0 err\n");
+	}
+	int out = open("/dev/tnt0", O_RDWR | O_NONBLOCK | O_NDELAY);
+	if (in < 0)
+	{
+		fprintf(Debug.out_stream, "/dev/tnt1 err\n");
+	}
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+//----------------------------------------------
+
 bool loop()
 {
 
@@ -186,23 +218,23 @@ bool loop()
 
 
 #endif
+	
 
-
-	if (Balance.loop()) {
+	Balance.loop();
 
 #ifdef WORK_WITH_WIFI
 		Telemetry.loop();
 #endif
 		Commander.input();
 		Autopilot.loop();
+		mega_i2c.gsm_loop();
 
 #ifdef FALSE_WIRE
 		usleep(3000);
 #endif
 		return true;
-	}
-	else
-		return false;
+	
+	
 
 	
 }
@@ -225,11 +257,16 @@ int printHelp() {
 
 
 int main(int argc, char *argv[]) {
+	string fname;
+	//0xbefffcf7 "/home/igor/projects/pi_copterVS/bin/ARM/Debug/pi_copterVS.out"
 
-	printf( PROG_VERSION);
+
+
+
+	printf(PROG_VERSION);
 
 #ifdef ONLY_ONE_RUN
-	if (is_clone(argv[0])==true) {
+	if (is_clone(argv[0]) == true) {
 		printf("clone\n");
 		if (-1 == semctl(semid, 0, IPC_RMID, 0))
 		{
@@ -238,7 +275,7 @@ int main(int argc, char *argv[]) {
 		return 0;
 	}
 #endif	
-
+	
 	Debug.fly_at_start = 3;
 	Debug.lowest_altitude_to_fly = 1.6f;
 	Debug.n_debug = 0;
@@ -270,7 +307,7 @@ int main(int argc, char *argv[]) {
 
 				fclose(set);
 				usleep(500);
-				if (counter < 9999)
+				if (counter <= 0 )
 				{
 					FILE *in;
 					char buff[512];
@@ -304,7 +341,7 @@ int main(int argc, char *argv[]) {
 
 				ostringstream convert;
 				convert << "/home/igor/logs/log_out" << counter << ".txt";
-				string fname = convert.str();
+				fname = convert.str();
 
 				Debug.out_stream = fopen(fname.c_str(), "w+");
 			}else	
@@ -329,20 +366,45 @@ int main(int argc, char *argv[]) {
 	}
 
 
+	mega_i2c.on(0, pwm_MAX_THROTTLE);
+	string str = string(argv[0]);
+	str = str.substr(str.length() - 4, str.length());
 
-
-
+	/*
+	if (str.compare("pter") == 0) {
+		int16_t buf[3];
+		mega_i2c.get_analog(buf);
+		if (buf[0] < 100) {
+			if (argv[3][0] == 'f' || argv[3][0] == 'F') {
+				fclose(Debug.out_stream);
+				remove(fname.c_str());
+			}
+			return 0;
+		}
+	}
+	*/
 	if (setup(counter) == 0) {
 		if (Telemetry.get_voltage() > 0)
 			Debug.escCalibr = false;
 
 		old_time4loop = micros();
-		float dfr = 100;
+
 		Debug.run_main = true;
 		Debug.reboot = false;
+		int cnttt = 0;
+		int64_t ollll = micros();
 		while (Debug.run_main && flag == 0) {
+			cnttt++;
+			if (cnttt > 10000) {
+				int64_t t = micros();
+				cnttt = 0;
 
-			if (loop()) {
+				int it = (int64_t)10000000000 / (t - ollll);
+				printf("%i\n",it);
+				ollll = t;
+			}
+				
+			loop();
 				//usleep(5400);
 			//	int ttt = micros();
 			//	dfr += ((1000000 / (ttt - old_time4loop)) - dfr)*0.01;
@@ -351,16 +413,16 @@ int main(int argc, char *argv[]) {
 				int64_t t = micros();
 				int32_t time_past = (int32_t)(t - old_time4loop);
 				old_time4loop = t;
-				//if (time_past > 15000)
-				//	fprintf(Debug.out_stream,"too long %i\n",time_past);
+				if (time_past > 15000)
+					fprintf(Debug.out_stream,"too long %i\n",time_past);
 
 				//Debug.load(0, time_past, 0);
 				//Debug.dump();
-			}
+			
 
 		}
 	}
-	Log.close();
+	
 	WiFi.stopServer();
 	if (Debug.run_main==false)
 		fprintf(Debug.out_stream, "\n exit\n");
@@ -370,8 +432,11 @@ int main(int argc, char *argv[]) {
 
 	fflush(Debug.out_stream);
 	fclose(Debug.out_stream);
+	Log.close();
 	usleep(3000000);
+
 	system(Debug.reboot?"reboot":"shutdown now");
+
 
 #ifdef ONLY_ONE_RUN
 

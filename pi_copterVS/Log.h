@@ -25,12 +25,10 @@ public:
 	void write_bank_cnt();
 	uint8_t * getNext(int &len);
 	bool writeTelemetry;
-	int counter = 0;
+	int counter_();
 	int run_counter;
 	void end();
-	void loadGPS(NAV_POSLLH *gps);
-
-	void loadGPS_full(NAV_POSLLH *gps);
+	void loadSEND_I2C(SEND_I2C *p);
 	void loaduint32t(uint32_t ui);
 	void loadFloat(float f);
 	void loadInt16t(int16_t i);

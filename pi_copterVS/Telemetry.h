@@ -16,7 +16,7 @@ enum { T_TEMP = 0, T_PRES = 1, T_LAT = 3, T_LON = 7, T_GPS_HEIGHT = 11, T_GPS_HE
 class TelemetryClass
 {
  protected:
-	 uint32_t power_on_time;
+
 	 uint8_t buf[TELEMETRY_BUF_SIZE];
 	 volatile int buffer_size;
 	 void loadBUF32(int &i, int32_t val);
@@ -30,21 +30,20 @@ class TelemetryClass
 	 
 	// uint8_t inner_clock_old_sec;
 	
-	 unsigned long next_battery_test_time;
+	 unsigned long next_test_time;
 	  uint32_t pressure;
 	 float voltage,voltage_at_start;
+	 float m_current[4];
 	 uint32_t  time_at_start;
 	 long timeAtStart;
 	 
 	 string message;
 	 void update_buf();
  public:
-	float b[3];
-	uint32_t get_power_on_time() { return power_on_time; }
-	bool power_is_on();
 
 	 uint8_t no_time_cnt = 0;
 	 void update_voltage();
+
 	 float powerK;
 
 	 void clearMessage(){ message = ""; }
@@ -52,7 +51,7 @@ class TelemetryClass
 	 string getMessage(){ return message; }
 	 void getSettings(int n);
 	 bool minimumTelemetry;
-	 bool low_voltage,voltage50P;
+	 bool low_voltage;
 	 
 	 uint8_t lov_voltage_cnt;
 

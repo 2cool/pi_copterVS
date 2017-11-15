@@ -57,13 +57,13 @@ void GPSClass::loop(){
 
 	gpsttime = millis()/100;
 	
-	if (loc.mseconds != gpsttime)
-		loc.mseconds = gpsttime;
-	else
-		return;
+//	if (loc.mseconds != gpsttime)
+//		loc.mseconds = gpsttime;
+//	else
+//		return;
 	loc.accuracy_hor_pos_ = 0;
 	loc.accuracy_ver_pos_ = 1;
-	loc.altitude = MS5611.altitude();
+	loc.altitude = Emu.get_alt();;
 
 
 
@@ -100,13 +100,14 @@ void GPSClass::loop(){
 		loc.lon_ = lon;
 		loc.updateXY();
 
-			if (Log.writeTelemetry && Autopilot.motors_is_on()) {
+			if (Log.writeTelemetry) {
 
-				NAV_POSLLH posllh;
+				SEND_I2C posllh;
 				posllh.lat = lat;
 				posllh.lon = lon;
+				posllh.height = Emu.get_alt();
 				Log.loadByte(LOG::GpS);
-				Log.loadGPS_full(&posllh);
+				Log.loadSEND_I2C(&posllh);
 				Log.loadFloat((float)loc.x2home);
 				Log.loadFloat((float)loc.y2home);
 				Log.loadFloat((float)loc.dX);
@@ -144,22 +145,23 @@ void GPSClass::loop(){
 #else
 
 
-uint64_t last_gps_time1 = 0;
-
+uint32_t last_gps_time1 = 0;
+SEND_I2C g_data;
 void GPSClass::loop(){
 
-	uint64_t ttt = micros();
-	if (micros() - last_gps_time1 >= 33000) {
-		last_gps_time1 = micros();
-		if (loc.processGPS()) {
-			loc.updateXY();
+	uint32_t ttt = millis();
+	//if (ttt - last_gps_time1 >= 50) {
+		last_gps_time1 = ttt;
+		if (mega_i2c.get_gps(&g_data)) {
+			loc.proceed(&g_data);
 		}
-		if ((last_gps_time1 > loc.last_gps_data_time) && (last_gps_time1 - loc.last_gps_data_time) > 1000000){//NO_GPS_TIME_TO_FALL) {
+
+		if ((last_gps_time1 > loc.last_gps_data_time) && (last_gps_time1 - loc.last_gps_data_time) > 1000){//NO_GPS_TIME_TO_FALL) {
 			fprintf(Debug.out_stream,"gps update error  %i\n",millis()/1000);
-			loc.last_gps_data_time = micros();
+			loc.last_gps_data_time = ttt;
 			//Autopilot.control_falling(e_GPS_NO_UPDATE);
 		}
-	}
+	//}
 }
 #endif
 

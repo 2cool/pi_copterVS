@@ -41,7 +41,7 @@ private:
 	float wind[3];
 	float f[4][3];
 public:
-	float battery(float b[]);
+	float battery();
 	void init(float wx, float wy, float wz, float yaw=0,float pitch=0,float roll=0);
 	float get_pitch();
 	float get_roll();

@@ -9,7 +9,7 @@
 	#include "WProgram.h"
 #endif
 
-#include "Pwm.h"
+#include "mi2c.h"
 #include "MS5611.h"
 #include "Location.h"
 #include "AP_PID.h"
@@ -66,14 +66,14 @@ class AutopilotClass
 
 	 
  public:
-	 int starts_cnt_after_powers_on;
+
 	 bool busy() { return (control_bits & (MPU_ACC_CALIBR | MPU_GYRO_CALIBR | COMPASS_CALIBR)); }
 	 uint32_t last_time_data_recived;
 	 void setYaw(const float yaw){aYaw_ = yaw;}
-	 float getGimbalPitch(){ return gimBalPitch; }
+	 float getGimbalPitch(){ return gimbalPitch; }
 	 void control_falling(const string msg);
 	 void gimBalPitchADD(const float add);
-
+	 void gimBalRollCorrection();
 	 float corectedAltitude4tel();
 	
 	 uint32_t start_time;
@@ -112,7 +112,7 @@ class AutopilotClass
 
 	// bool get_smart_cntr_flag(){ return smart_ctrl; }
 	 bool connected;
-	 float gimBalPitch, gimBalRoll;
+	 float gimBalPitchZero, gimBalRollZero, gimbalPitch;
 	 float height_to_lift_to_fly_to_home;
 
 	 bool going2HomeON(const bool hower);

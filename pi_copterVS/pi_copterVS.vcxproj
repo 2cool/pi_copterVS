@@ -71,6 +71,7 @@
     <ClCompile Include="FIND.cpp" />
     <ClCompile Include="GeoDot.cpp" />
     <ClCompile Include="GPS.cpp" />
+    <ClCompile Include="gsm.cpp" />
     <ClCompile Include="Hmc.cpp" />
     <ClCompile Include="I2Cdev.cpp" />
     <ClCompile Include="inv_mpu.cpp" />
@@ -83,7 +84,7 @@
     <ClCompile Include="mpu_umulator.cpp" />
     <ClCompile Include="MS5611.cpp" />
     <ClCompile Include="Prog.cpp" />
-    <ClCompile Include="Pwm.cpp" />
+    <ClCompile Include="mi2c.cpp" />
     <ClCompile Include="RC_Filter.cpp" />
     <ClCompile Include="Settings.cpp" />
     <ClCompile Include="Stabilization.cpp" />
@@ -105,6 +106,7 @@
     <ClInclude Include="FIND.h" />
     <ClInclude Include="GeoDot.h" />
     <ClInclude Include="GPS.h" />
+    <ClInclude Include="gsm.h" />
     <ClInclude Include="helper_3dmath.h" />
     <ClInclude Include="Hmc.h" />
     <ClInclude Include="I2Cdev.h" />
@@ -118,7 +120,7 @@
     <ClInclude Include="mpu_umulator.h" />
     <ClInclude Include="MS5611.h" />
     <ClInclude Include="Prog.h" />
-    <ClInclude Include="Pwm.h" />
+    <ClInclude Include="mi2c.h" />
     <ClInclude Include="RC_Filter.h" />
     <ClInclude Include="Settings.h" />
     <ClInclude Include="Stabilization.h" />
@@ -132,6 +134,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
+    <Link>
+      <LibraryDependencies>pthread</LibraryDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Link>
       <LibraryDependencies>pthread</LibraryDependencies>
     </Link>

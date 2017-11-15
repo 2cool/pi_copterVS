@@ -39,7 +39,7 @@ THG out of Perimetr high
 #include "define.h"
 #include "WProgram.h"
 
-#include "Pwm.h"
+#include "mi2c.h"
 #include "MS5611.h"
 #include "Autopilot.h"
 #include "Balance.h"
@@ -54,7 +54,7 @@ THG out of Perimetr high
 #include "debug.h"
 #include "Prog.h"
 #include "Wi_Fi.h"
-#include "Pwm.h"
+#include "mi2c.h"
 
 #include <cstdio>
 #include <signal.h>
@@ -120,7 +120,7 @@ void start_video() {
 		usleep(2000000);
 		fprintf(Debug.out_stream, "recording video START\n");
 		string s = "/home/igor/ffmpeg_cedrus264_H3/ffmpeg -f v4l2 -channel 0 -video_size 640x480 -i /dev/video0 -pix_fmt nv12 -r 30 -b:v 64k -c:v cedrus264 /home/igor/logs/video";
-		s += std::to_string(Log.counter);
+		s += std::to_string(Log.counter_());
 		s += "_";
 		s += std::to_string(Log.run_counter);
 		s += ".mp4 > /dev/null 2>&1";
@@ -145,7 +145,7 @@ void start_video() {
 
 
 void AutopilotClass::init(){/////////////////////////////////////////////////////////////////////////////////////////////////
-	starts_cnt_after_powers_on = 0;
+
 	camera_mode = CAMMERA_OFF;
 	lowest_height = Debug.lowest_altitude_to_fly;
 	last_time_data_recived = 0;
@@ -176,9 +176,9 @@ void AutopilotClass::init(){////////////////////////////////////////////////////
 
 	controlDeltaTime = millis();
 
-	gimBalPitch = gimBalRoll=0;
+	gimBalPitchZero = gimBalRollZero= gimbalPitch=0;
 
-	Pwm.gimagl(gimBalPitch, gimBalRoll);
+	mega_i2c.gimagl(gimBalPitchZero, gimBalRollZero);
 
 }
 
@@ -258,12 +258,15 @@ void AutopilotClass::loop(){////////////////////////////////////////////////////
 #ifdef LOST_BEEP
 	if ( t - last_time_data_recived>3000 && t - last_beep_time > 3000) {
 		last_beep_time = t;
-		Pwm.beep_code(BEEPS_ON + (1 << 1));
+		mega_i2c.beep_code(BEEPS_ON + (1 << 1));
 	}
 #endif
 
 	controlDeltaTime = t;
 	uint8_t smart = 0;
+
+
+	gimBalRollCorrection();
 
 	if (control_bits&CONTROL_FALLING){
 		aYaw_ = Mpu.get_yaw();
@@ -320,7 +323,7 @@ void AutopilotClass::loop(){////////////////////////////////////////////////////
 }
 
 void AutopilotClass::log() {
-	if (old_control_bits != control_bits && Log.writeTelemetry && Autopilot.motors_is_on()) {
+	if (old_control_bits != control_bits && Log.writeTelemetry) {
 		Log.loadByte(LOG::AUTO);
 		Log.loaduint32t(control_bits);
 		old_control_bits = control_bits;
@@ -329,13 +332,13 @@ void AutopilotClass::log() {
 string AutopilotClass::get_set(){
 	
 	ostringstream convert;
-	convert<<\
-	height_to_lift_to_fly_to_home<<","<<\
-	MAX_THROTTLE_<<","<<\
-	MIN_THROTTLE_<<","<<\
-	sens_xy<<","<<\
-	sens_z<<","<<\
-	lowest_height<<","<< Debug.n_debug<<","<<camera_mode;
+	convert << \
+		height_to_lift_to_fly_to_home << "," << \
+		MAX_THROTTLE_ << "," << \
+		MIN_THROTTLE_ << "," << \
+		sens_xy << "," << \
+		sens_z << "," << \
+		lowest_height << "," << Debug.n_debug << "," << camera_mode << "," << -gimBalPitchZero << "," << -gimBalRollZero << ",";
 	string ret = convert.str();
 	return string(ret);
 }
@@ -357,7 +360,11 @@ void AutopilotClass::set(const float ar[]){
 		error += Commander._set(ar[i++], lowest_height,false);
 		Debug.n_debug = (int)ar[i++];
 		camera_mode = (int)ar[i++];
-
+		gimBalPitchZero= -constrain(ar[i],-15,15);
+		i++;
+		gimBalRollZero = -constrain(ar[i],-15,15);
+		i++;
+		mega_i2c.gimagl(gimBalPitchZero, gimBalRollZero);
 		if (error == 0){
 			int ii = 0;
 			fprintf(Debug.out_stream,"Safe set:\n");
@@ -601,6 +608,7 @@ bool AutopilotClass::motors_do_on(const bool start, const string msg){//////////
 	fprintf(Debug.out_stream,"%s - ",msg.c_str());
 	
 	if (start){
+		fprintf(Debug.out_stream, "MS5611 err: %f\n",MS5611.getErrorsK());
 #ifndef FALSE_WIRE
 		fprintf(Debug.out_stream,"on ");
 		if (millis() < 30000) {
@@ -610,16 +618,12 @@ bool AutopilotClass::motors_do_on(const bool start, const string msg){//////////
 #else
 		Emu.init(WIND_X, WIND_Y, WIND_Z);
 #endif
-		if (Telemetry.power_is_on() == false) {
-			fprintf(Debug.out_stream,"!!! power is off !!!\n");
-			Telemetry.addMessage(e_CALIBRATING);
-			Pwm.beep_code(BEEPS_ON+(1<<1));
-		}
+
 
 #define MAX_MACC 0.1f
 		if (Hmc.compas_motors_calibr == false && (abs(Mpu.maccX) > MAX_MACC || abs(Mpu.maccY) > MAX_MACC || abs(Mpu.maccZ) > MAX_MACC)) {
 			fprintf(Debug.out_stream, "ACC ERROR!!! \n");
-			Pwm.beep_code(BEEPS_ON + (2 << 1));
+			mega_i2c.beep_code(BEEPS_ON + (2 << 1));
 			return false;
 		}
 
@@ -628,13 +632,13 @@ bool AutopilotClass::motors_do_on(const bool start, const string msg){//////////
 			if (Telemetry.low_voltage){
 				Telemetry.addMessage(e_LOW_VOLTAGE);
 				fprintf(Debug.out_stream," LOW VOLTAGE\n");
-				Pwm.beep_code(BEEPS_ON + (3 << 1));
+				mega_i2c.beep_code(BEEPS_ON + (3 << 1));
 				return false;
 			}
 
 			if (Hmc.compas_motors_calibr==false && GPS.loc.accuracy_hor_pos_ > MIN_ACUR_HOR_POS_2_START ){
 				fprintf(Debug.out_stream," GPS error\n");
-				Pwm.beep_code(BEEPS_ON + (4 << 1));
+				mega_i2c.beep_code(BEEPS_ON + (4 << 1));
 				Telemetry.addMessage(e_GPS_ERROR);
 
 				//return false;
@@ -653,15 +657,14 @@ bool AutopilotClass::motors_do_on(const bool start, const string msg){//////////
 			
 			Mpu.max_g_cnt = 0;
 
-			holdAltitude(Debug.fly_at_start);
-			holdLocation(GPS.loc.lat_, GPS.loc.lon_);
+			//holdAltitude(Debug.fly_at_start);
+			//holdLocation(GPS.loc.lat_, GPS.loc.lon_);
 			Stabilization.resset_z();
 			Stabilization.resset_xy_integrator();
 			aYaw_ = -Mpu.get_yaw();
 			//fflush(Debug.out_stream);
 			start_time = millis();
-			if (Telemetry.power_is_on())
-				starts_cnt_after_powers_on++;
+
 #ifdef DEBUG_MODE
 			fprintf(Debug.out_stream, "\nhome loc: %i %i \nhome alt set %i\n", GPS.loc.lat_, GPS.loc.lon_, (int)flyAtAltitude);
 #endif
@@ -678,12 +681,12 @@ bool AutopilotClass::motors_do_on(const bool start, const string msg){//////////
 		else{
 			if (Hmc.calibrated == false){
 				fprintf(Debug.out_stream,"compas, ");
-				Pwm.beep_code(BEEPS_ON + (4 << 1));
+				mega_i2c.beep_code(BEEPS_ON + (4 << 1));
 
 			}
 			if (Mpu.gyro_calibratioan == false){
 				fprintf(Debug.out_stream,"gyro");
-				Pwm.beep_code(BEEPS_ON + (5 << 1));
+				mega_i2c.beep_code(BEEPS_ON + (5 << 1));
 
 			}
 			fprintf(Debug.out_stream," calibr FALSE\n");
@@ -868,11 +871,23 @@ bool AutopilotClass::selfTest(){////////////////////////////////////////////////
 	//wdt_enable(WATCHDOG);
 	return false;
 }
-
+float old_g_roll = 1000;
+#define MAX_GIMBAL_ROLL 20
+void AutopilotClass::gimBalRollCorrection() {
+	const float roll = Mpu.get_roll();
+	if (abs(roll) > MAX_GIMBAL_ROLL)
+		gimBalRollZero = 2*(roll - ((roll > 0) ? MAX_GIMBAL_ROLL : -MAX_GIMBAL_ROLL));
+	else
+		gimBalRollZero = 0;
+	if (old_g_roll != gimBalRollZero) {
+		mega_i2c.gimagl(-(gimBalPitchZero + gimbalPitch), gimBalRollZero);
+		old_g_roll = gimBalRollZero;
+	}
+}
 void AutopilotClass::gimBalPitchADD(const float add){
 	if (!progState())
-		if (Pwm.gimagl(-(gimBalPitch + add), gimBalRoll))
-			gimBalPitch += add;
+		if (mega_i2c.gimagl((gimBalPitchZero + gimbalPitch + add), gimBalRollZero))
+			gimbalPitch += add;
 
 }
 
@@ -917,6 +932,7 @@ bool AutopilotClass::set_control_bits(uint32_t bits) {
 		return true;
 	//	uint8_t mask = control_bits_^bits;
 	//fprintf(Debug.out_stream,"comm=%i\n", bits);
+
 	if (MOTORS_ON&bits)  {
 		Hmc.compas_motors_calibr = false;
 		bool on = motors_is_on() == false;
@@ -926,40 +942,6 @@ bool AutopilotClass::set_control_bits(uint32_t bits) {
 		}
 	}
 
-	if (bits & GO2HOME)
-		going2HomeStartStop(false);
-
-	if (bits & PROGRAM)
-		start_stop_program(true);
-
-	if (bits & Z_STAB)
-		holdAltitudeStartStop();
-
-	if (bits & XY_STAB)
-		holdLocationStartStop();
-
-
-	if (bits & COMPASS_ON)
-		compass_tr();
-
-	if (bits & HORIZONT_ON)
-		horizont_tr();
-	//-----------------------------------------------
-	if (bits & (MPU_ACC_CALIBR | MPU_GYRO_CALIBR)) {
-		control_bits |= (MPU_ACC_CALIBR | MPU_GYRO_CALIBR);
-		Mpu.new_calibration(!(bits&MPU_ACC_CALIBR));
-		control_bits &= (0xffffffff ^ (MPU_ACC_CALIBR | MPU_GYRO_CALIBR));
-	}
-	if (bits & COMPASS_MOTOR_CALIBR) {
-		Hmc.start_motor_compas_calibr();
-		if (Hmc.compas_motors_calibr)
-			control_bits |= COMPASS_MOTOR_CALIBR;
-	}
-	if (bits & COMPASS_CALIBR) {
-		control_bits |= COMPASS_CALIBR;
-		Hmc.calibration(true);
-		control_bits &= ~COMPASS_CALIBR;
-	}
 	if (bits & SHUTDOWN)
 	{
 		if (motors_is_on() == false) {
@@ -981,6 +963,45 @@ bool AutopilotClass::set_control_bits(uint32_t bits) {
 		gimBalPitchADD(5);
 	if (bits & GIMBAL_MINUS)
 		gimBalPitchADD(-5);
+
+
+	if (control_fallingState() == false) {
+
+		if (bits & GO2HOME)
+			going2HomeStartStop(false);
+
+		if (bits & PROGRAM)
+			start_stop_program(true);
+
+		if (bits & Z_STAB)
+			holdAltitudeStartStop();
+
+		if (bits & XY_STAB)
+			holdLocationStartStop();
+
+
+		if (bits & COMPASS_ON)
+			compass_tr();
+
+		if (bits & HORIZONT_ON)
+			horizont_tr();
+		//-----------------------------------------------
+		if (bits & (MPU_ACC_CALIBR | MPU_GYRO_CALIBR)) {
+			control_bits |= (MPU_ACC_CALIBR | MPU_GYRO_CALIBR);
+			Mpu.new_calibration(!(bits&MPU_ACC_CALIBR));
+			control_bits &= (0xffffffff ^ (MPU_ACC_CALIBR | MPU_GYRO_CALIBR));
+		}
+		if (bits & COMPASS_MOTOR_CALIBR) {
+			Hmc.start_motor_compas_calibr();
+			if (Hmc.compas_motors_calibr)
+				control_bits |= COMPASS_MOTOR_CALIBR;
+		}
+		if (bits & COMPASS_CALIBR) {
+			control_bits |= COMPASS_CALIBR;
+			Hmc.calibration(true);
+			control_bits &= ~COMPASS_CALIBR;
+		}
+	}
 
 	return true;
 }

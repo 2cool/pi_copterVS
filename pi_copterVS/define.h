@@ -10,7 +10,7 @@
 
 
 //------------------------------------------------
-//#define FALSE_WIRE
+#define FALSE_WIRE
 
 
 
@@ -175,5 +175,22 @@
 #define m_SETTINGS	   "SET"
 #define m_UPLOAD_SETTINGS "UPS"
 #define m_PROGRAM	   "PRG"
+
+
+
+
+struct SEND_I2C {
+
+	int32_t lon;
+	int32_t lat;
+	int32_t height;
+	uint8_t hAcc;
+	uint8_t vAcc;
+};
+
+
+
+
+
 
 #endif

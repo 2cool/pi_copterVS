@@ -10,7 +10,7 @@
 #endif
 #include "Hmc.h"
 
-#include "Pwm.h"
+#include "mi2c.h"
 #include "mpu.h"
 #include "I2Cdev.h"
 #include "MPU6050.h"
@@ -35,8 +35,6 @@ class BalanceClass
  protected:
 	 float power_K;
 	 float mid_powerK;
-
-	 void escCalibration();
 	 
 	float throttle;
 	//float pitch_roll_stabKP, pitch_roll_rateKP, yaw_rateKP,yaw_stabKP,pitch_roll_rateKI,pitch_roll_rateIMAX,yaw_rateKI,yaw_rateIMAX;

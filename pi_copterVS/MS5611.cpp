@@ -89,7 +89,7 @@ int MS5611Class::init(){
 #ifndef FALSE_WIRE
 
 	int fd4S;
-	if ((fd4S = open("/dev/i2c-1", O_RDWR)) < 0){
+	if ((fd4S = open("/dev/i2c-0", O_RDWR)) < 0){
 		fprintf(Debug.out_stream,"Failed to open the bus.\n");
 		close(fd4S);
 		return -1;
@@ -142,12 +142,12 @@ void MS5611Class::copterStarted(){
 
 
 double MS5611Class::getAltitude(const float pressure) {
-	return (44330.0f * (1.0f - pow((double)pressure / PRESSURE_AT_0, 0.1902949f)));
+	return (44330.0f * (1.0f - pow((double)pressure / PRESSURE_AT_0, 0.1902949f)));//Где блядь проверка
 }
 
 
 void MS5611Class::log() {
-	if (Log.writeTelemetry && Autopilot.motors_is_on()) {
+	if (Log.writeTelemetry) {
 		Log.loadByte(LOG::MS5);
 		Log.loadFloat(pressure);
 	}
@@ -232,7 +232,7 @@ void MS5611Class::phase0() {
 	bar_zero = 0;
 
 	
-	if ((fd4S = open("/dev/i2c-1", O_RDWR)) < 0) {
+	if ((fd4S = open("/dev/i2c-0", O_RDWR)) < 0) {
 		fprintf(Debug.out_stream,"Failed to open the bus.\n");
 		close(fd4S);
 		return;
@@ -261,7 +261,7 @@ void MS5611Class::phase1()
 	if (micros()  > b_timeDelay) {
 
 		int fd4S;
-		if ((fd4S = open("/dev/i2c-1", O_RDWR)) < 0) {
+		if ((fd4S = open("/dev/i2c-0", O_RDWR)) < 0) {
 			fprintf(Debug.out_stream,"Failed to open the bus.\n");
 			close(fd4S);
 			bar_task = 0;
@@ -324,7 +324,7 @@ void MS5611Class::phase2() {
 	if (micros()  > b_timeDelay) 
 	{
 		int fd4S;
-		if ((fd4S = open("/dev/i2c-1", O_RDWR)) < 0) {
+		if ((fd4S = open("/dev/i2c-0", O_RDWR)) < 0) {
 			fprintf(Debug.out_stream,"Failed to open the bus.\n");
 			close(fd4S);
 			bar_task = 0;
@@ -365,7 +365,7 @@ void MS5611Class::phase2() {
 	}
 }
 
-int cntt=0;
+int cntt=0,err_cnt=0;
 double maxxx = 0;
 void MS5611Class::phase3() {
 
@@ -420,6 +420,7 @@ void MS5611Class::phase3() {
 		}
 		if (deltaS > 50) {
 			bar_task = 0;
+			err_cnt++;
 			fprintf(Debug.out_stream, "%f %i\n", deltaS, cntt);
 			close(fd4S);
 			oldAltt = 100000;
@@ -469,7 +470,7 @@ void MS5611Class::phase3() {
 }
 void MS5611Class::update(){}
 
-
+float MS5611Class::getErrorsK() {return  (float)err_cnt/(float)cntt;}
 
 float MS5611Class::get_pressure(float h) {
 	return PRESSURE_AT_0 * pow(1 - h*2.25577e-5, 5.25588);

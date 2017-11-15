@@ -60,13 +60,13 @@ protected:
 
 	  void phase0();
 	  void phase1();
-
+	 
 	  void phase2();
 	  void phase3();
 
 	float altitude_;
 public:
-
+	float getErrorsK();
 	float altitude();
 
 	uint8_t ms5611_count;

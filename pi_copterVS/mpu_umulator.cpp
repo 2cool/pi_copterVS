@@ -25,12 +25,12 @@
 float false_time = 0;
 float false_voltage = BAT_100P;
 
-float EmuClass::battery(float b[]) {
+float EmuClass::battery() {
 
 	float voltage_sag = 0;
 	if (false_time == 0 && Autopilot.motors_is_on()) {
 		false_time = millis();
-		false_voltage = MAX_VOLTAGE_AT_START;
+		false_voltage = MAX_VOLTAGE_AT_START*4;
 	}
 	if (false_time>0) {
 		float powerKl = (Balance.get_throttle() * 2);
@@ -42,15 +42,10 @@ float EmuClass::battery(float b[]) {
 		false_time = millis();
 		false_voltage -= drawSpeed*dt;
 	}
-	const float a = false_voltage - voltage_sag;
-#ifdef NOISE_ON
-	b[0] = a + 1 - (2 * (float)rand() / (float)RAND_MAX);
-	b[1] = a + 1 - (2 * (float)rand() / (float)RAND_MAX);
-	b[2] = a + 1 - (2 * (float)rand() / (float)RAND_MAX);
-#else
-	b[0] = b[1] = b[2] = a;
-#endif
-	return (b[0] + b[1] + b[2]);
+	const float voltage = false_voltage - voltage_sag;
+
+
+	return voltage;
 }
 
 
@@ -439,7 +434,7 @@ void EmuClass::update(float fm_[4], double dt) {
 	}
 	//Debug.load(0, pos[X], pos[Y]);
 	//Debug.dump();
-	if (Log.writeTelemetry && Autopilot.motors_is_on()) {
+	if (Log.writeTelemetry) {
 		Log.loadByte(LOG::EMU);
 		Log.loadByte(8);
 		Log.loadFloat(RAD2GRAD*ang[PITCH]);

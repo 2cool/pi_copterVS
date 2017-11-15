@@ -16,7 +16,7 @@
 #include "debug.h"
 #include "Log.h"
 
-#define DEFAULT_DEV "/dev/i2c-1"
+#define DEFAULT_DEV "/dev/i2c-0"
 
 void HmcClass::init()
 {
@@ -64,7 +64,7 @@ void HmcClass::set(const float buf[]){
 //---------------------------------------------------------
 
 void HmcClass::log() {
-	if (Log.writeTelemetry && Autopilot.motors_is_on()) {
+	if (Log.writeTelemetry) {
 		Log.loadByte(LOG::HMC);
 		Log.loadInt16t(buffer[0]);
 		Log.loadInt16t(buffer[1]);
@@ -212,22 +212,15 @@ void HmcClass::loop(){
 	mz = (((int16_t)buffer[2]) << 8) | buffer[3];
 
 
-	fmx=(float)(mx - baseX)*dx;	
-	fmy=(float)(my - baseY)*dy;
-	fmz=(float)(mz - baseZ)*dz;
+	fmy=-(float)(mx - baseX)*dx;	
+	fmx=-(float)(my - baseY)*dy;
+	fmz=-(float)(mz - baseZ)*dz;
 
-
-
-
-#ifndef SESOR_UPSIDE_DOWN
-	my = -my;
-	mz = -mz;
-#endif
 
 	if (compas_motors_calibr)
 		motTest(fmx, fmy, fmz);
 
-	if (Autopilot.motors_is_on() && motors_power_on){
+/*	if (Autopilot.motors_is_on() && motors_power_on){
 		float kx, ky, kz;
 		//m0;
 		//float pk = MS5611.pressure / 101663.0;
@@ -271,7 +264,7 @@ void HmcClass::loop(){
 			fmy -= ky;
 			fmz -= kz;
 	}
-
+	*/
 	// Tilt compensation
 	float Xh = fmx * Mpu.cosPitch - fmz * Mpu.sinPitch;
 	float Yh = fmx * Mpu.sinRoll * Mpu.sinPitch + fmy * Mpu.cosRoll - fmz * Mpu.sinRoll * Mpu.cosPitch;
@@ -380,7 +373,7 @@ bool HmcClass::calibration(const bool newc){
 	calibrated = Settings.readCompassSettings(sh);
 	if (calibrated == false) 
 		fprintf(Debug.out_stream, "! ! ! ! Comppas not Calibrated ! ! ! !\n");
-	bool mot_cal = Settings.readCompasMotorSettings(base);
+	bool mot_cal = true;// Settings.readCompasMotorSettings(base);
 	if (!mot_cal)
 		fprintf(Debug.out_stream, "! ! ! ! Comppas motors not Calibrated ! ! ! !\n");
 	calibrated &= mot_cal;

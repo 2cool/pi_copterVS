@@ -3,7 +3,7 @@
 // 
 
 #include "commander.h"
-#include "Pwm.h"
+#include "mi2c.h"
 #include "Autopilot.h"
 #include "Telemetry.h"
 #include "Balance.h"
@@ -273,7 +273,7 @@ bool CommanderClass::input(){
 		//Autopilot.last_time_data_recived = millis();
 		if (data_size >= 12) {
 
-			if (Log.writeTelemetry && Autopilot.motors_is_on()) {
+			if (Log.writeTelemetry) {
 				Log.loadByte(LOG::COMM);
 				Log.loadMem(buf, data_size);
 			}
